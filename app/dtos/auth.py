@@ -1,22 +1,24 @@
-from datetime import date
 from typing import Annotated
+from pydantic import BaseModel, EmailStr, Field
 
-from pydantic import AfterValidator, BaseModel, EmailStr, Field
 
-from app.models.users import Gender
-from app.core.validators import validate_birthday, validate_password, validate_phone_number
+class ConsentItem(BaseModel):
+    consent_type: str
+    is_agreed: bool
 
 
 class SignUpRequest(BaseModel):
-    email: Annotated[
-        EmailStr,
-        Field(None, max_length=40),
-    ]
-    password: Annotated[str, Field(min_length=8), AfterValidator(validate_password)]
-    name: Annotated[str, Field(max_length=20)]
-    gender: Gender
-    birth_date: Annotated[date, AfterValidator(validate_birthday)]
-    phone_number: Annotated[str, AfterValidator(validate_phone_number)]
+    email: Annotated[EmailStr, Field(max_length=100)]
+    password: Annotated[str, Field(min_length=8, max_length=20)]
+    name: Annotated[str, Field(min_length=2, max_length=20)]
+    nickname: Annotated[str | None, Field(max_length=100)] = None
+    consents: list[ConsentItem]
+
+
+class SignUpResponse(BaseModel):
+    user_id: int
+    email: str
+    required_consents_saved: bool
 
 
 class LoginRequest(BaseModel):
@@ -24,8 +26,26 @@ class LoginRequest(BaseModel):
     password: Annotated[str, Field(min_length=8)]
 
 
+class UserInfo(BaseModel):
+    id: int
+    name: str
+
+
 class LoginResponse(BaseModel):
     access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserInfo
 
 
-class TokenRefreshResponse(LoginResponse): ...
+class TokenRefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class TokenRefreshResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str
