@@ -1,12 +1,21 @@
 from fastapi import FastAPI
 from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
-
 from app.core import config
 
 TORTOISE_APP_MODELS = [
     "aerich.models",
     "app.models.users",
+    "app.models.auth_tokens",
+    "app.models.user_consents",
+    "app.models.user_health_profiles",
+    "app.models.medical_records",
+    "app.models.ocr_lines",
+    "app.models.processing_jobs",
+    "app.models.medications",
+    "app.models.notifications",
+    "app.models.notification_settings",
+    "app.models.feedbacks",
 ]
 
 TORTOISE_ORM = {
@@ -32,7 +41,6 @@ TORTOISE_ORM = {
     },
     "timezone": "Asia/Seoul",
 }
-
 
 def initialize_tortoise(app: FastAPI) -> None:
     Tortoise.init_models(TORTOISE_APP_MODELS, "models")
