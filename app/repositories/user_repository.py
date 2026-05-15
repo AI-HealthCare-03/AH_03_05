@@ -1,7 +1,7 @@
-from typing import Any
 from datetime import datetime
-from app.models.users import User
+from typing import Any
 
+from app.models.users import User
 
 UPDATED_AT_FIELD = "updated_at"
 

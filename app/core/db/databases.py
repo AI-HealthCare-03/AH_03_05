@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
+
 from app.core import config
 
 TORTOISE_APP_MODELS = [
@@ -45,6 +46,7 @@ TORTOISE_ORM = {
     },
     "timezone": "Asia/Seoul",
 }
+
 
 def initialize_tortoise(app: FastAPI) -> None:
     Tortoise.init_models(TORTOISE_APP_MODELS, "models")
