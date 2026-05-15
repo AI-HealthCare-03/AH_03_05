@@ -2,6 +2,14 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Annotated
 from app.dtos.base import BaseSerializerModel
+=======
+
+from pydantic import BaseModel, EmailStr, Field
+
+from app.core.validators import optional_after_validator, validate_birthday, validate_phone_number
+from app.dtos.base import BaseSerializerModel
+from app.models.users import Gender
+>>>>>>> 386c79f6c7787a714c964ff8ae13b58f8434e58d
 
 
 class UserUpdateRequest(BaseModel):

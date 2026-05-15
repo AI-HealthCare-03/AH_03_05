@@ -3,12 +3,12 @@ from pydantic import EmailStr
 from starlette import status
 from tortoise.transactions import in_transaction
 
+from app.core.jwt.tokens import AccessToken, RefreshToken
+from app.core.utils.security import hash_password, verify_password
 from app.dtos.auth import LoginRequest, SignUpRequest
 from app.models.users import User, UserStatus
 from app.models.user_consents import UserConsent, ConsentType, RequiredType
 from app.models.auth_tokens import AuthToken
-from app.core.jwt.tokens import AccessToken, RefreshToken
-from app.core.utils.security import hash_password, verify_password
 from app.services.jwt import JwtService
 
 
@@ -17,10 +17,8 @@ class AuthService:
         self.jwt_service = JwtService()
 
     async def signup(self, data: SignUpRequest) -> User:
-        # 이메일 중복 체크
         await self.check_email_exists(data.email)
 
-        # 필수 동의 항목 검증
         required_types = {
             ConsentType.TERMS,
             ConsentType.PRIVACY,
@@ -39,7 +37,6 @@ class AuthService:
             )
 
         async with in_transaction():
-            # 유저 생성
             user = await User.create(
                 email=data.email,
                 password_hash=hash_password(data.password),
@@ -48,7 +45,6 @@ class AuthService:
                 status=UserStatus.ACTIVE,
             )
 
-            # 동의 항목 저장
             for consent in data.consents:
                 consent_type = ConsentType(consent.consent_type)
                 required_type = (
@@ -69,14 +65,12 @@ class AuthService:
         email = str(data.email)
         user = await User.get_or_none(email=email)
 
-        # 통합 메시지 (계정 존재 여부 노출 방지)
         if not user or not verify_password(data.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="계정 또는 비밀번호가 일치하지 않습니다."
             )
 
-        # 탈퇴 계정 체크
         if user.status == UserStatus.WITHDRAWN:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -86,7 +80,6 @@ class AuthService:
         return user
 
     async def login(self, user: User) -> dict[str, AccessToken | RefreshToken]:
-        # 마지막 로그인 시각 업데이트
         from datetime import datetime, timezone
         user.last_login_at = datetime.now(timezone.utc)
         await user.save()
