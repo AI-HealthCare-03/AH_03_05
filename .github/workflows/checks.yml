@@ -43,14 +43,9 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: pw1234
-          MYSQL_DATABASE: ai_health
-        ports:
-          - 3306:3306
+    env:
+      MFDS_API_KEY: ci-dummy-key-not-used-in-tests
+      OPENAI_API_KEY: ci-dummy-key-not-used-in-tests
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
