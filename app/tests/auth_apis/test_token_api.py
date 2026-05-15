@@ -1,6 +1,7 @@
 from httpx import ASGITransport, AsyncClient
 from starlette import status
 from tortoise.contrib.test import TestCase
+
 from app.main import app
 
 
@@ -25,15 +26,11 @@ class TestLogoutAPI(TestCase):
                 json={"email": "logout_test@example.com", "password": "Password123!"},
             )
             refresh_token = login_response.json()["refresh_token"]
-            response = await client.post(
-                "/api/v1/auth/logout", json={"refresh_token": refresh_token}
-            )
+            response = await client.post("/api/v1/auth/logout", json={"refresh_token": refresh_token})
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["detail"] == "로그아웃되었습니다."
 
     async def test_logout_invalid_token(self):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.post(
-                "/api/v1/auth/logout", json={"refresh_token": "invalid_token"}
-            )
+            response = await client.post("/api/v1/auth/logout", json={"refresh_token": "invalid_token"})
         assert response.status_code == status.HTTP_200_OK
