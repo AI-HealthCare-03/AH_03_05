@@ -1,4 +1,5 @@
 from tortoise.transactions import in_transaction
+
 from app.dtos.users import UserUpdateRequest
 from app.models.users import User
 from app.repositories.user_repository import UserRepository

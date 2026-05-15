@@ -10,8 +10,9 @@ class UserUpdateRequest(BaseModel):
 
 
 class UserInfoResponse(BaseSerializerModel):
-    id: int
+    user_id: int = Field(alias="id")
     email: str
     name: str
     nickname: str | None
+    status: str
     created_at: datetime

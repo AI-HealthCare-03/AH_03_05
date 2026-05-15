@@ -1,9 +1,13 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
+
 from app.dtos.auth import (
-    SignUpRequest, SignUpResponse,
-    LoginRequest, LoginResponse,
+    LoginRequest,
+    LoginResponse,
     LogoutRequest,
+    SignUpRequest,
+    SignUpResponse,
     UserInfo,
 )
 from app.services.auth import AuthService
