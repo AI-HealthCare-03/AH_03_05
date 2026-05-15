@@ -10,7 +10,7 @@ class UserUpdateRequest(BaseModel):
 
 
 class UserInfoResponse(BaseSerializerModel):
-    user_id: int = Field(alias="id")
+    id: int = Field(serialization_alias="user_id")
     email: str
     name: str
     nickname: str | None
