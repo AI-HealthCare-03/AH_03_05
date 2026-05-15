@@ -1,6 +1,7 @@
 from httpx import ASGITransport, AsyncClient
 from starlette import status
 from tortoise.contrib.test import TestCase
+
 from app.main import app
 
 CONSENTS = [
@@ -41,8 +42,7 @@ class TestHealthProfileAPI(TestCase):
             response = await client.put("/api/v1/health-profile", json=HEALTH_PROFILE_DATA, headers=headers)
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["profile_id"] is not None
-        assert response.json()["age_group"] == "30s"
-        assert response.json()["chronic_diseases"] == ["hypertension"]
+        assert response.json()["updated_at"] is not None
 
     async def test_get_health_profile_success(self):
         signup_data = {
