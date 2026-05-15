@@ -1,5 +1,7 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
+
 from app.dependencies.security import get_request_user
 from app.dtos.users import UserInfoResponse, UserUpdateRequest
 from app.models.users import User
