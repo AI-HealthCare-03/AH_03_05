@@ -4,34 +4,22 @@
 https://www.data.go.kr/data/15095677/openapi.do
 """
 
-import os
 from typing import Any
 
 import httpx
-from dotenv import load_dotenv
 
-load_dotenv()
+from app.core import config
 
-MFDS_API_KEY = os.getenv("MFDS_API_KEY")
-
-# 식약처 의약품 제품 허가정보 서비스 v07
 MFDS_BASE_URL = "https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07"
-
-# 검색 / 상세조회 엔드포인트
 MFDS_SEARCH_URL = f"{MFDS_BASE_URL}/getDrugPrdtPrmsnInq07"
 MFDS_DETAIL_URL = f"{MFDS_BASE_URL}/getDrugPrdtPrmsnDtlInq07"
-
 DEFAULT_TIMEOUT = 30.0
 
 
 class MFDSClient:
-    """식약처 API 호출 클라이언트"""
-
     def __init__(self, api_key: str | None = None):
-        self.api_key = api_key or MFDS_API_KEY
-
-        if not self.api_key:
-            raise ValueError("MFDS_API_KEY가 설정되지 않았습니다. .env 확인 필요.")
+        self.api_key = api_key or config.MFDS_API_KEY
+        # ValueError 체크 제거 — Pydantic이 시작 시점에 이미 검증함
 
     async def search_drug(
         self,
