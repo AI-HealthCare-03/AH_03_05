@@ -23,7 +23,7 @@ class Medication(models.Model):
     id = fields.BigIntField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="medications")
     record = fields.ForeignKeyField("models.MedicalRecord", related_name="medications")
-    drug_ref_id = fields.BigIntField(null=True)  # DrugReference 모델 연결 전 임시
+    drug_ref = fields.ForeignKeyField("models.DrugReference", related_name="medications", null=True)
     drug_name = fields.CharField(max_length=255)
     ingredient_name = fields.CharField(max_length=255, null=True)
     manufacturer = fields.CharField(max_length=255, null=True)

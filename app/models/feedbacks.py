@@ -4,8 +4,8 @@ from tortoise import fields, models
 class Feedback(models.Model):
     id = fields.BigIntField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="feedbacks")
-    guide_id = fields.BigIntField(null=True)  # Guide 모델 연결 전 임시
-    chat_message_id = fields.BigIntField(null=True)  # ChatMessage 모델 연결 전 임시
+    guide = fields.ForeignKeyField("models.Guide", related_name="feedbacks", null=True)
+    chat_message = fields.ForeignKeyField("models.ChatMessage", related_name="feedbacks", null=True)
     rating = fields.IntField(null=True)
     comment = fields.TextField(null=True)
     report_type = fields.CharField(max_length=50, null=True)
