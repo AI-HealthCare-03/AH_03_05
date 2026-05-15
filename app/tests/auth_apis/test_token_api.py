@@ -5,42 +5,32 @@ from tortoise.contrib.test import TestCase
 from app.main import app
 
 
-class TestJWTTokenRefreshAPI(TestCase):
-    async def test_token_refresh_success(self):
-        # 사용자 등록 및 로그인하여 리프레시 토큰 획득
+class TestLogoutAPI(TestCase):
+    async def test_logout_success(self):
         signup_data = {
-            "email": "refresh@example.com",
+            "email": "logout_test@example.com",
             "password": "Password123!",
-            "name": "리프레시테스터",
-            "gender": "MALE",
-            "birth_date": "1990-01-01",
-            "phone_number": "01099998888",
+            "name": "로그아웃테스터",
+            "consents": [
+                {"consent_type": "terms", "is_agreed": True},
+                {"consent_type": "privacy", "is_agreed": True},
+                {"consent_type": "sensitive_health", "is_agreed": True},
+                {"consent_type": "ai_analysis", "is_agreed": True},
+                {"consent_type": "marketing", "is_agreed": False},
+            ],
         }
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post("/api/v1/auth/signup", json=signup_data)
-
             login_response = await client.post(
-                "/api/v1/auth/login", json={"email": "refresh@example.com", "password": "Password123!"}
+                "/api/v1/auth/login",
+                json={"email": "logout_test@example.com", "password": "Password123!"},
             )
-
-            # 쿠키에서 refresh_token 추출
-            set_cookie = login_response.headers.get("set-cookie")
-            refresh_token = ""
-            if set_cookie:
-                import re
-
-                match = re.search(r"refresh_token=([^;]+)", set_cookie)
-                if match:
-                    refresh_token = match.group(1)
-
-            # 토큰 갱신 시도
-            client.cookies["refresh_token"] = refresh_token
-            response = await client.get("/api/v1/auth/token/refresh")
+            refresh_token = login_response.json()["refresh_token"]
+            response = await client.post("/api/v1/auth/logout", json={"refresh_token": refresh_token})
         assert response.status_code == status.HTTP_200_OK
-        assert "access_token" in response.json()
+        assert response.json()["detail"] == "로그아웃되었습니다."
 
-    async def test_token_refresh_missing_token(self):
+    async def test_logout_invalid_token(self):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/api/v1/auth/token/refresh")
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert response.json()["detail"] == "Refresh token is missing."
+            response = await client.post("/api/v1/auth/logout", json={"refresh_token": "invalid_token"})
+        assert response.status_code == status.HTTP_200_OK
