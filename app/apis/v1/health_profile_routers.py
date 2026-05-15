@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.dependencies.security import get_request_user
-from app.dtos.health_profiles import HealthProfileResponse, HealthProfileUpdateRequest
+from app.dtos.health_profiles import HealthProfileResponse, HealthProfileUpdateRequest, HealthProfileUpdateResponse
 from app.models.users import User
 from app.services.health_profiles import HealthProfileService
 
@@ -28,4 +28,4 @@ async def upsert_health_profile(
     health_profile_service: Annotated[HealthProfileService, Depends(HealthProfileService)],
 ) -> dict:
     profile = await health_profile_service.upsert_health_profile(user, request)
-    return HealthProfileResponse.model_validate(profile).model_dump(by_alias=True)
+    return HealthProfileUpdateResponse.model_validate(profile).model_dump(by_alias=True)
