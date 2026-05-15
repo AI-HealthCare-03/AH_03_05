@@ -15,13 +15,9 @@ class ChatSession(models.Model):
     """
 
     id = fields.BigIntField(primary_key=True)
-    user = fields.ForeignKeyField(
-        "models.User", related_name="chat_sessions", on_delete=fields.CASCADE
-    )
+    user = fields.ForeignKeyField("models.User", related_name="chat_sessions", on_delete=fields.CASCADE)
     record_id = fields.BigIntField(null=True)  # MedicalRecord FK (Backend A 모델 머지 후 ForeignKey 복구)
-    guide = fields.ForeignKeyField(
-        "models.Guide", related_name="chat_sessions", null=True, on_delete=fields.SET_NULL
-    )
+    guide = fields.ForeignKeyField("models.Guide", related_name="chat_sessions", null=True, on_delete=fields.SET_NULL)
     title = fields.CharField(max_length=255, null=True)
     status = fields.CharEnumField(
         enum_type=ChatSessionStatus,

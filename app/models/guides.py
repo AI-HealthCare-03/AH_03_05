@@ -16,9 +16,7 @@ class Guide(models.Model):
     """
 
     id = fields.BigIntField(primary_key=True)
-    user = fields.ForeignKeyField(
-        "models.User", related_name="guides", on_delete=fields.CASCADE
-    )
+    user = fields.ForeignKeyField("models.User", related_name="guides", on_delete=fields.CASCADE)
     record_id = fields.BigIntField(null=True)  # MedicalRecord FK (Backend A 모델 머지 후 복구)
     status = fields.CharEnumField(
         enum_type=GuideStatus,
@@ -52,9 +50,7 @@ class GuideItem(models.Model):
     """
 
     id = fields.BigIntField(primary_key=True)
-    guide = fields.ForeignKeyField(
-        "models.Guide", related_name="items", on_delete=fields.CASCADE
-    )
+    guide = fields.ForeignKeyField("models.Guide", related_name="items", on_delete=fields.CASCADE)
     item_type = fields.CharEnumField(enum_type=GuideItemType, max_length=50)
     title = fields.CharField(max_length=255)
     content = fields.TextField()

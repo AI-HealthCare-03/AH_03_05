@@ -85,11 +85,7 @@ def detect_risk_question(message: str) -> dict:
     """
     normalized_message = normalize_text(message)
 
-    matched_keywords = [
-        keyword
-        for keyword in RISK_KEYWORDS
-        if normalize_text(keyword) in normalized_message
-    ]
+    matched_keywords = [keyword for keyword in RISK_KEYWORDS if normalize_text(keyword) in normalized_message]
 
     if matched_keywords:
         return {

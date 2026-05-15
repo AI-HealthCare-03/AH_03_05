@@ -15,12 +15,8 @@ class ChatMessage(models.Model):
     """
 
     id = fields.BigIntField(primary_key=True)
-    session = fields.ForeignKeyField(
-        "models.ChatSession", related_name="messages", on_delete=fields.CASCADE
-    )
-    user = fields.ForeignKeyField(
-        "models.User", related_name="chat_messages", on_delete=fields.CASCADE
-    )
+    session = fields.ForeignKeyField("models.ChatSession", related_name="messages", on_delete=fields.CASCADE)
+    user = fields.ForeignKeyField("models.User", related_name="chat_messages", on_delete=fields.CASCADE)
     sender_type = fields.CharEnumField(enum_type=SenderType, max_length=20)
     content = fields.TextField()
     safety_flag = fields.BooleanField(default=False)
