@@ -16,6 +16,10 @@ TORTOISE_APP_MODELS = [
     "app.models.notifications",
     "app.models.notification_settings",
     "app.models.feedbacks",
+    "app.models.drug_references",
+    "app.models.chat_sessions",
+    "app.models.chat_messages",
+    "app.models.guides",
 ]
 
 TORTOISE_ORM = {
