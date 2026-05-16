@@ -3,7 +3,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from app.dependencies.security import get_request_user
-from app.dtos.medical_records import MedicalRecordUploadResponse
+from app.dtos.medical_records import (
+    MedicalRecordDetailResponse,
+    MedicalRecordListItem,
+    MedicalRecordListResponse,
+    MedicalRecordUploadResponse,
+)
 from app.models.medical_records import RecordType
 from app.models.users import User
 from app.services.medical_records import MedicalRecordService
@@ -31,3 +36,31 @@ async def upload_medical_record(
         file_size_bytes=file.size,
     )
     return MedicalRecordUploadResponse.model_validate(record)
+
+
+@records_router.get("", response_model=MedicalRecordListResponse, status_code=status.HTTP_200_OK)
+async def get_medical_records(
+    user: Annotated[User, Depends(get_request_user)],
+    medical_record_service: Annotated[MedicalRecordService, Depends(MedicalRecordService)],
+    page: int = 1,
+    size: int = 10,
+    record_type: str | None = None,
+) -> MedicalRecordListResponse:
+    records, total = await medical_record_service.get_records(user, page, size, record_type)
+    return MedicalRecordListResponse(
+        items=[MedicalRecordListItem.model_validate(r) for r in records],
+        page=page,
+        size=size,
+    )
+
+
+@records_router.get("/{record_id}", response_model=MedicalRecordDetailResponse, status_code=status.HTTP_200_OK)
+async def get_medical_record(
+    record_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    medical_record_service: Annotated[MedicalRecordService, Depends(MedicalRecordService)],
+) -> MedicalRecordDetailResponse:
+    record = await medical_record_service.get_record(user, record_id)
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="기록을 찾을 수 없습니다.")
+    return MedicalRecordDetailResponse.model_validate(record)
