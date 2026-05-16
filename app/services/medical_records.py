@@ -27,3 +27,20 @@ class MedicalRecordService:
             image_expires_at=image_expires_at,
         )
         return record
+
+    async def get_records(
+        self,
+        user: User,
+        page: int = 1,
+        size: int = 10,
+        record_type: str | None = None,
+    ) -> tuple[list[MedicalRecord], int]:
+        query = MedicalRecord.filter(user=user, deleted_at=None)
+        if record_type:
+            query = query.filter(record_type=record_type)
+        total = await query.count()
+        records = await query.order_by("-uploaded_at").offset((page - 1) * size).limit(size)
+        return records, total
+
+    async def get_record(self, user: User, record_id: int) -> MedicalRecord | None:
+        return await MedicalRecord.get_or_none(id=record_id, user=user, deleted_at=None)
