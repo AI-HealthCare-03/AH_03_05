@@ -25,6 +25,7 @@ HEALTH_PROFILE_DATA = {
 
 class TestHealthProfileAPI(TestCase):
     async def test_upsert_health_profile_success(self):
+        # Given
         signup_data = {
             "email": "health@example.com",
             "password": "Password123!",
@@ -39,12 +40,17 @@ class TestHealthProfileAPI(TestCase):
             )
             access_token = login_response.json()["access_token"]
             headers = {"Authorization": f"Bearer {access_token}"}
+
+            # When
             response = await client.put("/api/v1/health-profile", json=HEALTH_PROFILE_DATA, headers=headers)
+
+        # Then
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["profile_id"] is not None
         assert response.json()["updated_at"] is not None
 
     async def test_get_health_profile_success(self):
+        # Given
         signup_data = {
             "email": "health2@example.com",
             "password": "Password123!",
@@ -60,12 +66,17 @@ class TestHealthProfileAPI(TestCase):
             access_token = login_response.json()["access_token"]
             headers = {"Authorization": f"Bearer {access_token}"}
             await client.put("/api/v1/health-profile", json=HEALTH_PROFILE_DATA, headers=headers)
+
+            # When
             response = await client.get("/api/v1/health-profile", headers=headers)
+
+        # Then
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["profile_id"] is not None
         assert response.json()["chronic_diseases"] == ["hypertension"]
 
     async def test_get_health_profile_not_found(self):
+        # Given
         signup_data = {
             "email": "health3@example.com",
             "password": "Password123!",
@@ -80,10 +91,17 @@ class TestHealthProfileAPI(TestCase):
             )
             access_token = login_response.json()["access_token"]
             headers = {"Authorization": f"Bearer {access_token}"}
+
+            # When
             response = await client.get("/api/v1/health-profile", headers=headers)
+
+        # Then
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     async def test_get_health_profile_unauthorized(self):
+        # Given & When
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/v1/health-profile")
+
+        # Then
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
