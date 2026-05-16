@@ -18,6 +18,7 @@ TORTOISE_APP_MODELS = [
     "app.models.notification_settings",
     "app.models.feedbacks",
     "app.models.drug_references",
+    "app.models.api_failure_logs",
     "app.models.chat_sessions",
     "app.models.chat_messages",
     "app.models.guides",
