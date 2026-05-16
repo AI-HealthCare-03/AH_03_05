@@ -4,20 +4,23 @@ from tortoise.contrib.test import TestCase
 
 from app.main import app
 
+CONSENTS = [
+    {"consent_type": "terms", "is_agreed": True},
+    {"consent_type": "privacy", "is_agreed": True},
+    {"consent_type": "sensitive_health", "is_agreed": True},
+    {"consent_type": "ai_analysis", "is_agreed": True},
+    {"consent_type": "marketing", "is_agreed": False},
+]
+
 
 class TestLogoutAPI(TestCase):
     async def test_logout_success(self):
+        # Given
         signup_data = {
             "email": "logout_test@example.com",
             "password": "Password123!",
             "name": "로그아웃테스터",
-            "consents": [
-                {"consent_type": "terms", "is_agreed": True},
-                {"consent_type": "privacy", "is_agreed": True},
-                {"consent_type": "sensitive_health", "is_agreed": True},
-                {"consent_type": "ai_analysis", "is_agreed": True},
-                {"consent_type": "marketing", "is_agreed": False},
-            ],
+            "consents": CONSENTS,
         }
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post("/api/v1/auth/signup", json=signup_data)
@@ -26,11 +29,18 @@ class TestLogoutAPI(TestCase):
                 json={"email": "logout_test@example.com", "password": "Password123!"},
             )
             refresh_token = login_response.json()["refresh_token"]
+
+            # When
             response = await client.post("/api/v1/auth/logout", json={"refresh_token": refresh_token})
+
+        # Then
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["detail"] == "로그아웃되었습니다."
 
     async def test_logout_invalid_token(self):
+        # Given & When
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post("/api/v1/auth/logout", json={"refresh_token": "invalid_token"})
+
+        # Then
         assert response.status_code == status.HTTP_200_OK
