@@ -9,6 +9,7 @@ from app.dtos.medical_records import (
     MedicalRecordListResponse,
     MedicalRecordUploadResponse,
 )
+from app.dtos.ocr import OcrResultResponse, OcrTextUpdateRequest, OcrTextUpdateResponse
 from app.models.medical_records import RecordType
 from app.models.users import User
 from app.services.medical_records import MedicalRecordService
@@ -64,3 +65,32 @@ async def get_medical_record(
     if record is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="기록을 찾을 수 없습니다.")
     return MedicalRecordDetailResponse.model_validate(record)
+
+
+@records_router.get("/{record_id}/ocr-result", response_model=OcrResultResponse, status_code=200)
+async def get_ocr_result(
+    record_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    medical_record_service: Annotated[MedicalRecordService, Depends(MedicalRecordService)],
+) -> OcrResultResponse:
+    result = await medical_record_service.get_ocr_result(user, record_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="기록을 찾을 수 없습니다.")
+    return OcrResultResponse(**result)
+
+
+@records_router.patch("/{record_id}/ocr-text", response_model=OcrTextUpdateResponse, status_code=200)
+async def update_ocr_text(
+    record_id: int,
+    request: OcrTextUpdateRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    medical_record_service: Annotated[MedicalRecordService, Depends(MedicalRecordService)],
+) -> OcrTextUpdateResponse:
+    record = await medical_record_service.update_ocr_text(user, record_id, request.ocr_edited_text)
+    if record is None:
+        raise HTTPException(status_code=404, detail="기록을 찾을 수 없습니다.")
+    return OcrTextUpdateResponse(
+        record_id=record.id,
+        status=record.status,
+        updated_at=record.updated_at,
+    )
