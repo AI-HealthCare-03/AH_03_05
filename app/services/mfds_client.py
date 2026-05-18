@@ -101,15 +101,13 @@ def map_mfds_response_to_drug_reference(item: dict[str, Any]) -> dict[str, Any]:
         "drug_name": item.get("ITEM_NAME") or "이름 없음",
         "ingredient_name": item.get("ITEM_INGR_NAME") or item.get("MAIN_INGR_NAME"),
         "manufacturer": manufacturer,
-
         # [유정님 PR #27 반영] 상세 데이터 매핑
-        "dosage": item.get("UD_DOC_DATA"),        # 용법용량
-        "efficacy": item.get("EE_DOC_DATA"),      # 효능효과
-        "caution": item.get("NB_DOC_DATA"),       # 주의사항 (안건 4 반영)
-        "side_effect": item.get("SIDE_EFFECT"),   # 부작용
-
+        "dosage": item.get("UD_DOC_DATA"),  # 용법용량
+        "efficacy": item.get("EE_DOC_DATA"),  # 효능효과
+        "caution": item.get("NB_DOC_DATA"),  # 주의사항 (안건 4 반영)
+        "side_effect": item.get("SIDE_EFFECT"),  # 부작용
         # 추가 필드 (DTO 매칭)
-        "drug_ref_id": item.get("ITEM_SEQ"),      # 식약처 코드 연결용
+        "drug_ref_id": item.get("ITEM_SEQ"),  # 식약처 코드 연결용
         "source": "MFDS",
         "source_url": "https://www.data.go.kr/data/15095677/openapi.do",
         "raw_response": item,
