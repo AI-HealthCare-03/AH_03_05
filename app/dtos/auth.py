@@ -50,3 +50,7 @@ class TokenRefreshResponse(BaseModel):
 
 class LogoutRequest(BaseModel):
     refresh_token: str
+
+
+class LogoutResponse(BaseModel):
+    detail: str
