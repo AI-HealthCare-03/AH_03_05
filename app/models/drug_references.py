@@ -19,6 +19,7 @@ class DrugReference(models.Model):
     side_effect = fields.TextField(null=True)
     source = fields.CharField(max_length=100, default="mfds")
     source_url = fields.CharField(max_length=500, null=True)
+    cache_expires_at = fields.DatetimeField(null=True, index=True)  # 🆕 NEW
     raw_response = fields.TextField(null=True)
     fetched_at = fields.DatetimeField(null=True)
     created_at = fields.DatetimeField(auto_now_add=True)

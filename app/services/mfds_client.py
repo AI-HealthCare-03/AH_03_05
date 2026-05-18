@@ -19,7 +19,6 @@ DEFAULT_TIMEOUT = 30.0
 class MFDSClient:
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key or config.MFDS_API_KEY
-        # ValueError 체크 제거 — Pydantic이 시작 시점에 이미 검증함
 
     async def search_drug(
         self,
@@ -50,13 +49,14 @@ class MFDSClient:
     async def get_drug_detail(self, item_seq: str) -> dict[str, Any] | None:
         """
         약품 식별 코드(ITEM_SEQ)로 상세 조회한다.
+        503 에러 방지를 위해 ITEM_SEQ 대문자 파라미터를 사용한다.
         """
         if not item_seq:
             return None
 
         params = {
             "serviceKey": self.api_key,
-            "item_seq": item_seq,
+            "ITEM_SEQ": item_seq,  # 팀장님 수정 사항 반영
             "type": "json",
         }
 
@@ -91,23 +91,23 @@ class MFDSClient:
 
 def map_mfds_response_to_drug_reference(item: dict[str, Any]) -> dict[str, Any]:
     """
-    식약처 API 응답 한 건을 약품 검색 응답 구조로 매핑한다.
-
-    검색 API 응답에는 효능/용법/주의사항 상세 문서가 없을 수 있으므로,
-    상세 설명 필드는 None으로 두고 약품 검색 카드에 필요한 기본 정보 중심으로 매핑한다.
+    식약처 API 응답을 유정님이 확장한 MedicationCandidate DTO 구조에 맞춰 매핑한다.
     """
     manufacturer = item.get("ENTP_NAME") or "제조사 정보 없음"
 
     return {
+        # 기본 정보
         "drug_code": item.get("ITEM_SEQ"),
         "drug_name": item.get("ITEM_NAME") or "이름 없음",
         "ingredient_name": item.get("ITEM_INGR_NAME") or item.get("MAIN_INGR_NAME"),
         "manufacturer": manufacturer,
-        "dosage": item.get("PRODUCT_TYPE"),
-        "efficacy": item.get("EE_DOC_DATA"),
-        "usage_method": item.get("UD_DOC_DATA"),
-        "caution": item.get("NB_DOC_DATA"),
-        "side_effect": item.get("SIDE_EFFECT"),
+        # [유정님 PR #27 반영] 상세 데이터 매핑
+        "dosage": item.get("UD_DOC_DATA"),  # 용법용량
+        "efficacy": item.get("EE_DOC_DATA"),  # 효능효과
+        "caution": item.get("NB_DOC_DATA"),  # 주의사항 (안건 4 반영)
+        "side_effect": item.get("SIDE_EFFECT"),  # 부작용
+        # 추가 필드 (DTO 매칭)
+        "drug_ref_id": item.get("ITEM_SEQ"),  # 식약처 코드 연결용
         "source": "MFDS",
         "source_url": "https://www.data.go.kr/data/15095677/openapi.do",
         "raw_response": item,
