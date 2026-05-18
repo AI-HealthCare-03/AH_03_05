@@ -13,3 +13,9 @@ wheels/
 *.coverage
 .coverage.*
 tests/mock_data/images/
+<<<<<<< HEAD
+=======
+.DS_Store
+.venv311/
+.junie/
+>>>>>>> develop
