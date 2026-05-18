@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from app.dependencies.security import get_request_user
 from app.dtos.processing_jobs import OcrJobCreateRequest, OcrJobResponse, ProcessingJobResponse
+from app.exceptions.common import NotFoundException
 from app.models.users import User
 from app.services.processing_jobs import ProcessingJobService
 
@@ -23,7 +24,7 @@ async def create_ocr_job(
         provider=request.provider,
     )
     if job is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="기록을 찾을 수 없습니다.")
+        raise NotFoundException(detail="기록을 찾을 수 없습니다.")
     return OcrJobResponse(
         job_id=job.id,
         record_id=request.record_id,
@@ -40,7 +41,7 @@ async def get_processing_job(
 ) -> ProcessingJobResponse:
     job = await processing_job_service.get_job(user=user, job_id=job_id)
     if job is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="작업을 찾을 수 없습니다.")
+        raise NotFoundException(detail="작업을 찾을 수 없습니다.")
     record_id = job.record_id if hasattr(job, "record_id") else None
     return ProcessingJobResponse(
         job_id=job.id,
