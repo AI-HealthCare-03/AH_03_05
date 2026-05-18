@@ -12,6 +12,3 @@ wheels/
 .coverage
 *.coverage
 .coverage.*
-tests/mock_data/images/
-.DS_Store
-.venv311/
