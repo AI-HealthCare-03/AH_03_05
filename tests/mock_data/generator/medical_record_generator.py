@@ -121,7 +121,7 @@ def apply_partial_block(img):
 
 def find_coeffs(source_coords, target_coords):
     matrix = []
-    for s, t in zip(source_coords, target_coords):
+    for s, t in zip(source_coords, target_coords, strict=False):
         matrix.append([t[0], t[1], 1, 0, 0, 0, -s[0] * t[0], -s[0] * t[1]])
         matrix.append([0, 0, 0, t[0], t[1], 1, -s[1] * t[0], -s[1] * t[1]])
     A = np.matrix(matrix, dtype=float)
