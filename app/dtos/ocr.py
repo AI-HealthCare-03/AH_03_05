@@ -7,6 +7,11 @@ class MedicationCandidate(BaseModel):
     drug_name: str
     confidence: float | None = None
     is_verified: bool = False
+    dosage: str | None = None
+    frequency: str | None = None
+    timing: str | None = None
+    caution: str | None = None
+    drug_ref_id: int | None = None
 
 
 class OcrResultResponse(BaseModel):
