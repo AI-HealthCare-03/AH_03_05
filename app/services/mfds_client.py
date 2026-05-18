@@ -56,7 +56,7 @@ class MFDSClient:
 
         params = {
             "serviceKey": self.api_key,
-            "item_seq": item_seq,
+            "ITEM_SEQ": item_seq,  # 소문자 item_seq를 대문자 ITEM_SEQ로 변경
             "type": "json",
         }
 
