@@ -8,7 +8,6 @@ on:
       - 'release/*'
       - 'hotfix/*'
   pull_request:
-    # feature 브랜치는 보통 develop으로 PR을 생성하기 때문에 develop이 target 브랜치에 포함되어 있다면 별도로 적지 않아도 됩니다.
     branches:
       - main
       - develop
@@ -46,6 +45,19 @@ jobs:
     env:
       MFDS_API_KEY: ci-dummy-key-not-used-in-tests
       OPENAI_API_KEY: ci-dummy-key-not-used-in-tests
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: pw1234
+          MYSQL_DATABASE: ai_health
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u root -ppw1234"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -65,7 +77,6 @@ jobs:
 
       - name: Check if tests exist
         id: check_tests
-        # tests 폴더나 test_*.py 파일이 있는지 확인
         run: |
           if [ -d "tests" ] || [ $(find . -name "test_*.py" | wc -l) -gt 0 ]; then
             echo "has_tests=true" >> $GITHUB_OUTPUT
@@ -75,6 +86,8 @@ jobs:
 
       - name: Run Tests with Coverage
         if: steps.check_tests.outputs.has_tests == 'true'
+        env:
+          DATABASE_URL: mysql+pymysql://root:pw1234@127.0.0.1:3306/ai_health
         run: |
           uv run coverage run -m pytest app
           uv run coverage report -m
