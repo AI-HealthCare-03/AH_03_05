@@ -1,9 +1,10 @@
 import os
 import random
-import requests
+
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
+import requests
 from dotenv import load_dotenv
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 load_dotenv()
 
@@ -14,12 +15,7 @@ FORM_PATH = "tests/mock_data/prescription_form.png"
 
 def fetch_random_drugs(count=3):
     page = random.randint(1, 200)
-    params = {
-        "serviceKey": API_KEY,
-        "pageNo": page,
-        "numOfRows": count,
-        "type": "json"
-    }
+    params = {"serviceKey": API_KEY, "pageNo": page, "numOfRows": count, "type": "json"}
     try:
         response = requests.get(API_URL, params=params, timeout=10)
         data = response.json()
@@ -28,11 +24,13 @@ def fetch_random_drugs(count=3):
         for item in items:
             material = item.get("MATERIAL_NAME", "")
             ingredient = material.split("|")[1].replace("성분명 :", "").strip() if "|" in material else "성분 정보 없음"
-            result.append({
-                "name": item.get("ITEM_NAME", "알 수 없음")[:20],
-                "company": item.get("ENTP_NAME", "알 수 없음")[:10],
-                "ingredient": ingredient[:15],
-            })
+            result.append(
+                {
+                    "name": item.get("ITEM_NAME", "알 수 없음")[:20],
+                    "company": item.get("ENTP_NAME", "알 수 없음")[:10],
+                    "ingredient": ingredient[:15],
+                }
+            )
         return result
     except Exception as e:
         print(f"API 호출 실패: {e}")
@@ -91,8 +89,8 @@ def apply_partial_block(img):
 def find_coeffs(source_coords, target_coords):
     matrix = []
     for s, t in zip(source_coords, target_coords):
-        matrix.append([t[0], t[1], 1, 0, 0, 0, -s[0]*t[0], -s[0]*t[1]])
-        matrix.append([0, 0, 0, t[0], t[1], 1, -s[1]*t[0], -s[1]*t[1]])
+        matrix.append([t[0], t[1], 1, 0, 0, 0, -s[0] * t[0], -s[0] * t[1]])
+        matrix.append([0, 0, 0, t[0], t[1], 1, -s[1] * t[0], -s[1] * t[1]])
     A = np.matrix(matrix, dtype=float)
     B = np.array(source_coords).reshape(8)
     res = np.dot(np.linalg.inv(A.T * A) * A.T, B)
@@ -114,39 +112,39 @@ def apply_perspective(img):
 
 
 LOW_CONFIDENCE_PATTERNS = {
-    "noise_light":          lambda img: apply_noise(img, 1500),
-    "noise_medium":         lambda img: apply_noise(img, 2500),
-    "rotate_slight":        lambda img: apply_rotation(img, random.uniform(1, 3)),
-    "rotate_medium":        lambda img: apply_rotation(img, random.uniform(3, 5)),
-    "blur_minimal":         lambda img: apply_blur(img, random.uniform(1.0, 1.5)),
-    "blur_light":           lambda img: apply_blur(img, random.uniform(1.5, 2.0)),
-    "overexposed_light":    lambda img: apply_brightness(img, "over"),
-    "underexposed_light":   lambda img: apply_brightness(img, "under"),
-    "partial_block_small":  lambda img: apply_partial_block(img),
-    "noise_rotate_slight":  lambda img: apply_rotation(apply_noise(img, 1000), random.uniform(1, 3)),
-    "noise_blur_minimal":   lambda img: apply_blur(apply_noise(img, 1000), 1.2),
-    "rotate_blur_light":    lambda img: apply_blur(apply_rotation(img, random.uniform(1, 3)), 1.5),
-    "bright_noise":         lambda img: apply_noise(apply_brightness(img, "over"), 1000),
-    "dark_noise":           lambda img: apply_noise(apply_brightness(img, "under"), 1000),
-    "block_noise_light":    lambda img: apply_noise(apply_partial_block(img), 1000),
-    "perspective_slight":   lambda img: apply_perspective(img),
-    "perspective_noise":    lambda img: apply_noise(apply_perspective(img), 1000),
-    "rotate_bright":        lambda img: apply_brightness(apply_rotation(img, random.uniform(1, 3)), "over"),
-    "blur_block_light":     lambda img: apply_blur(apply_partial_block(img), 1.5),
-    "noise_dark_blur":      lambda img: apply_blur(apply_brightness(apply_noise(img, 800), "under"), 1.2),
+    "noise_light": lambda img: apply_noise(img, 1500),
+    "noise_medium": lambda img: apply_noise(img, 2500),
+    "rotate_slight": lambda img: apply_rotation(img, random.uniform(1, 3)),
+    "rotate_medium": lambda img: apply_rotation(img, random.uniform(3, 5)),
+    "blur_minimal": lambda img: apply_blur(img, random.uniform(1.0, 1.5)),
+    "blur_light": lambda img: apply_blur(img, random.uniform(1.5, 2.0)),
+    "overexposed_light": lambda img: apply_brightness(img, "over"),
+    "underexposed_light": lambda img: apply_brightness(img, "under"),
+    "partial_block_small": lambda img: apply_partial_block(img),
+    "noise_rotate_slight": lambda img: apply_rotation(apply_noise(img, 1000), random.uniform(1, 3)),
+    "noise_blur_minimal": lambda img: apply_blur(apply_noise(img, 1000), 1.2),
+    "rotate_blur_light": lambda img: apply_blur(apply_rotation(img, random.uniform(1, 3)), 1.5),
+    "bright_noise": lambda img: apply_noise(apply_brightness(img, "over"), 1000),
+    "dark_noise": lambda img: apply_noise(apply_brightness(img, "under"), 1000),
+    "block_noise_light": lambda img: apply_noise(apply_partial_block(img), 1000),
+    "perspective_slight": lambda img: apply_perspective(img),
+    "perspective_noise": lambda img: apply_noise(apply_perspective(img), 1000),
+    "rotate_bright": lambda img: apply_brightness(apply_rotation(img, random.uniform(1, 3)), "over"),
+    "blur_block_light": lambda img: apply_blur(apply_partial_block(img), 1.5),
+    "noise_dark_blur": lambda img: apply_blur(apply_brightness(apply_noise(img, 800), "under"), 1.2),
 }
 
 FAILED_PATTERNS = {
-    "heavy_blur":           lambda img: apply_blur(img, random.uniform(3.0, 4.0)),
-    "heavy_noise_blur":     lambda img: apply_blur(apply_noise(img, 5000), 3.0),
-    "block_blur":           lambda img: apply_blur(apply_partial_block(apply_partial_block(img)), 3.5),
-    "heavy_rotate_blur":    lambda img: apply_blur(apply_rotation(img, random.uniform(8, 12)), 3.0),
-    "overexposed_blur":     lambda img: apply_blur(apply_brightness(img, "over"), 3.5),
-    "underexposed_blur":    lambda img: apply_blur(apply_brightness(img, "under"), 3.5),
-    "perspective_blur":     lambda img: apply_blur(apply_perspective(img), 3.0),
-    "noise_block_blur":     lambda img: apply_blur(apply_partial_block(apply_noise(img, 4000)), 3.0),
-    "heavy_noise_rotate":   lambda img: apply_rotation(apply_noise(img, 6000), random.uniform(6, 10)),
-    "triple_degradation":   lambda img: apply_blur(apply_noise(apply_rotation(img, random.uniform(5, 8)), 3000), 2.5),
+    "heavy_blur": lambda img: apply_blur(img, random.uniform(3.0, 4.0)),
+    "heavy_noise_blur": lambda img: apply_blur(apply_noise(img, 5000), 3.0),
+    "block_blur": lambda img: apply_blur(apply_partial_block(apply_partial_block(img)), 3.5),
+    "heavy_rotate_blur": lambda img: apply_blur(apply_rotation(img, random.uniform(8, 12)), 3.0),
+    "overexposed_blur": lambda img: apply_blur(apply_brightness(img, "over"), 3.5),
+    "underexposed_blur": lambda img: apply_blur(apply_brightness(img, "under"), 3.5),
+    "perspective_blur": lambda img: apply_blur(apply_perspective(img), 3.0),
+    "noise_block_blur": lambda img: apply_blur(apply_partial_block(apply_noise(img, 4000)), 3.0),
+    "heavy_noise_rotate": lambda img: apply_rotation(apply_noise(img, 6000), random.uniform(6, 10)),
+    "triple_degradation": lambda img: apply_blur(apply_noise(apply_rotation(img, random.uniform(5, 8)), 3000), 2.5),
 }
 
 
@@ -177,9 +175,11 @@ def draw_text_on_form(img, drugs, confidence="high"):
     draw.text((640, 168), "05", font=font_sm, fill=(0, 0, 0))
     draw.text((730, 168), "15", font=font_sm, fill=(0, 0, 0))
     draw.text((300, 230), hospital, font=font, fill=(0, 0, 0))
-    draw.text((300, 285), f"02-{random.randint(1000,9999)}-{random.randint(1000,9999)}", font=font_sm, fill=(0, 0, 0))
+    draw.text((300, 285), f"02-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}", font=font_sm, fill=(0, 0, 0))
     draw.text((950, 230), patient, font=font, fill=(0, 0, 0))
-    draw.text((950, 285), f"{random.randint(700101,991231)}-{random.randint(1000000,2999999)}", font=font_sm, fill=(0, 0, 0))
+    draw.text(
+        (950, 285), f"{random.randint(700101, 991231)}-{random.randint(1000000, 2999999)}", font=font_sm, fill=(0, 0, 0)
+    )
     draw.text((300, 370), disease, font=font, fill=(0, 0, 0))
     draw.text((950, 370), doctor, font=font, fill=(0, 0, 0))
     draw.text((950, 420), "의사", font=font_sm, fill=(0, 0, 0))
@@ -227,25 +227,20 @@ def generate_all():
 
     print("고신뢰도 처방전 생성 중...")
     for i in range(5):
-        generate_prescription(
-            f"{base}/high_confidence/prescription_{i+1}.jpg", "high")
+        generate_prescription(f"{base}/high_confidence/prescription_{i + 1}.jpg", "high")
 
     print("저신뢰도 처방전 생성 중... (오독 여지 있음)")
     low_patterns = list(LOW_CONFIDENCE_PATTERNS.keys())
     for i, pattern in enumerate(low_patterns):
-        generate_prescription(
-            f"{base}/low_confidence/prescription_{i+1}_{pattern}.jpg",
-            "low", pattern)
+        generate_prescription(f"{base}/low_confidence/prescription_{i + 1}_{pattern}.jpg", "low", pattern)
 
     print("실패 케이스 생성 중... (보정 시도 필요)")
     fail_patterns = list(FAILED_PATTERNS.keys())
     for i, pattern in enumerate(fail_patterns):
-        generate_prescription(
-            f"{base}/failed/prescription_{i+1}_{pattern}.jpg",
-            "failed", pattern)
+        generate_prescription(f"{base}/failed/prescription_{i + 1}_{pattern}.jpg", "failed", pattern)
 
     print("전체 생성 완료")
-    print(f"  고신뢰도: 5장")
+    print("  고신뢰도: 5장")
     print(f"  저신뢰도: {len(low_patterns)}장")
     print(f"  실패:     {len(fail_patterns)}장")
 
