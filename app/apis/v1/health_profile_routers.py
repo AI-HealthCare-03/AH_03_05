@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from app.dependencies.security import get_request_user
 from app.dtos.health_profiles import HealthProfileResponse, HealthProfileUpdateRequest, HealthProfileUpdateResponse
+from app.exceptions.common import NotFoundException
 from app.models.users import User
 from app.services.health_profiles import HealthProfileService
 
@@ -17,7 +18,7 @@ async def get_health_profile(
 ) -> HealthProfileResponse:
     profile = await health_profile_service.get_health_profile(user)
     if profile is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="건강 프로필이 없습니다.")
+        raise NotFoundException(detail="건강 프로필이 없습니다.")
     return HealthProfileResponse.model_validate(profile)
 
 

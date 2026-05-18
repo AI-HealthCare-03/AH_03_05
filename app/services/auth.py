@@ -1,13 +1,17 @@
-from datetime import UTC
+from datetime import UTC, datetime
 
-from fastapi.exceptions import HTTPException
 from pydantic import EmailStr
-from starlette import status
 from tortoise.transactions import in_transaction
 
 from app.core.jwt.tokens import AccessToken, RefreshToken
 from app.core.utils.security import hash_password, verify_password
 from app.dtos.auth import LoginRequest, SignUpRequest
+from app.exceptions import (
+    DuplicateEmailException,
+    InvalidConsentException,
+    InvalidCredentialsException,
+    WithdrawnUserException,
+)
 from app.models.auth_tokens import AuthToken
 from app.models.user_consents import ConsentType, RequiredType, UserConsent
 from app.models.users import User, UserStatus
@@ -20,7 +24,6 @@ class AuthService:
 
     async def signup(self, data: SignUpRequest) -> User:
         await self.check_email_exists(data.email)
-
         required_types = {
             ConsentType.TERMS,
             ConsentType.PRIVACY,
@@ -29,8 +32,7 @@ class AuthService:
         }
         agreed_types = {ConsentType(c.consent_type) for c in data.consents if c.is_agreed}
         if not required_types.issubset(agreed_types):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="필수 약관에 모두 동의해주세요.")
-
+            raise InvalidConsentException()
         async with in_transaction():
             user = await User.create(
                 email=data.email,
@@ -39,7 +41,6 @@ class AuthService:
                 nickname=data.nickname,
                 status=UserStatus.ACTIVE,
             )
-
             for consent in data.consents:
                 consent_type = ConsentType(consent.consent_type)
                 required_type = RequiredType.REQUIRED if consent_type in required_types else RequiredType.OPTIONAL
@@ -49,39 +50,28 @@ class AuthService:
                     required_type=required_type,
                     is_agreed=consent.is_agreed,
                 )
-
             return user
 
     async def authenticate(self, data: LoginRequest) -> User:
         email = str(data.email)
         user = await User.get_or_none(email=email)
-
         if not user or not verify_password(data.password, user.password_hash):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="계정 또는 비밀번호가 일치하지 않습니다."
-            )
-
+            raise InvalidCredentialsException()
         if user.status == UserStatus.WITHDRAWN:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="탈퇴한 계정입니다.")
-
+            raise WithdrawnUserException()
         return user
 
     async def login(self, user: User) -> dict[str, AccessToken | RefreshToken]:
-        from datetime import datetime
-
         user.last_login_at = datetime.now(UTC)
         await user.save()
-
         return self.jwt_service.issue_jwt_pair(user)
 
     async def logout(self, refresh_token: str) -> None:
         token = await AuthToken.get_or_none(refresh_token=refresh_token)
         if token:
-            from datetime import datetime
-
             token.revoked_at = datetime.now(UTC)
             await token.save()
 
     async def check_email_exists(self, email: str | EmailStr) -> None:
         if await User.exists(email=email):
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="이미 사용중인 이메일입니다.")
+            raise DuplicateEmailException()
