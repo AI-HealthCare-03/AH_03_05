@@ -197,7 +197,7 @@ def draw_text_on_form(img, disease, opinion, confidence="high"):
     try:
         font = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 26)
         font_sm = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 20)
-    except:
+    except Exception:
         font = ImageFont.load_default()
         font_sm = font
 

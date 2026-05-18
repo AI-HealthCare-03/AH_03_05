@@ -166,7 +166,7 @@ def draw_text_on_form(img, drugs, confidence="high"):
     try:
         font = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 28)
         font_sm = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 22)
-    except:
+    except Exception:
         font = ImageFont.load_default()
         font_sm = font
 
