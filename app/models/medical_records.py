@@ -6,6 +6,7 @@ from tortoise import fields, models
 class RecordType(StrEnum):
     PRESCRIPTION = "prescription"
     MEDICINE_BAG = "medicine_bag"
+    MEDICAL_RECORD = "medical_record"
 
 
 class RecordStatus(StrEnum):
