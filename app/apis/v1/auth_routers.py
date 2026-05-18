@@ -6,6 +6,7 @@ from app.dtos.auth import (
     LoginRequest,
     LoginResponse,
     LogoutRequest,
+    LogoutResponse,
     SignUpRequest,
     SignUpResponse,
     UserInfo,
@@ -42,10 +43,10 @@ async def login(
     )
 
 
-@auth_router.post("/logout", status_code=status.HTTP_200_OK)
+@auth_router.post("/logout", response_model=LogoutResponse, status_code=status.HTTP_200_OK)
 async def logout(
     request: LogoutRequest,
     auth_service: Annotated[AuthService, Depends(AuthService)],
-) -> dict:
+) -> LogoutResponse:
     await auth_service.logout(request.refresh_token)
-    return {"detail": "로그아웃되었습니다."}
+    return LogoutResponse(detail="로그아웃되었습니다.")
