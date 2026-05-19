@@ -27,3 +27,11 @@ class PasswordChangeRequest(BaseModel):
 
 class PasswordChangeResponse(BaseModel):
     detail: str
+
+
+class WithdrawRequest(BaseModel):
+    password: str
+
+
+class WithdrawResponse(BaseModel):
+    detail: str

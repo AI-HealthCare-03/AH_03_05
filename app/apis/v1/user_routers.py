@@ -3,7 +3,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.dependencies.security import get_request_user
-from app.dtos.users import PasswordChangeRequest, PasswordChangeResponse, UserInfoResponse, UserUpdateRequest
+from app.dtos.users import (
+    PasswordChangeRequest,
+    PasswordChangeResponse,
+    UserInfoResponse,
+    UserUpdateRequest,
+    WithdrawRequest,
+    WithdrawResponse,
+)
 from app.models.users import User
 from app.services.users import UserManageService
 
@@ -35,3 +42,13 @@ async def change_password(
 ) -> PasswordChangeResponse:
     await user_manage_service.change_password(user, request.current_password, request.new_password)
     return PasswordChangeResponse(detail="비밀번호가 변경되었습니다.")
+
+
+@user_router.delete("/me", response_model=WithdrawResponse, status_code=status.HTTP_200_OK)
+async def withdraw_user(
+    request: WithdrawRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    user_manage_service: Annotated[UserManageService, Depends(UserManageService)],
+) -> WithdrawResponse:
+    await user_manage_service.withdraw_user(user, request.password)
+    return WithdrawResponse(detail="회원탈퇴가 완료되었습니다.")
