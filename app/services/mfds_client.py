@@ -12,7 +12,7 @@ from app.core import config
 
 MFDS_BASE_URL = "https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07"
 MFDS_SEARCH_URL = f"{MFDS_BASE_URL}/getDrugPrdtPrmsnInq07"
-MFDS_DETAIL_URL = f"{MFDS_BASE_URL}/getDrugPrdtPrmsnDtlInq07"
+MFDS_DETAIL_URL = f"{MFDS_BASE_URL}/getDrugPrdtPrmsnDtlInq06"
 DEFAULT_TIMEOUT = 30.0
 
 
