@@ -8,6 +8,7 @@ from app.dtos.notifications import (
     NotificationItem,
     NotificationListResponse,
     NotificationReadResponse,
+    UnreadCountResponse,
 )
 from app.exceptions.common import NotFoundException
 from app.models.users import User
@@ -62,3 +63,12 @@ async def delete_notification(
     if not result:
         raise NotFoundException(detail="알림을 찾을 수 없습니다.")
     return NotificationDeleteResponse(detail="알림이 삭제되었습니다.")
+
+
+@notifications_router.get("/unread-count", response_model=UnreadCountResponse, status_code=status.HTTP_200_OK)
+async def get_unread_count(
+    user: Annotated[User, Depends(get_request_user)],
+    notification_service: Annotated[NotificationService, Depends(NotificationService)],
+) -> UnreadCountResponse:
+    _, unread_count = await notification_service.get_notifications(user)
+    return UnreadCountResponse(unread_count=unread_count)
