@@ -49,14 +49,14 @@ class MFDSClient:
     async def get_drug_detail(self, item_seq: str) -> dict[str, Any] | None:
         """
         약품 식별 코드(ITEM_SEQ)로 상세 조회한다.
-        503 에러 방지를 위해 ITEM_SEQ 대문자 파라미터를 사용한다.
+        식약처 파라미터는 소문자 item_seq를 사용한다.
         """
         if not item_seq:
             return None
 
         params = {
             "serviceKey": self.api_key,
-            "ITEM_SEQ": item_seq,  # 팀장님 수정 사항 반영
+            "item_seq": item_seq,
             "type": "json",
         }
 
