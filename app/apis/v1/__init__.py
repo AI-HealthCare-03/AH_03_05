@@ -2,9 +2,11 @@ from fastapi import APIRouter
 
 from app.apis.v1.auth_routers import auth_router
 from app.apis.v1.chat_routers import chat_router
+from app.apis.v1.consents_routers import consents_router
 from app.apis.v1.drug_routers import drug_router
 from app.apis.v1.health_profile_routers import health_profile_router
 from app.apis.v1.medication_routers import medication_router
+from app.apis.v1.notifications_routers import notifications_router
 from app.apis.v1.ocr_routers import jobs_router, ocr_router
 from app.apis.v1.rag_routers import rag_router
 from app.apis.v1.records_routers import records_router
@@ -20,5 +22,7 @@ v1_routers.include_router(ocr_router)
 v1_routers.include_router(jobs_router)
 v1_routers.include_router(drug_router)
 v1_routers.include_router(medication_router)
+v1_routers.include_router(consents_router)
+v1_routers.include_router(notifications_router)
 v1_routers.include_router(rag_router)
 v1_routers.include_router(chat_router)
