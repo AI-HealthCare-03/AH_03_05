@@ -18,3 +18,12 @@ class UserInfoResponse(BaseSerializerModel):
     nickname: str | None
     status: str
     created_at: datetime
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: Annotated[str, Field(min_length=8, max_length=20)]
+
+
+class PasswordChangeResponse(BaseModel):
+    detail: str
