@@ -3,12 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field
 
-from app.core.validators import optional_after_validator, validate_birthday, validate_phone_number
 from app.dtos.base import BaseSerializerModel
-<<<<<<< HEAD
-from app.models.users import Gender
-=======
->>>>>>> develop
 
 
 class UserUpdateRequest(BaseModel):

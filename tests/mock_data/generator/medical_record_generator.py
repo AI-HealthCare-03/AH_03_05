@@ -1,22 +1,15 @@
 import os
 import random
-<<<<<<< HEAD
 
 import numpy as np
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
-=======
-import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
-from dotenv import load_dotenv
->>>>>>> develop
 
 load_dotenv()
 
 FORM_PATH = "tests/mock_data/medical_record_form.png"
 
 DISEASES = [
-<<<<<<< HEAD
     "고혈압(I10)",
     "제2형 당뇨병(E11)",
     "고지혈증(E78)",
@@ -26,11 +19,6 @@ DISEASES = [
     "갑상선기능저하증(E03)",
     "빈혈(D64)",
     "천식(J45)",
-=======
-    "고혈압(I10)", "제2형 당뇨병(E11)", "고지혈증(E78)",
-    "위식도역류질환(K21)", "요통(M54)", "관절염(M19)",
-    "갑상선기능저하증(E03)", "빈혈(D64)", "천식(J45)",
->>>>>>> develop
     "만성폐쇄성폐질환(J44)",
 ]
 
@@ -133,15 +121,9 @@ def apply_partial_block(img):
 
 def find_coeffs(source_coords, target_coords):
     matrix = []
-<<<<<<< HEAD
     for s, t in zip(source_coords, target_coords, strict=False):
         matrix.append([t[0], t[1], 1, 0, 0, 0, -s[0] * t[0], -s[0] * t[1]])
         matrix.append([0, 0, 0, t[0], t[1], 1, -s[1] * t[0], -s[1] * t[1]])
-=======
-    for s, t in zip(source_coords, target_coords):
-        matrix.append([t[0], t[1], 1, 0, 0, 0, -s[0]*t[0], -s[0]*t[1]])
-        matrix.append([0, 0, 0, t[0], t[1], 1, -s[1]*t[0], -s[1]*t[1]])
->>>>>>> develop
     A = np.matrix(matrix, dtype=float)
     B = np.array(source_coords).reshape(8)
     res = np.dot(np.linalg.inv(A.T * A) * A.T, B)
@@ -163,7 +145,6 @@ def apply_perspective(img):
 
 
 LOW_CONFIDENCE_PATTERNS = {
-<<<<<<< HEAD
     "noise_light": lambda img: apply_noise(img, 1500),
     "noise_medium": lambda img: apply_noise(img, 2500),
     "rotate_slight": lambda img: apply_rotation(img, random.uniform(1, 3)),
@@ -197,41 +178,6 @@ FAILED_PATTERNS = {
     "noise_block_blur": lambda img: apply_blur(apply_partial_block(apply_noise(img, 4000)), 3.0),
     "heavy_noise_rotate": lambda img: apply_rotation(apply_noise(img, 6000), random.uniform(6, 10)),
     "triple_degradation": lambda img: apply_blur(apply_noise(apply_rotation(img, random.uniform(5, 8)), 3000), 2.5),
-=======
-    "noise_light":          lambda img: apply_noise(img, 1500),
-    "noise_medium":         lambda img: apply_noise(img, 2500),
-    "rotate_slight":        lambda img: apply_rotation(img, random.uniform(1, 3)),
-    "rotate_medium":        lambda img: apply_rotation(img, random.uniform(3, 5)),
-    "blur_minimal":         lambda img: apply_blur(img, random.uniform(1.0, 1.5)),
-    "blur_light":           lambda img: apply_blur(img, random.uniform(1.5, 2.0)),
-    "overexposed_light":    lambda img: apply_brightness(img, "over"),
-    "underexposed_light":   lambda img: apply_brightness(img, "under"),
-    "partial_block_small":  lambda img: apply_partial_block(img),
-    "noise_rotate_slight":  lambda img: apply_rotation(apply_noise(img, 1000), random.uniform(1, 3)),
-    "noise_blur_minimal":   lambda img: apply_blur(apply_noise(img, 1000), 1.2),
-    "rotate_blur_light":    lambda img: apply_blur(apply_rotation(img, random.uniform(1, 3)), 1.5),
-    "bright_noise":         lambda img: apply_noise(apply_brightness(img, "over"), 1000),
-    "dark_noise":           lambda img: apply_noise(apply_brightness(img, "under"), 1000),
-    "block_noise_light":    lambda img: apply_noise(apply_partial_block(img), 1000),
-    "perspective_slight":   lambda img: apply_perspective(img),
-    "perspective_noise":    lambda img: apply_noise(apply_perspective(img), 1000),
-    "rotate_bright":        lambda img: apply_brightness(apply_rotation(img, random.uniform(1, 3)), "over"),
-    "blur_block_light":     lambda img: apply_blur(apply_partial_block(img), 1.5),
-    "noise_dark_blur":      lambda img: apply_blur(apply_brightness(apply_noise(img, 800), "under"), 1.2),
-}
-
-FAILED_PATTERNS = {
-    "heavy_blur":           lambda img: apply_blur(img, random.uniform(3.0, 4.0)),
-    "heavy_noise_blur":     lambda img: apply_blur(apply_noise(img, 5000), 3.0),
-    "block_blur":           lambda img: apply_blur(apply_partial_block(apply_partial_block(img)), 3.5),
-    "heavy_rotate_blur":    lambda img: apply_blur(apply_rotation(img, random.uniform(8, 12)), 3.0),
-    "overexposed_blur":     lambda img: apply_blur(apply_brightness(img, "over"), 3.5),
-    "underexposed_blur":    lambda img: apply_blur(apply_brightness(img, "under"), 3.5),
-    "perspective_blur":     lambda img: apply_blur(apply_perspective(img), 3.0),
-    "noise_block_blur":     lambda img: apply_blur(apply_partial_block(apply_noise(img, 4000)), 3.0),
-    "heavy_noise_rotate":   lambda img: apply_rotation(apply_noise(img, 6000), random.uniform(6, 10)),
-    "triple_degradation":   lambda img: apply_blur(apply_noise(apply_rotation(img, random.uniform(5, 8)), 3000), 2.5),
->>>>>>> develop
 }
 
 
@@ -243,11 +189,7 @@ def draw_text_on_form(img, disease, opinion, confidence="high"):
     doctor = random.choice(DOCTORS)
     patient = random.choice(PATIENT_NAMES)
     gender = random.choice(GENDERS)
-<<<<<<< HEAD
     birth = f"{random.randint(1950, 2000)}.{random.randint(1, 12):02d}.{random.randint(1, 28):02d}"
-=======
-    birth = f"{random.randint(1950,2000)}.{random.randint(1,12):02d}.{random.randint(1,28):02d}"
->>>>>>> develop
     outpatient = random.randint(1, 30)
     inpatient = random.randint(0, 14)
     districts = ["강남구", "서초구", "송파구", "마포구", "종로구"]
@@ -255,11 +197,7 @@ def draw_text_on_form(img, disease, opinion, confidence="high"):
     try:
         font = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 26)
         font_sm = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 20)
-<<<<<<< HEAD
     except Exception:
-=======
-    except:
->>>>>>> develop
         font = ImageFont.load_default()
         font_sm = font
 
@@ -267,18 +205,12 @@ def draw_text_on_form(img, disease, opinion, confidence="high"):
     draw.text((220, 195), patient, font=font, fill=(0, 0, 0))
     draw.text((680, 195), birth, font=font_sm, fill=(0, 0, 0))
     draw.text((1100, 195), gender, font=font, fill=(0, 0, 0))
-<<<<<<< HEAD
     draw.text(
         (220, 255),
         f"서울특별시 {random.choice(districts)} 테스트로 {random.randint(1, 100)}",
         font=font_sm,
         fill=(0, 0, 0),
     )
-=======
-    draw.text((220, 255),
-              f"서울특별시 {random.choice(districts)} 테스트로 {random.randint(1,100)}",
-              font=font_sm, fill=(0, 0, 0))
->>>>>>> develop
 
     # 질병명
     disease_text = disease
@@ -287,11 +219,7 @@ def draw_text_on_form(img, disease, opinion, confidence="high"):
     draw.text((220, 320), disease_text, font=font, fill=(0, 0, 0))
 
     # 소견 (원문 그대로, 줄바꿈 처리)
-<<<<<<< HEAD
     opinion_lines = [opinion[i : i + 35] for i in range(0, len(opinion), 35)]
-=======
-    opinion_lines = [opinion[i:i+35] for i in range(0, len(opinion), 35)]
->>>>>>> develop
     y_opinion = 380
     for line in opinion_lines[:3]:
         draw.text((220, y_opinion), line, font=font_sm, fill=(0, 0, 0))
@@ -303,18 +231,12 @@ def draw_text_on_form(img, disease, opinion, confidence="high"):
 
     # 의료기관 정보
     draw.text((220, 700), hospital, font=font, fill=(0, 0, 0))
-<<<<<<< HEAD
     draw.text(
         (220, 755),
         f"서울특별시 {random.choice(districts)} 테스트로 {random.randint(1, 100)}",
         font=font_sm,
         fill=(0, 0, 0),
     )
-=======
-    draw.text((220, 755),
-              f"서울특별시 {random.choice(districts)} 테스트로 {random.randint(1,100)}",
-              font=font_sm, fill=(0, 0, 0))
->>>>>>> develop
     draw.text((220, 810), doctor, font=font, fill=(0, 0, 0))
 
     return img
@@ -347,47 +269,23 @@ def generate_all():
 
     print("고신뢰도 진료확인서 생성 중...")
     for i in range(5):
-<<<<<<< HEAD
         generate_medical_record(f"{base}/high_confidence/medical_record_{i + 1}.jpg", "high")
-=======
-        generate_medical_record(
-            f"{base}/high_confidence/medical_record_{i+1}.jpg", "high")
->>>>>>> develop
 
     print("저신뢰도 진료확인서 생성 중... (오독 여지 있음)")
     low_patterns = list(LOW_CONFIDENCE_PATTERNS.keys())
     for i, pattern in enumerate(low_patterns):
-<<<<<<< HEAD
         generate_medical_record(f"{base}/low_confidence/medical_record_{i + 1}_{pattern}.jpg", "low", pattern)
-=======
-        generate_medical_record(
-            f"{base}/low_confidence/medical_record_{i+1}_{pattern}.jpg",
-            "low", pattern)
->>>>>>> develop
 
     print("실패 케이스 생성 중... (보정 시도 필요)")
     fail_patterns = list(FAILED_PATTERNS.keys())
     for i, pattern in enumerate(fail_patterns):
-<<<<<<< HEAD
         generate_medical_record(f"{base}/failed/medical_record_{i + 1}_{pattern}.jpg", "failed", pattern)
 
     print("전체 생성 완료")
     print("  고신뢰도: 5장")
-=======
-        generate_medical_record(
-            f"{base}/failed/medical_record_{i+1}_{pattern}.jpg",
-            "failed", pattern)
-
-    print("전체 생성 완료")
-    print(f"  고신뢰도: 5장")
->>>>>>> develop
     print(f"  저신뢰도: {len(low_patterns)}장")
     print(f"  실패:     {len(fail_patterns)}장")
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     generate_all()
-=======
-    generate_all()
->>>>>>> develop

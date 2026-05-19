@@ -1,15 +1,8 @@
 from typing import Literal, overload
 
-<<<<<<< HEAD
-from fastapi import HTTPException
-
-from app.core.jwt.exceptions import ExpiredTokenError, TokenError
-from app.core.jwt.tokens import AccessToken, RefreshToken
-=======
 from app.core.jwt.exceptions import ExpiredTokenError, TokenError
 from app.core.jwt.tokens import AccessToken, RefreshToken
 from app.exceptions import ExpiredTokenException, InvalidTokenException
->>>>>>> develop
 from app.models.users import User
 
 

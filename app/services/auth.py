@@ -4,13 +4,6 @@ from pydantic import EmailStr
 from tortoise.transactions import in_transaction
 
 from app.core.jwt.tokens import AccessToken, RefreshToken
-<<<<<<< HEAD
-from app.core.utils.common import normalize_phone_number
-from app.core.utils.security import hash_password, verify_password
-from app.dtos.auth import LoginRequest, SignUpRequest
-from app.models.users import User
-from app.repositories.user_repository import UserRepository
-=======
 from app.core.utils.security import hash_password, verify_password
 from app.dtos.auth import LoginRequest, SignUpRequest
 from app.exceptions import (
@@ -22,7 +15,6 @@ from app.exceptions import (
 from app.models.auth_tokens import AuthToken
 from app.models.user_consents import ConsentType, RequiredType, UserConsent
 from app.models.users import User, UserStatus
->>>>>>> develop
 from app.services.jwt import JwtService
 
 
@@ -32,6 +24,7 @@ class AuthService:
 
     async def signup(self, data: SignUpRequest) -> User:
         await self.check_email_exists(data.email)
+
         required_types = {
             ConsentType.TERMS,
             ConsentType.PRIVACY,
@@ -41,6 +34,7 @@ class AuthService:
         agreed_types = {ConsentType(c.consent_type) for c in data.consents if c.is_agreed}
         if not required_types.issubset(agreed_types):
             raise InvalidConsentException()
+
         async with in_transaction():
             user = await User.create(
                 email=data.email,
@@ -49,6 +43,7 @@ class AuthService:
                 nickname=data.nickname,
                 status=UserStatus.ACTIVE,
             )
+
             for consent in data.consents:
                 consent_type = ConsentType(consent.consent_type)
                 required_type = RequiredType.REQUIRED if consent_type in required_types else RequiredType.OPTIONAL

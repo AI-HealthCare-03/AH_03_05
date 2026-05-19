@@ -2,15 +2,10 @@ from typing import Annotated
 
 from pydantic import BaseModel, EmailStr, Field
 
-<<<<<<< HEAD
-from app.core.validators import validate_birthday, validate_password, validate_phone_number
-from app.models.users import Gender
-=======
 
 class ConsentItem(BaseModel):
     consent_type: str
     is_agreed: bool
->>>>>>> develop
 
 
 class SignUpRequest(BaseModel):

@@ -1,7 +1,8 @@
+import json
 import os
 import time
-import json
 import warnings
+
 warnings.filterwarnings("ignore")
 
 from PIL import Image
