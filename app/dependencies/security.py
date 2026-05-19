@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.models.users import User
+from app.models.users import User, UserStatus
 from app.repositories.user_repository import UserRepository
 from app.services.jwt import JwtService
 
@@ -17,4 +17,6 @@ async def get_request_user(credential: Annotated[HTTPAuthorizationCredentials, D
     user = await UserRepository().get_user(user_id)
     if not user:
         raise HTTPException(detail="Authenticate Failed.", status_code=status.HTTP_401_UNAUTHORIZED)
+    if user.status == UserStatus.WITHDRAWN:
+        raise HTTPException(detail="탈퇴한 사용자입니다.", status_code=status.HTTP_401_UNAUTHORIZED)
     return user
