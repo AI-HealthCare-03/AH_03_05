@@ -40,7 +40,7 @@ def load_lore(filename: str) -> str:
     path = os.path.join(LORE_DIR, f"{filename}.txt")
     if not os.path.exists(path):
         return ""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
