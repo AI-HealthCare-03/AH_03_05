@@ -2,6 +2,7 @@ import os
 import time
 import json
 import warnings
+
 warnings.filterwarnings("ignore")
 
 from PIL import Image
@@ -10,13 +11,32 @@ IMAGE_BASE = "tests/mock_data/images"
 RESULT_PATH = "tests/mock_data/ocr_comparison_result.json"
 
 PRESCRIPTION_KEYWORDS = [
-    "처방", "처방전", "의약품", "투약", "식후", "식전",
-    "1일", "복용", "mg", "정", "캡슐", "요양기관"
+    "처방",
+    "처방전",
+    "의약품",
+    "투약",
+    "식후",
+    "식전",
+    "1일",
+    "복용",
+    "mg",
+    "정",
+    "캡슐",
+    "요양기관",
 ]
 
 MEDICAL_RECORD_KEYWORDS = [
-    "진료", "확인서", "질병", "소견", "외래", "입원",
-    "의료비", "의료기관", "병원", "진단", "개설자"
+    "진료",
+    "확인서",
+    "질병",
+    "소견",
+    "외래",
+    "입원",
+    "의료비",
+    "의료기관",
+    "병원",
+    "진단",
+    "개설자",
 ]
 
 
@@ -33,11 +53,7 @@ def load_test_images():
     for category in ["high_confidence", "low_confidence", "failed"]:
         folder = os.path.join(IMAGE_BASE, category)
         if os.path.exists(folder):
-            images[category] = [
-                os.path.join(folder, f)
-                for f in sorted(os.listdir(folder))
-                if f.endswith(".jpg")
-            ]
+            images[category] = [os.path.join(folder, f) for f in sorted(os.listdir(folder)) if f.endswith(".jpg")]
     return images
 
 
@@ -51,6 +67,7 @@ def calc_keyword_score(text, keywords):
 def run_paddleocr(image_path):
     try:
         from paddleocr import PaddleOCR
+
         ocr = PaddleOCR(use_textline_orientation=True, lang="korean")
         start = time.time()
         result = ocr.ocr(image_path)
@@ -81,7 +98,7 @@ def run_paddleocr(image_path):
             "text": text.strip(),
             "confidence": avg_conf,
             "time": elapsed,
-            "keyword_score": calc_keyword_score(text, keywords)
+            "keyword_score": calc_keyword_score(text, keywords),
         }
     except Exception as e:
         return {"error": str(e), "doc_type": "", "text": "", "confidence": 0, "time": 0, "keyword_score": 0}
@@ -90,13 +107,14 @@ def run_paddleocr(image_path):
 def run_easyocr(image_path):
     try:
         import easyocr
+
         reader = easyocr.Reader(["ko", "en"], verbose=False)
         start = time.time()
         result = reader.readtext(image_path)
         elapsed = round(time.time() - start, 3)
         text = ""
         confidence = 0.0
-        for (_, t, conf) in result:
+        for _, t, conf in result:
             text += t + " "
             confidence += conf
         avg_conf = round(confidence / len(result), 3) if result else 0.0
@@ -106,7 +124,7 @@ def run_easyocr(image_path):
             "text": text.strip(),
             "confidence": avg_conf,
             "time": elapsed,
-            "keyword_score": calc_keyword_score(text, keywords)
+            "keyword_score": calc_keyword_score(text, keywords),
         }
     except Exception as e:
         return {"error": str(e), "doc_type": "", "text": "", "confidence": 0, "time": 0, "keyword_score": 0}
@@ -115,13 +133,11 @@ def run_easyocr(image_path):
 def run_tesseract(image_path):
     try:
         import pytesseract
+
         img = Image.open(image_path)
         start = time.time()
         text = pytesseract.image_to_string(img, lang="kor+eng")
-        data = pytesseract.image_to_data(
-            img, lang="kor+eng",
-            output_type=pytesseract.Output.DICT
-        )
+        data = pytesseract.image_to_data(img, lang="kor+eng", output_type=pytesseract.Output.DICT)
         elapsed = round(time.time() - start, 3)
         confs = [int(c) for c in data["conf"] if str(c).isdigit() and int(c) > 0]
         avg_conf = round(sum(confs) / len(confs) / 100, 3) if confs else 0.0
@@ -131,7 +147,7 @@ def run_tesseract(image_path):
             "text": text.strip(),
             "confidence": avg_conf,
             "time": elapsed,
-            "keyword_score": calc_keyword_score(text, keywords)
+            "keyword_score": calc_keyword_score(text, keywords),
         }
     except Exception as e:
         return {"error": str(e), "doc_type": "", "text": "", "confidence": 0, "time": 0, "keyword_score": 0}
@@ -139,7 +155,7 @@ def run_tesseract(image_path):
 
 MODELS = {
     "PaddleOCR": run_paddleocr,
-    "EasyOCR":   run_easyocr,
+    "EasyOCR": run_easyocr,
     "Tesseract": run_tesseract,
 }
 
@@ -149,9 +165,9 @@ def run_comparison():
     results = {}
 
     for category, paths in images.items():
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"카테고리: {category} ({len(paths)}장)")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         results[category] = {}
 
         prescription_paths = [p for p in paths if "prescription" in os.path.basename(p)]
@@ -170,10 +186,12 @@ def run_comparison():
                 model_results.append({"file": fname, **result})
                 doc_type = result.get("doc_type", "")
                 status = "✅" if result.get("keyword_score", 0) > 0.3 else "❌"
-                print(f"    {status} [{doc_type}] {fname[:30]} | "
-                      f"키워드: {result.get('keyword_score', 0)} | "
-                      f"신뢰도: {result.get('confidence', 'N/A')} | "
-                      f"속도: {result.get('time', 0)}초")
+                print(
+                    f"    {status} [{doc_type}] {fname[:30]} | "
+                    f"키워드: {result.get('keyword_score', 0)} | "
+                    f"신뢰도: {result.get('confidence', 'N/A')} | "
+                    f"속도: {result.get('time', 0)}초"
+                )
 
             p_results = [r for r in model_results if r.get("doc_type") == "처방전"]
             m_results = [r for r in model_results if r.get("doc_type") == "진료확인서"]
@@ -185,21 +203,21 @@ def run_comparison():
             results[category][model_name] = {
                 "prescription": {
                     "avg_keyword_score": avg(p_results, "keyword_score"),
-                    "avg_confidence":    avg(p_results, "confidence"),
-                    "avg_time":          avg(p_results, "time"),
+                    "avg_confidence": avg(p_results, "confidence"),
+                    "avg_time": avg(p_results, "time"),
                 },
                 "medical_record": {
                     "avg_keyword_score": avg(m_results, "keyword_score"),
-                    "avg_confidence":    avg(m_results, "confidence"),
-                    "avg_time":          avg(m_results, "time"),
+                    "avg_confidence": avg(m_results, "confidence"),
+                    "avg_time": avg(m_results, "time"),
                 },
-                "details": model_results
+                "details": model_results,
             }
 
     for doc_label, doc_key in [("처방전", "prescription"), ("진료확인서", "medical_record")]:
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print(f"최종 비교 결과 — {doc_label}")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         print(f"{'모델':<15} {'고신뢰도':>10} {'저신뢰도':>10} {'실패':>10} {'평균속도':>10}")
         print("-" * 70)
         for model_name in MODELS.keys():
