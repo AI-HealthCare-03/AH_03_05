@@ -80,3 +80,16 @@ class TestNotificationAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_get_unread_count(self):
+        # Given
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "notify4@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+
+            # When
+            response = await client.get("/api/v1/notifications/unread-count", headers=headers)
+
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["unread_count"] == 0
