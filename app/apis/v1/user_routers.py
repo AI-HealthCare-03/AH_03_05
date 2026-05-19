@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.dependencies.security import get_request_user
-from app.dtos.users import UserInfoResponse, UserUpdateRequest
+from app.dtos.users import PasswordChangeRequest, PasswordChangeResponse, UserInfoResponse, UserUpdateRequest
 from app.models.users import User
 from app.services.users import UserManageService
 
@@ -25,3 +25,13 @@ async def update_user_me_info(
 ) -> UserInfoResponse:
     updated_user = await user_manage_service.update_user(user=user, data=update_data)
     return UserInfoResponse.model_validate(updated_user)
+
+
+@user_router.patch("/me/password", response_model=PasswordChangeResponse, status_code=status.HTTP_200_OK)
+async def change_password(
+    request: PasswordChangeRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    user_manage_service: Annotated[UserManageService, Depends(UserManageService)],
+) -> PasswordChangeResponse:
+    await user_manage_service.change_password(user, request.current_password, request.new_password)
+    return PasswordChangeResponse(detail="비밀번호가 변경되었습니다.")

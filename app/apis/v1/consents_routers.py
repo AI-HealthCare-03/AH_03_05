@@ -23,13 +23,16 @@ async def get_consents(
 ) -> ConsentListResponse:
     consents = await consent_service.get_consents(user)
     return ConsentListResponse(
-        consents=[ConsentItemResponse(
-            consent_type=c.consent_type,
-            required_type=c.required_type,
-            is_agreed=c.is_agreed,
-            agreed_at=c.agreed_at,
-            revoked_at=c.revoked_at,
-        ) for c in consents]
+        consents=[
+            ConsentItemResponse(
+                consent_type=c.consent_type,
+                required_type=c.required_type,
+                is_agreed=c.is_agreed,
+                agreed_at=c.agreed_at,
+                revoked_at=c.revoked_at,
+            )
+            for c in consents
+        ]
     )
 
 

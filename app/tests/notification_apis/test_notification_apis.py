@@ -14,16 +14,22 @@ CONSENTS = [
 
 
 async def get_access_token(client: AsyncClient, email: str) -> str:
-    await client.post("/api/v1/auth/signup", json={
-        "email": email,
-        "password": "Password123!",
-        "name": "테스터",
-        "consents": CONSENTS,
-    })
-    login_response = await client.post("/api/v1/auth/login", json={
-        "email": email,
-        "password": "Password123!",
-    })
+    await client.post(
+        "/api/v1/auth/signup",
+        json={
+            "email": email,
+            "password": "Password123!",
+            "name": "테스터",
+            "consents": CONSENTS,
+        },
+    )
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": email,
+            "password": "Password123!",
+        },
+    )
     return login_response.json()["access_token"]
 
 
