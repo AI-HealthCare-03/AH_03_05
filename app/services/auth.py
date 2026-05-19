@@ -24,6 +24,7 @@ class AuthService:
 
     async def signup(self, data: SignUpRequest) -> User:
         await self.check_email_exists(data.email)
+
         required_types = {
             ConsentType.TERMS,
             ConsentType.PRIVACY,
@@ -33,6 +34,7 @@ class AuthService:
         agreed_types = {ConsentType(c.consent_type) for c in data.consents if c.is_agreed}
         if not required_types.issubset(agreed_types):
             raise InvalidConsentException()
+
         async with in_transaction():
             user = await User.create(
                 email=data.email,
@@ -41,6 +43,7 @@ class AuthService:
                 nickname=data.nickname,
                 status=UserStatus.ACTIVE,
             )
+
             for consent in data.consents:
                 consent_type = ConsentType(consent.consent_type)
                 required_type = RequiredType.REQUIRED if consent_type in required_types else RequiredType.OPTIONAL
