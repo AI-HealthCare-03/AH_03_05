@@ -1,5 +1,3 @@
-import re
-
 # ── 위험 키워드 목록 v1 ──
 
 # 명시적 자살/자해 (맥락 무관 DANGER)
@@ -105,6 +103,10 @@ def _normalize(text: str) -> str:
     return text.replace(" ", "").lower()
 
 
+def _check_keywords(normalized: str, keywords: list) -> bool:
+    return any(_normalize(k) in normalized for k in keywords)
+
+
 def check_safety(text: str) -> bool:
     """
     입력 텍스트에서 위험 키워드 감지 시 True 반환
@@ -122,31 +124,20 @@ def check_safety(text: str) -> bool:
     normalized = _normalize(text)
 
     # 1. 일상 표현 먼저 체크 → SAFE 처리
-    for expr in DAILY_EXPRESSIONS:
-        if _normalize(expr) in normalized:
-            return False
+    if _check_keywords(normalized, DAILY_EXPRESSIONS):
+        return False
 
-    # 2. 명시적 자살/자해 키워드
-    for keyword in EXPLICIT_DANGER_KEYWORDS:
-        if _normalize(keyword) in normalized:
-            return True
+    # 2~4. 위험 키워드 체크
+    if _check_keywords(normalized, EXPLICIT_DANGER_KEYWORDS):
+        return True
+    if _check_keywords(normalized, MEDICAL_DANGER_KEYWORDS):
+        return True
+    if _check_keywords(normalized, HIGH_RISK_KEYWORDS):
+        return True
 
-    # 3. 의료 맥락 위험 표현
-    for keyword in MEDICAL_DANGER_KEYWORDS:
-        if _normalize(keyword) in normalized:
-            return True
-
-    # 4. 위험 강도 높은 표현
-    for keyword in HIGH_RISK_KEYWORDS:
-        if _normalize(keyword) in normalized:
-            return True
-
-    # 5. 복합 조건 감지 (트리거 + 컨텍스트 동시 포함)
-    for trigger in COMPOUND_TRIGGER:
-        if _normalize(trigger) in normalized:
-            for context in COMPOUND_CONTEXT:
-                if _normalize(context) in normalized:
-                    return True
+    # 5. 복합 조건 감지
+    if _check_keywords(normalized, COMPOUND_TRIGGER):
+        return _check_keywords(normalized, COMPOUND_CONTEXT)
 
     return False
 
