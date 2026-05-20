@@ -42,3 +42,29 @@ async def generate_guide_for_record(
     if result is None:
         raise NotFoundException(detail="해당 record를 찾을 수 없습니다.")
     return GenerateGuideResponse(**result)
+
+
+@guide_router.get(
+    "/{guide_id}",
+    response_model=GenerateGuideResponse,
+    status_code=200,
+)
+async def get_guide(
+    guide_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[GuideService, Depends(GuideService)],
+) -> GenerateGuideResponse:
+    """
+    저장된 가이드를 단건 조회한다.
+
+    본인이 생성한 가이드만 조회 가능하다.
+    응답 형식은 POST /generate와 동일하다.
+
+    에러:
+    - 401: 미인증
+    - 404: 가이드 없음 또는 다른 사용자 소유
+    """
+    result = await service.get_guide_by_id(user=user, guide_id=guide_id)
+    if result is None:
+        raise NotFoundException(detail="해당 가이드를 찾을 수 없습니다.")
+    return GenerateGuideResponse(**result)

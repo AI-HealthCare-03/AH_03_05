@@ -175,3 +175,43 @@ class GuideService:
             "medications": med_list,
             "doctor_opinion": doctor_opinion,
         }
+
+    async def get_guide_by_id(self, user: User, guide_id: int) -> dict | None:
+        """
+        guide_id로 단건 조회. 본인 가이드만 조회 가능.
+
+        반환값:
+            - dict: 응답용 데이터 (GenerateGuideResponse 형식과 동일)
+            - None: 가이드 없음 또는 다른 사용자 소유 (404)
+        """
+        guide = await Guide.get_or_none(id=guide_id, user=user)
+        if guide is None:
+            return None
+
+        items = await GuideItem.filter(guide=guide).order_by("sort_order")
+
+        timestamp = guide.generated_at or guide.created_at or datetime.now(UTC)
+
+        return {
+            "guide_id": guide.id,
+            "status": guide.status.value,
+            "data_source": {
+                "type": "REALTIME",
+                "timestamp": timestamp,
+                "notice": "저장된 가이드를 조회한 결과입니다.",
+            },
+            "medication_guide": guide.medication_guide or "",
+            "lifestyle_guide": guide.lifestyle_guide or "",
+            "warning_message": guide.warning_message,
+            "disclaimer": guide.disclaimer or DEFAULT_DISCLAIMER,
+            "guide_items": [
+                {
+                    "item_type": gi.item_type.value,
+                    "title": gi.title,
+                    "content": gi.content,
+                    "sort_order": gi.sort_order,
+                    "guideline_source_id": gi.guideline_source_id,
+                }
+                for gi in items
+            ],
+        }
