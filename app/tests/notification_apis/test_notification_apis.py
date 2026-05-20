@@ -93,3 +93,40 @@ class TestNotificationAPI(TestCase):
         # Then
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["unread_count"] == 0
+
+    async def test_read_all_notifications_unauthorized(self):
+        # Given
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            # When
+            response = await client.patch("/api/v1/notifications/read-all")
+        # Then
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_read_all_notifications_success(self):
+        from app.models.notifications import Notification
+        from app.models.users import User
+
+        # Given
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "notify5@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+            user = await User.get(email="notify5@example.com")
+            await Notification.create(
+                user=user,
+                notification_type="system",
+                title="테스트 알림1",
+                message="내용1",
+                is_read=False,
+            )
+            await Notification.create(
+                user=user,
+                notification_type="system",
+                title="테스트 알림2",
+                message="내용2",
+                is_read=False,
+            )
+            # When
+            response = await client.patch("/api/v1/notifications/read-all", headers=headers)
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["updated_count"] == 2
