@@ -12,7 +12,7 @@ from app.core import config
 
 MFDS_BASE_URL = "https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07"
 MFDS_SEARCH_URL = f"{MFDS_BASE_URL}/getDrugPrdtPrmsnInq07"
-MFDS_DETAIL_URL = f"{MFDS_BASE_URL}/getDrugPrdtPrmsnDtlInq07"
+MFDS_DETAIL_URL = f"{MFDS_BASE_URL}/getDrugPrdtPrmsnDtlInq06"
 DEFAULT_TIMEOUT = 30.0
 
 
@@ -49,14 +49,14 @@ class MFDSClient:
     async def get_drug_detail(self, item_seq: str) -> dict[str, Any] | None:
         """
         약품 식별 코드(ITEM_SEQ)로 상세 조회한다.
-        503 에러 방지를 위해 ITEM_SEQ 대문자 파라미터를 사용한다.
+        식약처 파라미터는 소문자 item_seq를 사용한다.
         """
         if not item_seq:
             return None
 
         params = {
             "serviceKey": self.api_key,
-            "ITEM_SEQ": item_seq,  # 팀장님 수정 사항 반영
+            "item_seq": item_seq,
             "type": "json",
         }
 
