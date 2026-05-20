@@ -1,4 +1,5 @@
 from tortoise.transactions import in_transaction
+
 from app.core.utils.security import hash_password, verify_password
 from app.dtos.users import UserUpdateRequest
 from app.exceptions.common import BadRequestException, UnauthorizedException
@@ -18,6 +19,7 @@ class UserManageService:
 
     async def change_password(self, user: User, current_password: str, new_password: str) -> None:
         from datetime import UTC, datetime
+
         from app.models.auth_tokens import AuthToken
 
         if not verify_password(current_password, user.password_hash):
@@ -32,6 +34,7 @@ class UserManageService:
 
     async def withdraw_user(self, user: User, password: str) -> None:
         from datetime import UTC, datetime
+
         from app.models.auth_tokens import AuthToken
         from app.models.users import UserStatus
 
