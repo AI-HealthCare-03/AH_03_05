@@ -33,3 +33,7 @@ class NotificationDeleteResponse(BaseModel):
 
 class UnreadCountResponse(BaseModel):
     unread_count: int
+
+
+class ReadAllNotificationsResponse(BaseModel):
+    updated_count: int
