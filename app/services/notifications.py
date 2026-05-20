@@ -28,3 +28,9 @@ class NotificationService:
             return False
         await notification.delete()
         return True
+
+    async def read_all_notifications(self, user: User) -> int:
+        updated_count = await Notification.filter(user=user, is_read=False).update(
+            is_read=True, read_at=datetime.now(UTC)
+        )
+        return updated_count
