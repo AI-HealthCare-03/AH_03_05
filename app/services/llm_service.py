@@ -12,7 +12,35 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 MODEL = "gpt-4o-mini"
 
 
-# ── 복약 가이드 전용 ──
+def build_drug_context(medications: list) -> str:
+    if not medications:
+        return ""
+    parts = []
+    for med in medications:
+        name = med.get("drug_name", "")
+        ingredient = med.get("ingredient_name", "")
+        efficacy = med.get("efficacy", "")
+        dosage = med.get("dosage", "")
+        caution = med.get("caution", "")
+        side_effect = med.get("side_effect", "")
+        frequency = med.get("frequency", "")
+        timing = med.get("timing", "")
+
+        part = f"약품명: {name}"
+        if ingredient:
+            part += f"\n성분: {ingredient}"
+        if efficacy:
+            part += f"\n효능효과: {efficacy[:200]}"
+        if dosage:
+            part += f"\n용법용량: {dosage[:200]}"
+        if caution:
+            part += f"\n주의사항: {caution[:300]}"
+        if side_effect:
+            part += f"\n부작용: {side_effect[:200]}"
+        if frequency or timing:
+            part += f"\n처방 복용법: {frequency} {timing}".strip()
+        parts.append(part)
+    return "\n\n".join(parts)
 
 
 def build_medication_system_prompt(drug_context: str, guideline_context: str) -> str:
@@ -22,7 +50,6 @@ def build_medication_system_prompt(drug_context: str, guideline_context: str) ->
 [톤 가이드]
 - 따뜻하고 친근한 말투를 사용해요 (예: "~해보세요", "~하시면 좋아요")
 - 어렵고 딱딱한 의학 용어는 쉬운 말로 풀어서 설명해요
-- 구체적이고 실천 가능한 내용을 담아요
 - 각 항목은 2~3문장으로 간결하게 작성해요
 
 [역할 및 제한사항]
@@ -31,12 +58,27 @@ def build_medication_system_prompt(drug_context: str, guideline_context: str) ->
 - 응답은 반드시 JSON 형식으로만 출력해요
 
 [가이드 생성 규칙]
-- 각 약품마다 MEDICATION 항목 1개씩 생성해요
-- 약품의 효능/주의사항을 반드시 포함해요
-- 중요한 주의사항은 WARNING 항목으로 별도 생성해요
+- MEDICATION 항목 필수 포함 요소
+  1) 약품이 어떤 역할을 하는지 (효능을 쉬운 말로)
+  2) 처방된 복용법 (시간, 횟수)
+  3) 복용 시 일반 주의 사항
+
+- WARNING 항목은 아래 경우에만 생성해요
+  단순 복용 팁은 MEDICATION에 포함해요
+  1) 복용 금기 대상 (임신, 수유, 특정 질환 보유자)
+  2) 타 약물 또는 검사와의 상호작용
+     조영제 검사 전 복용 중단이 필요한 경우 반드시 WARNING으로 생성해요
+  3) 저혈당 등 즉각 대응이 필요한 응급 증상
+  4) 신기능/간기능 저하 환자 주의
 
 [응답 형식]
 {
+  "_logic": {
+    "diseases": ["질환명 리스트"],
+    "drugs": ["약품명(효능) 리스트"],
+    "warning_factors": ["해당하는 WARNING 요인만"],
+    "decision": "MEDICATION×N | WARNING×N"
+  },
   "medication_guide": "복약 안내 전체 요약 평문 (2~4문장)",
   "warning_message": null 또는 "주요 주의사항 요약",
   "guide_items": [
@@ -78,12 +120,16 @@ def build_medication_user_prompt(health_profile: dict) -> str:
 [현재 복용 약물]
 {med_list}
 
-각 약품마다 MEDICATION 항목 1개씩 생성하고
-중요한 주의사항은 WARNING 항목으로 추가해주세요.
+_logic에서 warning_factors를 먼저 정리한 뒤
+각 약품마다 MEDICATION 항목 1개씩 생성해주세요.
+
+약품 주의사항에 아래 키워드가 포함된 경우
+반드시 WARNING 항목으로 생성해주세요.
+- 임신 / 수유 / 임부
+- 신기능 / 간기능 저하
+- 저혈당
+
 JSON 형식으로 생성해주세요."""
-
-
-# ── 생활습관 가이드 전용 ──
 
 
 def build_lifestyle_system_prompt(guideline_context: str) -> str:
@@ -94,23 +140,36 @@ def build_lifestyle_system_prompt(guideline_context: str) -> str:
 - 따뜻하고 친근한 말투를 사용해요 (예: "~해보세요", "~하시면 좋아요")
 - 어렵고 딱딱한 의학 용어는 쉬운 말로 풀어서 설명해요
 - 환자의 상황에 공감하는 표현을 포함해요
-- 구체적이고 실천 가능한 내용을 담아요
 - 각 항목은 2~3문장으로 간결하게 작성해요
 
 [역할 및 제한사항]
 - 제공된 공식 가이드라인에만 근거하여 답변해요
 - 진단, 처방, 치료 결정은 절대 하지 않아요
-- 가이드라인에 없는 내용은 추측하지 않아요
 - 응답은 반드시 JSON 형식으로만 출력해요
 
-[가이드 생성 규칙]
-- 의사 소견에 언급된 내용을 반드시 LIFESTYLE 항목으로 포함해요
-- 가이드라인에서 추가로 2개 이상 LIFESTYLE 항목을 생성해요
-- 총 3개 이상의 LIFESTYLE 항목을 생성해요
-- 절주/금연/체중관리 등 가이드라인 핵심 항목을 빠짐없이 포함해요
+[역할 분리 기준]
+복약 파트에서 이미 다룬 내용과 중복을 피해주세요.
+생활습관 파트는 아래에 집중해요.
+
+포함할 것
+- 식단 구성 (저염식 방법, 권장/금지 식품, 구체적 수치)
+- 운동 방법 (종류, 강도, 빈도, 시간)
+- 자가 모니터링 (혈압/혈당 측정 시간, 기록 방법)
+- 생활환경 개선 (절주 기준, 금연, 체중관리 목표)
+- 정기검진 권고 (검사 종류, 주기)
+
+피할 것
+- 약 복용 시간, 용량, 방법 관련 내용
+- 복약 가이드에서 이미 언급한 표현 반복
 
 [응답 형식]
 {
+  "_logic": {
+    "doctor_opinion_items": ["의사 소견에서 추출한 항목"],
+    "guideline_items": ["가이드라인에서 추가할 항목"],
+    "excluded": ["복약 파트와 중복으로 제외한 내용"],
+    "decision": "LIFESTYLE×N"
+  },
   "lifestyle_guide": "생활습관 가이드 전체 요약 평문 (2~4문장)",
   "guide_items": [
     {
@@ -134,7 +193,7 @@ def build_lifestyle_user_prompt(health_profile: dict, medication_result: dict) -
     doctor_opinion = health_profile.get("doctor_opinion", "")
     disease_names = get_disease_names(diseases)
 
-    med_guide_summary = medication_result.get("medication_guide", "")
+    med_full_context = json.dumps(medication_result, ensure_ascii=False, indent=2)
 
     return f"""다음 환자의 생활습관 가이드를 생성해주세요.
 
@@ -145,56 +204,20 @@ def build_lifestyle_user_prompt(health_profile: dict, medication_result: dict) -
 [의사 소견]
 {doctor_opinion if doctor_opinion else "없음"}
 
-[이미 생성된 복약 가이드 요약]
-{med_guide_summary}
+[이미 생성된 복약 가이드 전체 - 아래 내용과 중복되는 표현은 생략해주세요]
+{med_full_context}
 
-위 복약 가이드와 중복되지 않도록 생활습관 위주로 작성해주세요.
-의사 소견 내용을 반드시 포함하고
-가이드라인에서 절주/금연/체중관리/식이 등 추가 항목을 최소 3개 생성해주세요.
-JSON 형식으로 생성해주세요."""
+_logic에서 의사 소견 항목과 가이드라인 추가 항목을 먼저 정리하고
+복약 파트와 중복되는 내용은 excluded에 기록한 뒤 제외해주세요.
 
+아래 항목은 가이드라인 핵심 항목으로 반드시 LIFESTYLE에 포함해주세요.
+- 절주
+- 금연
 
-# ── 약품 컨텍스트 조립 ──
-
-
-def build_drug_context(medications: list) -> str:
-    if not medications:
-        return ""
-    parts = []
-    for med in medications:
-        name = med.get("drug_name", "")
-        ingredient = med.get("ingredient_name", "")
-        efficacy = med.get("efficacy", "")
-        dosage = med.get("dosage", "")
-        caution = med.get("caution", "")
-        side_effect = med.get("side_effect", "")
-        frequency = med.get("frequency", "")
-        timing = med.get("timing", "")
-
-        part = f"약품명: {name}"
-        if ingredient:
-            part += f"\n성분: {ingredient}"
-        if efficacy:
-            part += f"\n효능효과: {efficacy[:200]}"
-        if dosage:
-            part += f"\n용법용량: {dosage[:200]}"
-        if caution:
-            part += f"\n주의사항: {caution[:200]}"
-        if side_effect:
-            part += f"\n부작용: {side_effect[:200]}"
-        if frequency or timing:
-            part += f"\n처방 복용법: {frequency} {timing}".strip()
-        parts.append(part)
-    return "\n\n".join(parts)
-
-
-# ── 메인 함수 ──
+총 3개 이상의 LIFESTYLE 항목을 JSON 형식으로 생성해주세요."""
 
 
 def generate_guide(health_profile: dict) -> dict:
-    """
-    복약 가이드 → 생활습관 가이드 순차 생성 후 합치기
-    """
     chronic_diseases = health_profile.get("chronic_diseases", [])
     age = health_profile.get("age", 0)
     medications = health_profile.get("medications", [])
@@ -221,6 +244,7 @@ def generate_guide(health_profile: dict) -> dict:
             timeout=30.0,
         )
         medication_result = json.loads(med_response.choices[0].message.content)
+        medication_result.pop("_logic", None)
     except Exception as e:
         medication_result = {
             "medication_guide": "",
@@ -229,7 +253,7 @@ def generate_guide(health_profile: dict) -> dict:
             "error": str(e),
         }
 
-    # ── 2호출: 생활습관 가이드 생성 (복약 결과 컨텍스트 추가) ──
+    # ── 2호출: 생활습관 가이드 생성 ──
     try:
         lifestyle_response = client.chat.completions.create(
             model=MODEL,
@@ -248,6 +272,7 @@ def generate_guide(health_profile: dict) -> dict:
             timeout=30.0,
         )
         lifestyle_result = json.loads(lifestyle_response.choices[0].message.content)
+        lifestyle_result.pop("_logic", None)
     except Exception as e:
         lifestyle_result = {
             "lifestyle_guide": "",
@@ -256,33 +281,23 @@ def generate_guide(health_profile: dict) -> dict:
         }
 
     # ── 결과 합치기 ──
-    med_items = medication_result.get("guide_items", [])
-    lifestyle_items = lifestyle_result.get("guide_items", [])
-
-    # sort_order 재정렬 (MEDICATION → LIFESTYLE → WARNING 순)
-    sorted_items = []
-    order = 1
-    for item in med_items:
-        if item.get("item_type") in ("MEDICATION", "WARNING"):
-            item["sort_order"] = order
-            sorted_items.append(item)
-            order += 1
-    for item in lifestyle_items:
-        if item.get("item_type") == "LIFESTYLE":
-            item["sort_order"] = order
-            sorted_items.append(item)
-            order += 1
+    med_items = [i for i in medication_result.get("guide_items", []) if i.get("item_type") in ("MEDICATION", "WARNING")]
+    lifestyle_items = [i for i in lifestyle_result.get("guide_items", []) if i.get("item_type") == "LIFESTYLE"]
+    all_items = []
+    for idx, item in enumerate(med_items + lifestyle_items, 1):
+        item["sort_order"] = idx
+        all_items.append(item)
 
     return {
         "medication_guide": medication_result.get("medication_guide", ""),
         "lifestyle_guide": lifestyle_result.get("lifestyle_guide", ""),
-        "warning_message": medication_result.get("warning_message", None),
+        "warning_message": medication_result.get("warning_message"),
         "disclaimer": (
             "본 안내는 임상진료지침 정보센터 가이드라인 및 사용자님의 건강 프로필을 참고하여 생성되었어요. "
             "개인별 상태에 따라 다를 수 있으니 담당 의사와 꼭 상담해 주세요."
         ),
         "safety_flag": False,
-        "guide_items": sorted_items,
+        "guide_items": all_items,
         "generation_status": {
             "medication": "completed" if "error" not in medication_result else "failed",
             "lifestyle": "completed" if "error" not in lifestyle_result else "failed",
