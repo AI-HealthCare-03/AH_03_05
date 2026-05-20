@@ -70,5 +70,5 @@ async def get_unread_count(
     user: Annotated[User, Depends(get_request_user)],
     notification_service: Annotated[NotificationService, Depends(NotificationService)],
 ) -> UnreadCountResponse:
-    _, unread_count = await notification_service.get_notifications(user)
+    unread_count = await notification_service.get_unread_count(user)
     return UnreadCountResponse(unread_count=unread_count)
