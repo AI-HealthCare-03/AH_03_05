@@ -1,9 +1,10 @@
 import os
 import random
-import requests
+
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
+import requests
 from dotenv import load_dotenv
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 load_dotenv()
 
@@ -87,7 +88,7 @@ def apply_partial_block(img):
 
 def find_coeffs(source_coords, target_coords):
     matrix = []
-    for s, t in zip(source_coords, target_coords):
+    for s, t in zip(source_coords, target_coords, strict=False):
         matrix.append([t[0], t[1], 1, 0, 0, 0, -s[0] * t[0], -s[0] * t[1]])
         matrix.append([0, 0, 0, t[0], t[1], 1, -s[1] * t[0], -s[1] * t[1]])
     A = np.matrix(matrix, dtype=float)
@@ -165,7 +166,7 @@ def draw_text_on_form(img, drugs, confidence="high"):
     try:
         font = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 28)
         font_sm = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 22)
-    except:
+    except Exception:
         font = ImageFont.load_default()
         font_sm = font
 
@@ -239,7 +240,7 @@ def generate_all():
         generate_prescription(f"{base}/failed/prescription_{i + 1}_{pattern}.jpg", "failed", pattern)
 
     print("전체 생성 완료")
-    print(f"  고신뢰도: 5장")
+    print("  고신뢰도: 5장")
     print(f"  저신뢰도: {len(low_patterns)}장")
     print(f"  실패:     {len(fail_patterns)}장")
 
