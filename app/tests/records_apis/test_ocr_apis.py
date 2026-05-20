@@ -160,3 +160,48 @@ class TestOcrAPI(TestCase):
         assert response.json()["record_id"] == record_id
         assert response.json()["status"] == "ocr_completed"
         assert response.json()["updated_at"] is not None
+
+    async def test_get_ocr_result_includes_manufacturer(self):
+        # Given
+        from app.models.medical_records import InputMethod, MedicalRecord, RecordStatus, RecordType
+        from app.models.medications import Medication
+        from app.models.users import User
+
+        signup_data = {
+            "email": "ocr5@example.com",
+            "password": "Password123!",
+            "name": "OCR테스터5",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "ocr5@example.com", "password": "Password123!"},
+            )
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            user = await User.get(email="ocr5@example.com")
+            record = await MedicalRecord.create(
+                user=user,
+                record_type=RecordType.PRESCRIPTION,
+                status=RecordStatus.OCR_COMPLETED,
+                input_method=InputMethod.UPLOAD,
+            )
+            await Medication.create(
+                user=user,
+                record=record,
+                drug_name="타이레놀정500mg",
+                manufacturer="한국얀센",
+            )
+
+            # When
+            response = await client.get(f"/api/v1/records/{record.id}/ocr-result", headers=headers)
+
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        candidates = response.json()["medication_candidates"]
+        assert len(candidates) == 1
+        assert candidates[0]["drug_name"] == "타이레놀정500mg"
+        assert candidates[0]["manufacturer"] == "한국얀센"
