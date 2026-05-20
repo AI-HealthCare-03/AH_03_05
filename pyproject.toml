@@ -85,7 +85,7 @@ ignore = ["UP046", "E501"]
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "db/migrations/*" = ["ALL"]
-"tests/mock_data/generator/*" = ["N806", "E402"]
+"tests/mock_data/generator/*" = ["N806", "E402", "C901"]
 
 [tool.ruff.format]
 # 포매터 설정
