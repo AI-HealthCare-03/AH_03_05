@@ -16,6 +16,8 @@ class ConsentService:
         consent = await UserConsent.get_or_none(user=user, consent_type=consent_type_enum)
         if consent is None:
             return None
+        if not is_agreed and consent.required_type == RequiredType.REQUIRED:
+            raise BadRequestException(detail="필수 약관은 철회할 수 없습니다.")
         consent.is_agreed = is_agreed
         if is_agreed:
             consent.agreed_at = datetime.now(UTC)
