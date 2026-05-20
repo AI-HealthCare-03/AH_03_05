@@ -54,6 +54,7 @@ class MedicalRecordService:
         candidates = [
             {
                 "drug_name": m.drug_name,
+                "manufacturer": m.manufacturer,
                 "confidence": float(m.ocr_confidence) if m.ocr_confidence else None,
                 "is_verified": m.is_verified,
             }
