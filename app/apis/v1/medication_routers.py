@@ -1,10 +1,15 @@
-from fastapi import APIRouter
+from typing import Annotated
 
+from fastapi import APIRouter, Depends
+
+from app.dependencies.security import get_request_user
 from app.dtos.medications import (
     MedicationVerifyRequest,
     MedicationVerifyResponse,
-    VerifiedMedicationResponse,
 )
+from app.exceptions.common import NotFoundException
+from app.models.users import User
+from app.services.medications import MedicationVerifyService
 
 medication_router = APIRouter(prefix="/medications", tags=["Medications"])
 
@@ -40,6 +45,8 @@ records_medications_router = APIRouter(prefix="/records/{record_id}/medications"
 async def verify_medications_batch(
     record_id: int,
     request: MedicationVerifyRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[MedicationVerifyService, Depends(MedicationVerifyService)],
 ) -> MedicationVerifyResponse:
     """
     약품 후보 일괄 확정 API.
@@ -54,31 +61,17 @@ async def verify_medications_batch(
     처리 내용:
     - 각 medication의 is_verified=True, api_status=SELECTED,
       review_status=REVIEWED로 전환
-    - drug_ref_id 매칭 (선택 사항)
+    - drug_ref_id 매칭 (선택 사항, 식약처 코드 문자열)
     - 1개 이상 확정되면 record.status = REVIEWED로 전환
 
-    TODO (다음 작업):
-    - 인증 의존성 추가 (get_request_user)
-    - record 소유자 검증 (403)
-    - record 상태 검증 (ocr_completed 또는 reviewed만 허용, 그 외 400)
-    - 각 medication의 record 소속 검증
-    - 트랜잭션 처리
-    - 실제 DB 업데이트 로직 (services/medications.py 신설)
+    에러:
+    - 401: 미인증
+    - 404: record 없음 또는 다른 사용자 record
+    - 400: record 상태가 verify 불가 / 잘못된 medication_id /
+           존재하지 않는 drug_ref_id
+    - 422: 요청 스키마 검증 실패
     """
-    # 골격: 일단 mock 응답
-    return MedicationVerifyResponse(
-        record_id=record_id,
-        record_status="reviewed",
-        verified_count=len(request.verifications),
-        total_count=len(request.verifications),
-        medications=[
-            VerifiedMedicationResponse(
-                medication_id=v.medication_id,
-                drug_ref_id=v.drug_ref_id,
-                is_verified=True,
-                review_status="reviewed",
-                api_status="selected",
-            )
-            for v in request.verifications
-        ],
-    )
+    result = await service.verify_medications_batch(user=user, record_id=record_id, items=request.verifications)
+    if result is None:
+        raise NotFoundException(detail="해당 record를 찾을 수 없습니다.")
+    return MedicationVerifyResponse(**result)
