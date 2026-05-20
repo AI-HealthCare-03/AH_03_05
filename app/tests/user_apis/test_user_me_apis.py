@@ -67,3 +67,58 @@ class TestUserMeApis(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_change_password_success(self):
+        # Given
+        email = "change_pw@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "비번변경테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            # When
+            response = await client.patch(
+                "/api/v1/users/me/password",
+                headers=headers,
+                json={"current_password": "Password123!", "new_password": "NewPassword123!"},
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["detail"] == "비밀번호가 변경되었습니다."
+
+    async def test_change_password_wrong_current(self):
+        # Given
+        email = "change_pw2@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "비번변경테스터2",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            # When
+            response = await client.patch(
+                "/api/v1/users/me/password",
+                headers=headers,
+                json={"current_password": "WrongPassword123!", "new_password": "NewPassword123!"},
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
