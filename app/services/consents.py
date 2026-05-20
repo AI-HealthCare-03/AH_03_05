@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
-from app.models.user_consents import ConsentType, UserConsent
+from app.exceptions.common import BadRequestException
+from app.models.user_consents import ConsentType, RequiredType, UserConsent
 from app.models.users import User
 
 
