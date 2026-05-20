@@ -1,5 +1,3 @@
-// MediPT — Design tokens (ported from styles.css CSS variables)
-
 export const colors = {
   // Accent (teal default)
   accent: "#0891B2",
@@ -36,9 +34,11 @@ export const colors = {
 };
 
 export const radii = {
+  xs: 3,
   sm: 8,
   md: 12,
   lg: 18,
+  xl: 20,
   pill: 9999,
 };
 
@@ -52,6 +52,7 @@ export const spacing = {
   s7: 32,
   s8: 40,
   s9: 56,
+  safeTop: 52,
 };
 
 export const typography = {
@@ -61,10 +62,31 @@ export const typography = {
   fz14: 14,
   fz15: 15,
   fz17: 17,
+  fz20: 20,
   fz22: 22,
+  fz24: 24,
   fz26: 26,
   fw4: "400" as const,
   fw5: "500" as const,
   fw6: "600" as const,
   fw7: "700" as const,
+  lh20: 20,
+  lh22: 22,
+};
+
+export const shadows = {
+  card: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  float: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
 };

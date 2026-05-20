@@ -3,6 +3,7 @@ import React, {
   useCallback, useMemo, useRef,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { tokenStore } from '../api/tokenStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -91,7 +92,7 @@ interface AppState {
   records: Record[];
   setRecords: (r: Record[]) => void;
   chats: Chat[];
-  setChats: (c: Chat[]) => void;
+  setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
   activeChat: string;
   setActiveChat: (id: string) => void;
   notifications: Notification[];
@@ -201,12 +202,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem('medipt_user', JSON.stringify(user)).catch(() => {});
   }, [user]);
 
-  // Load user from AsyncStorage on mount
+  // Load tokens + user on mount
   useEffect(() => {
-    AsyncStorage.getItem('medipt_user').then((s) => {
-      if (s) {
-        try { setUserState(JSON.parse(s)); } catch {}
+    (async () => {
+      const [stored] = await Promise.all([
+        AsyncStorage.getItem('medipt_user'),
+        tokenStore.load(),
+      ]);
+      const hasToken = !!tokenStore.accessToken;
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setUserState({ ...parsed, loggedIn: hasToken });
+        } catch {}
+      } else {
+        setUserState(prev => ({ ...prev, loggedIn: hasToken }));
       }
+    })();
+
+    tokenStore.registerUnauthorizedHandler(() => {
+      setUserState({ ...defaultUser, loggedIn: false });
     });
   }, []);
 

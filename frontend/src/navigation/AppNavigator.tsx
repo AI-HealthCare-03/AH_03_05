@@ -74,17 +74,17 @@ export type OnboardingStackParams = {
 
 export type HomeStackParams = {
   Home: undefined;
-  OCRProcessing: undefined;
-  OCRResult: undefined;
-  DrugSearch: undefined;
+  OCRProcessing: { recordId?: number };
+  OCRResult: { recordId?: number };
+  DrugSearch: { medicationName?: string };
   DrugDosage: undefined;
-  GuideLoading: undefined;
-  GuideResult: undefined;
+  GuideLoading: { recordId?: number };
+  GuideResult: { guideId?: number };
 };
 
 export type RecordsStackParams = {
   RecordList: undefined;
-  RecordDetail: { recordId: string };
+  RecordDetail: { recordId: number };
   DrugDosage: undefined;
 };
 

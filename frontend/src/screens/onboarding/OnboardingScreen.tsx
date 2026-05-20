@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
+  View, Text, TouchableOpacity,
   ScrollView, StyleSheet,
 } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
-import { colors, radii, spacing } from '../../theme';
+import Button from '../../components/Button';
+import Input from '../../components/Input';
+import { colors, radii, spacing, typography } from '../../theme';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
+import { healthProfileApi, extractApiError } from '../../api';
 
 export default function OnboardingScreen({ navigation, route }: any) {
   const step: number = route?.params?.step ?? 1;
   const { user, setUser } = useApp();
+  const { isDesktop } = useBreakpoint();
 
   const [form, setForm] = useState({
     age: user.age || '40대',
@@ -20,14 +25,36 @@ export default function OnboardingScreen({ navigation, route }: any) {
     history: user.history || '',
   });
   const set = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const next = () => {
+  const AGE_MAP: Record<string, string> = { '20대': '20s', '30대': '30s', '40대': '40s', '50대': '50s', '60대+': '60s' };
+  const GENDER_MAP: Record<string, string | undefined> = { '여성': 'F', '남성': 'M', '답변 안 함': undefined };
+  const splitList = (s: string) => s.split(',').map(v => v.trim()).filter(Boolean);
+
+  const next = async () => {
     if (step === 1) {
       setUser({ ...user, age: form.age, sex: form.sex });
       navigation.replace('OnboardingStep', { step: 2 });
-    } else {
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      await healthProfileApi.upsertHealthProfile({
+        age_group: AGE_MAP[form.age],
+        gender: GENDER_MAP[form.sex],
+        chronic_diseases: splitList(form.conditions),
+        allergies: splitList(form.allergies),
+        current_medications: splitList(form.otherMeds),
+        medical_history: form.history || undefined,
+      });
       setUser({ ...user, ...form, profileComplete: true });
       navigation.reset({ index: 0, routes: [{ name: 'Main' as never }] });
+    } catch (e) {
+      setError(extractApiError(e));
+    } finally {
+      setLoading(false);
     }
   };
   const back = () => {
@@ -35,7 +62,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
     else navigation.replace('OnboardingStep', { step: 1 });
   };
   const skip = () => {
-    setUser({ ...user, profileComplete: false });
+    setUser({ ...user, profileComplete: true });
     navigation.reset({ index: 0, routes: [{ name: 'Main' as never }] });
   };
 
@@ -43,10 +70,15 @@ export default function OnboardingScreen({ navigation, route }: any) {
   const sexes = ['여성', '남성', '답변 안 함'];
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={[styles.container, isDesktop && styles.containerDesktop]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={[{ width: '100%' }, isDesktop && { maxWidth: 520 }]}>
       {/* Brand */}
       <View style={styles.brandRow}>
-        <View style={styles.brandLogo}><Icon name="robot" size={18} color="#fff" /></View>
+        <View style={styles.brandLogo}><Icon name="robot" size={18} color={colors.white} /></View>
         <Text style={styles.brandName}>MediPT</Text>
       </View>
 
@@ -96,76 +128,72 @@ export default function OnboardingScreen({ navigation, route }: any) {
               const labels = ['기저질환', '알레르기', '현재 복용약 (처방전 외)'];
               const placeholders = ['예: 고혈압, 제2형 당뇨', '예: 페니실린, 아스피린', '예: 비타민, 오메가3'];
               return (
-                <View key={k} style={{ marginBottom: 14 }}>
-                  <Text style={styles.fieldLabel}>{labels[i]}</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={placeholders[i]}
-                    value={form[k]}
-                    onChangeText={v => set(k, v)}
-                  />
-                </View>
+                <Input
+                  key={k}
+                  label={labels[i]}
+                  placeholder={placeholders[i]}
+                  value={form[k]}
+                  onChangeText={v => set(k, v)}
+                  containerStyle={{ marginBottom: 14 }}
+                />
               );
             })}
 
-            <Text style={styles.fieldLabel}>병력 메모</Text>
-            <TextInput
-              style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+            <Input
+              label="병력 메모"
               placeholder="과거 수술/입원 기록 등"
               value={form.history}
               onChangeText={v => set('history', v)}
               multiline
+              style={{ height: 80, textAlignVertical: 'top' }}
             />
           </>
         )}
 
+        {error ? <Text style={{ fontSize: typography.fz13, color: colors.danger, textAlign: 'center', marginBottom: spacing.s2 }}>{error}</Text> : null}
         {/* Actions */}
-        <View style={styles.btnRow}>
-          <TouchableOpacity style={[styles.btnGhost, { flex: 1 }]} onPress={back} activeOpacity={0.8}>
-            <Text style={styles.btnGhostText}>{step === 1 ? '건너뛰기' : '이전'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.btnPrimary, { flex: 1 }]} onPress={next} activeOpacity={0.85}>
-            <Text style={styles.btnPrimaryText}>{step === 2 ? '완료' : '다음'}</Text>
-          </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: spacing.s3, marginTop: spacing.s6 }}>
+          <Button variant="ghost" size="lg" style={{ flex: 1 }} onPress={step === 1 ? skip : back} disabled={loading}>
+            {step === 1 ? '건너뛰기' : '이전'}
+          </Button>
+          <Button variant="primary" size="lg" style={{ flex: 1 }} loading={loading} onPress={next}>
+            {step === 2 ? '완료' : '다음'}
+          </Button>
         </View>
       </View>
 
       <Text style={styles.hint}>입력하지 않아도 서비스 이용은 가능해요.</Text>
       {step === 1 && (
-        <TouchableOpacity onPress={skip} style={{ alignSelf: 'center', marginTop: 4 }}>
-          <Text style={{ fontSize: 12, color: colors.accent }}>건너뛰고 둘러보기</Text>
+        <TouchableOpacity onPress={skip} style={{ alignSelf: 'center', marginTop: spacing.s1 }}>
+          <Text style={{ fontSize: typography.fz12, color: colors.accent }}>건너뛰고 둘러보기</Text>
         </TouchableOpacity>
       )}
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.canvas },
-  container: { padding: spacing.s6, paddingTop: 56, alignItems: 'center' },
+  container: { padding: spacing.s6, paddingTop: spacing.s9, alignItems: 'center' },
+  containerDesktop: { padding: 48, paddingVertical: spacing.s8, alignItems: 'center' },
   brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.s5 },
-  brandLogo: { width: 32, height: 32, borderRadius: 9, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
-  brandName: { fontSize: 17, fontWeight: '700', color: colors.ink },
+  brandLogo: { width: 32, height: 32, borderRadius: 9, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginRight: spacing.s2 },
+  brandName: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   progressRow: { flexDirection: 'row', gap: 6, marginBottom: spacing.s5, width: '100%' },
   progressBar: { height: 4, borderRadius: 2 },
   card: { width: '100%', backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s6, borderWidth: 0.5, borderColor: colors.hairline },
-  stepLabel: { fontSize: 12, fontWeight: '700', color: colors.accent, marginBottom: 4, letterSpacing: 0.5 },
-  title: { fontSize: 22, fontWeight: '700', color: colors.ink, marginBottom: 6 },
-  sub: { fontSize: 14, color: colors.muted, marginBottom: spacing.s4 },
+  stepLabel: { fontSize: typography.fz12, fontWeight: typography.fw7, color: colors.accent, marginBottom: spacing.s1, letterSpacing: 0.5 },
+  title: { fontSize: typography.fz22, fontWeight: typography.fw7, color: colors.ink, marginBottom: 6 },
+  sub: { fontSize: typography.fz14, color: colors.muted, marginBottom: spacing.s4 },
   infoBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.accent50, borderRadius: radii.md, padding: 14, marginBottom: spacing.s4, gap: 10 },
-  infoText: { fontSize: 13, color: colors.accent700, flex: 1 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: colors.ink2, marginBottom: 8 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.s4 },
-  chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.surface },
+  infoText: { fontSize: typography.fz13, color: colors.accent700, flex: 1 },
+  fieldLabel: { fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s2 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.s2, marginBottom: spacing.s4 },
+  chip: { paddingHorizontal: spacing.s4, paddingVertical: spacing.s2, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.surface },
   chipGrow: { flex: 1, alignItems: 'center' },
   chipActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
-  chipText: { fontSize: 13, color: colors.ink2 },
-  chipTextActive: { color: colors.accent700, fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: colors.hairlineStrong, borderRadius: radii.md, paddingHorizontal: 12, height: 44, fontSize: 14, color: colors.ink, backgroundColor: colors.surface },
-  btnRow: { flexDirection: 'row', gap: 12, marginTop: spacing.s6 },
-  btnPrimary: { backgroundColor: colors.accent, borderRadius: radii.pill, height: 48, alignItems: 'center', justifyContent: 'center' },
-  btnPrimaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  btnGhost: { borderWidth: 1, borderColor: colors.hairlineStrong, borderRadius: radii.pill, height: 48, alignItems: 'center', justifyContent: 'center' },
-  btnGhostText: { fontSize: 14, color: colors.ink2, fontWeight: '500' },
-  hint: { fontSize: 12, color: colors.muted, textAlign: 'center', marginTop: spacing.s4 },
+  chipText: { fontSize: typography.fz13, color: colors.ink2 },
+  chipTextActive: { color: colors.accent700, fontWeight: typography.fw6 },
+  hint: { fontSize: typography.fz12, color: colors.muted, textAlign: 'center', marginTop: spacing.s4 },
 });
