@@ -20,7 +20,7 @@ import Sidebar from '../components/Sidebar';
 
 import Icon from '../components/Icon';
 import { useApp } from '../context/AppContext';
-import { colors, spacing } from '../theme';
+import { colors, spacing, radii } from '../theme';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 // Auth — all three screens live in LoginScreen.tsx
@@ -52,6 +52,7 @@ import ChatListScreen, { ChatSessionScreen } from '../screens/chat/ChatListScree
 import SettingsScreen, {
   NotificationSettingsScreen,
   ProfileEditScreen,
+  PersonalInfoScreen,
   NotificationsScreen,
   PasswordChangeScreen,
   DeviceManagementScreen,
@@ -97,6 +98,7 @@ export type SettingsStackParams = {
   Settings: undefined;
   NotificationSettings: undefined;
   ProfileEdit: undefined;
+  PersonalInfo: undefined;
   Notifications: undefined;
   PasswordChange: undefined;
   DeviceManagement: undefined;
@@ -110,6 +112,17 @@ export type RootStackParams = {
   Onboarding: undefined;
   Main: undefined;
 };
+
+const GuideStack = createNativeStackNavigator();
+
+function GuideNavigator() {
+  return (
+    <GuideStack.Navigator screenOptions={noHeader}>
+      <GuideStack.Screen name="GuideLoading" component={GuideLoadingScreen} />
+      <GuideStack.Screen name="GuideResult" component={GuideResultScreen} />
+    </GuideStack.Navigator>
+  );
+}
 
 // ─── Stacks ───────────────────────────────────────────────────────────────────
 
@@ -181,6 +194,7 @@ function SettingsNavigator() {
       <SettingsStack.Screen name="Settings" component={SettingsScreen} />
       <SettingsStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
       <SettingsStack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+      <SettingsStack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
       <SettingsStack.Screen name="Notifications" component={NotificationsScreen} />
       <SettingsStack.Screen name="PasswordChange" component={PasswordChangeScreen} />
       <SettingsStack.Screen name="DeviceManagement" component={DeviceManagementScreen} />
@@ -233,15 +247,23 @@ function TabNavigator() {
         name="RecordsTab"
         component={RecordsNavigator}
         options={{
-          title: '진료기록',
+          title: '기록',
           tabBarIcon: ({ focused }) => <TabIcon name="doc" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="GuideTab"
+        component={GuideNavigator}
+        options={{
+          title: '가이드',
+          tabBarIcon: ({ focused }) => <TabIcon name="wand" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="ChatTab"
         component={ChatNavigator}
         options={{
-          title: '챗봇',
+          title: '상담',
           tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />,
         }}
       />

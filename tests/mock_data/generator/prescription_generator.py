@@ -5,33 +5,92 @@ import numpy as np
 import requests
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 load_dotenv()
 
-API_KEY = os.environ.get("DRUG_API_KEY")
-API_URL = "https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnDtlInq06"
+API_KEY = os.getenv("DRUG_API_KEY") or os.getenv("MFDS_API_KEY")
+API_URL = "https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07"
 FORM_PATH = "tests/mock_data/prescription_form.png"
+
+session = requests.Session()
+retries = Retry(
+    total=3,
+    connect=3,
+    read=3,
+    backoff_factor=1.5,
+    status_forcelist=[429, 500, 502, 503, 504],
+    allowed_methods=["GET"],
+)
+session.mount("https://", HTTPAdapter(max_retries=retries))
+session.mount("http://", HTTPAdapter(max_retries=retries))
 
 
 def fetch_random_drugs(count=3):
+    if not API_KEY:
+        print("API 호출 실패: DRUG_API_KEY / MFDS_API_KEY 가 설정되지 않았습니다.")
+        return fallback_drugs(count)
+
     page = random.randint(1, 200)
-    params = {"serviceKey": API_KEY, "pageNo": page, "numOfRows": count, "type": "json"}
+    params = {
+        "serviceKey": API_KEY,
+        "pageNo": page,
+        "numOfRows": count,
+        "type": "json",
+    }
+
     try:
-        response = requests.get(API_URL, params=params, timeout=10)
-        data = response.json()
-        items = data["body"]["items"]
+        response = session.get(API_URL, params=params, timeout=(5, 30))
+        response.raise_for_status()
+
+        try:
+            data = response.json()
+        except ValueError as e:
+            preview = response.text[:300].replace("\n", " ")
+            raise ValueError(f"JSON 파싱 실패 / body preview: {preview}") from e
+
+        body = data.get("body", {}) if isinstance(data, dict) else {}
+        items = body.get("items", [])
+
+        if isinstance(items, dict):
+            if "item" in items:
+                items = items["item"]
+            else:
+                items = [items]
+
+        if not isinstance(items, list) or not items:
+            print("API 응답에 유효한 약품 목록이 없어 fallback 데이터 사용")
+            return fallback_drugs(count)
+
         result = []
-        for item in items:
-            material = item.get("MATERIAL_NAME", "")
-            ingredient = material.split("|")[1].replace("성분명 :", "").strip() if "|" in material else "성분 정보 없음"
+        for item in items[:count]:
+            material = item.get("MATERIAL_NAME", "") or ""
+            if "|" in material:
+                ingredient = material.split("|")[1].replace("성분명 :", "").strip()
+            else:
+                ingredient = "성분 정보 없음"
+
             result.append(
                 {
-                    "name": item.get("ITEM_NAME", "알 수 없음")[:20],
-                    "company": item.get("ENTP_NAME", "알 수 없음")[:10],
+                    "name": (item.get("ITEM_NAME", "알 수 없음") or "알 수 없음")[:20],
+                    "company": (item.get("ENTP_NAME", "알 수 없음") or "알 수 없음")[:10],
                     "ingredient": ingredient[:15],
                 }
             )
+
+        if not result:
+            print("파싱된 약품 결과가 없어 fallback 데이터 사용")
+            return fallback_drugs(count)
+
         return result
+
+    except requests.exceptions.Timeout as e:
+        print(f"API 호출 실패: timeout - {e}")
+        return fallback_drugs(count)
+    except requests.exceptions.RequestException as e:
+        print(f"API 호출 실패: 요청 오류 - {e}")
+        return fallback_drugs(count)
     except Exception as e:
         print(f"API 호출 실패: {e}")
         return fallback_drugs(count)
@@ -51,8 +110,8 @@ def fallback_drugs(count=3):
 def apply_noise(img, intensity=3000):
     draw = ImageDraw.Draw(img)
     for _ in range(intensity):
-        x = random.randint(0, img.width)
-        y = random.randint(0, img.height)
+        x = random.randint(0, img.width - 1)
+        y = random.randint(0, img.height - 1)
         draw.point((x, y), fill=(180, 180, 180))
     return img
 
@@ -78,8 +137,8 @@ def apply_brightness(img, mode="over"):
 def apply_partial_block(img):
     draw = ImageDraw.Draw(img)
     for _ in range(random.randint(1, 3)):
-        x1 = random.randint(0, img.width - 200)
-        y1 = random.randint(400, 1200)
+        x1 = random.randint(0, max(1, img.width - 200))
+        y1 = random.randint(400, min(1200, img.height - 60))
         x2 = x1 + random.randint(80, 200)
         y2 = y1 + random.randint(20, 50)
         draw.rectangle([x1, y1, x2, y2], fill=(0, 0, 0))
@@ -178,7 +237,10 @@ def draw_text_on_form(img, drugs, confidence="high"):
     draw.text((300, 285), f"02-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}", font=font_sm, fill=(0, 0, 0))
     draw.text((950, 230), patient, font=font, fill=(0, 0, 0))
     draw.text(
-        (950, 285), f"{random.randint(700101, 991231)}-{random.randint(1000000, 2999999)}", font=font_sm, fill=(0, 0, 0)
+        (950, 285),
+        f"{random.randint(700101, 991231)}-{random.randint(1000000, 2999999)}",
+        font=font_sm,
+        fill=(0, 0, 0),
     )
     draw.text((300, 370), disease, font=font, fill=(0, 0, 0))
     draw.text((950, 370), doctor, font=font, fill=(0, 0, 0))
@@ -190,7 +252,7 @@ def draw_text_on_form(img, drugs, confidence="high"):
         frequency = random.choice(frequencies)
         timing = random.choice(timings)
 
-        if confidence == "low" and random.random() > 0.5:
+        if confidence == "low" and random.random() > 0.5 and len(name) >= 2:
             name = name[:-2] + "??"
 
         draw.text((80, y_pos), name, font=font, fill=(0, 0, 0))
