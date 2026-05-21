@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Alert,
+  ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Modal, useWindowDimensions,
 } from 'react-native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParams } from '../../navigation/AppNavigator';
@@ -10,6 +10,27 @@ import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
+
+
+
+// 아이콘 없는 포커스 인풋 (회원가입 name/pw 필드용)
+function FocusableInput({ style, ...props }: any) {
+  const [focused, setFocused] = React.useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.inputPlain,
+        focused && styles.inputRowFocused,
+        { outlineStyle: 'none' } as any,
+        style,
+      ]}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      placeholderTextColor={colors.muted2}
+      {...props}
+    />
+  );
+}
 
 type AuthNavProp = NativeStackNavigationProp<AuthStackParams>;
 
@@ -41,8 +62,8 @@ function PwRule({ ok, children }: { ok: boolean; children: string }) {
   );
 }
 
-function AgreeRow({ checked, onPress, label, extra }: {
-  checked: boolean; onPress: () => void; label: React.ReactNode; extra?: string;
+function AgreeRow({ checked, onPress, label, extra, onExtra }: {
+  checked: boolean; onPress: () => void; label: React.ReactNode; extra?: string; onExtra?: () => void;
 }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.agreeRow} activeOpacity={0.7}>
@@ -54,8 +75,94 @@ function AgreeRow({ checked, onPress, label, extra }: {
           ? <Text style={{ fontSize: 13 }}>{label}</Text>
           : label}
       </View>
-      {extra && <Text style={{ fontSize: 11, color: colors.muted }}>{extra}</Text>}
+      {extra && (
+        <TouchableOpacity onPress={(e) => { e.stopPropagation?.(); onExtra?.(); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={{ fontSize: 12, color: colors.accent }}>{extra}</Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
+  );
+}
+
+// ─── TermsModal (보기 › 클릭 시 약관 내용 표시) ──────────────────────────────
+
+const TERMS_DATA: Record<string, { title: string; content: string }> = {
+  tos: {
+    title: '서비스 이용약관',
+    content: `제1조 (목적)\n본 약관은 MediPT(이하 "서비스")가 제공하는 복약 관리 서비스의 이용 조건을 규정합니다.\n\n제2조 (서비스 내용)\n서비스는 처방전 OCR 인식, AI 복약 가이드, 건강 상담 챗봇 기능을 제공합니다. 본 서비스는 의료 행위를 대체하지 않으며, 참고 정보 제공을 목적으로 합니다.\n\n제3조 (이용자 의무)\n이용자는 정확한 정보를 입력하고, 서비스를 법령 및 본 약관에 따라 이용해야 합니다.\n\n제4조 (서비스 중단)\n시스템 점검·장애 등 불가피한 경우 서비스를 일시 중단할 수 있습니다.\n\n제5조 (면책)\n서비스 제공 정보는 의료 전문가의 진단·처방을 대체하지 않으며, 이에 따른 손해에 대해 책임지지 않습니다.`,
+  },
+  privacy: {
+    title: '개인정보 처리방침',
+    content: `1. 수집 항목\n이름, 이메일, 연령대, 성별, 기저질환, 알레르기, 복용약 정보\n\n2. 수집 목적\n서비스 제공, 복약 가이드 생성, 건강 상담 AI 활용\n\n3. 보유 기간\n회원 탈퇴 시 즉시 파기 (단, 법령에 따라 보관이 필요한 경우 제외)\n\n4. 제3자 제공\n이용자 동의 없이 제3자에게 제공하지 않습니다.\n\n5. 이용자 권리\n언제든지 개인정보 조회·수정·삭제를 요청할 수 있습니다.`,
+  },
+  sensitive: {
+    title: '민감 건강정보 수집·이용 동의',
+    content: `1. 수집 항목\n기저질환, 알레르기, 복용약, 처방전 이미지\n\n2. 수집 목적\nAI 복약 가이드 생성 및 건강 상담 서비스 제공\n\n3. 보관 기간\n회원 탈퇴 시 즉시 파기. 처방전 이미지는 OCR 처리 완료 후 90일 후 자동 삭제됩니다.\n\n4. 동의 거부 권리\n동의를 거부하실 수 있으나, 이 경우 서비스 이용이 제한됩니다.`,
+  },
+  ai: {
+    title: 'AI 분석 활용 동의',
+    content: `1. 활용 목적\n입력하신 건강 정보를 AI 모델에 제공하여 개인화된 복약 가이드 및 상담 답변을 생성합니다.\n\n2. 활용 범위\n복약 가이드 생성, 약물 상호작용 분석, 건강 상담 응답\n\n3. 비식별화\nAI 분석에 사용되는 데이터는 비식별화 처리됩니다.\n\n4. 동의 거부\n거부 시 AI 기반 맞춤 서비스 이용이 제한됩니다.`,
+  },
+  marketing: {
+    title: '마케팅 정보 수신 동의',
+    content: `수집 목적: 신규 기능 안내, 이벤트 정보, 건강 정보 콘텐츠 제공\n\n수신 채널: 이메일, 앱 푸시 알림\n\n수신 거부: 설정 > 알림 설정에서 언제든지 철회 가능합니다.\n\n이 동의는 선택 사항으로, 거부하셔도 기본 서비스 이용에 제한이 없습니다.`,
+  },
+};
+
+function TermsModal({ docKey, onClose }: { docKey: string | null; onClose: () => void }) {
+  const { width } = useWindowDimensions();
+  const isWide = width >= 768;
+  if (!docKey || !TERMS_DATA[docKey]) return null;
+  const { title, content } = TERMS_DATA[docKey];
+
+  const inner = (
+    <>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Text style={{ fontSize: 17, fontWeight: '700', color: colors.ink }}>{title}</Text>
+        <TouchableOpacity onPress={onClose} style={{ width: 32, height: 32, borderRadius: 999, backgroundColor: colors.surface2, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="x" size={16} color={colors.ink2} />
+        </TouchableOpacity>
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: isWide ? 420 : 340 }}>
+        <Text style={{ fontSize: 13, color: colors.ink2, lineHeight: 22 }}>{content}</Text>
+      </ScrollView>
+      <TouchableOpacity
+        style={{ backgroundColor: colors.accent, borderRadius: radii.md, height: 48, alignItems: 'center', justifyContent: 'center', marginTop: 16 }}
+        onPress={onClose}>
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>확인</Text>
+      </TouchableOpacity>
+    </>
+  );
+
+  if (isWide) {
+    // 데스크탑: 화면 중앙 다이얼로그
+    return (
+      <Modal visible animationType="fade" transparent onRequestClose={onClose}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.45)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 20,
+            padding: 24,
+            width: '100%',
+            maxWidth: 520,
+            shadowColor: '#0f172a', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4,
+          }}>
+            {inner}
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
+  // 모바일: 하단 시트
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.45)', justifyContent: 'flex-end' }}>
+        <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24 }}>
+          {inner}
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -67,6 +174,10 @@ function BrandPanel({ tagline, desc, features }: {
 }) {
   return (
     <View style={bp.panel}>
+      {/* 장식 원 */}
+      <View style={{ position: 'absolute', top: -60, right: -60, width: 220, height: 220, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+      <View style={{ position: 'absolute', bottom: 100, right: 10, width: 160, height: 160, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+
       {/* 브랜드 로고 — 패널 최상단 고정 */}
       <View style={bp.brandRow}>
         <View style={bp.logo}><Icon name="robot" size={16} color="#fff" /></View>
@@ -79,7 +190,7 @@ function BrandPanel({ tagline, desc, features }: {
         <Text style={bp.desc}>{desc}</Text>
         {features.map((f, i) => (
           <View key={i} style={bp.feat}>
-            <View style={bp.featIcon}><Icon name={f.icon} size={16} color="#fff" /></View>
+            <View style={bp.featIcon}><Icon name={f.icon} size={14} color="rgba(255,255,255,0.9)" /></View>
             <View style={{ flex: 1 }}>
               <Text style={bp.featTitle}>{f.title}</Text>
               <Text style={bp.featSub}>{f.sub}</Text>
@@ -87,6 +198,11 @@ function BrandPanel({ tagline, desc, features }: {
           </View>
         ))}
       </View>
+
+      {/* 푸터 */}
+      <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 12 }}>
+        © 2026 MediPT — 본 서비스는 의료 행위가 아닌 정보 제공 서비스입니다.
+      </Text>
     </View>
   );
 }
@@ -96,16 +212,17 @@ const bp = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0891B2',
     padding: 40,
+    overflow: 'hidden' as const,
   },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  logo: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' },
+  logo: { width: 32, height: 32, borderRadius: radii.sm, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' },
   brandName: { fontSize: 17, fontWeight: '700', color: '#fff' },
   tagline: { fontSize: 26, fontWeight: '700', color: '#fff', lineHeight: 36, marginBottom: 14 },
   desc: { fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 22, marginBottom: 28 },
-  feat: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 16 },
-  featIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
-  featTitle: { fontSize: 14, fontWeight: '600', color: '#fff', marginBottom: 2 },
-  featSub: { fontSize: 12, color: 'rgba(255,255,255,0.75)' },
+  feat: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
+  featIcon: { width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  featTitle: { fontSize: 13, fontWeight: '600', color: '#fff', marginBottom: 2 },
+  featSub: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
 });
 
 // ─── LoginScreen ─────────────────────────────────────────────────────────────
@@ -114,14 +231,49 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
   const { user, setUser } = useApp();
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
+  const { isDesktop } = useBreakpoint();
 
   const submit = () => {
     setUser({ ...user, loggedIn: true, email: email || user.email });
-    // Navigate to Main — reset root stack
     (navigation as any).reset({ index: 0, routes: [{ name: 'Main' as never }] });
   };
 
-  const { isDesktop } = useBreakpoint();
+  const loginFeatures = [
+    { icon: 'scan',   title: 'OCR 자동 인식 · 식약처 약품 검색', sub: '처방전 사진으로 복약 정보 추출' },
+    { icon: 'wand',   title: '공식협회 가이드라인 기반 안내',     sub: 'LLM 기반 개인화 복약 안내 생성' },
+    { icon: 'shield', title: '민감 건강정보 암호화 보관',        sub: '안전한 데이터 보호' },
+  ];
+
+  const formContent = (
+    <>
+      <View style={styles.field}>
+        <Text style={styles.label}>이메일</Text>
+        <FocusableInputRow icon="mail" placeholder="you@example.com" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.muted2} />
+      </View>
+      <View style={styles.field}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <Text style={styles.label}>비밀번호</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={{ fontSize: 12, color: colors.accent }}>비밀번호 찾기</Text>
+          </TouchableOpacity>
+        </View>
+        <FocusableInputRow icon="lock" placeholder="8~20자, 영문/숫자/특수문자 3종류 이상" value={pw} onChangeText={setPw} secureTextEntry placeholderTextColor={colors.muted2} />
+      </View>
+      <TouchableOpacity style={styles.btnPrimary} onPress={submit} activeOpacity={0.85}>
+        <Text style={styles.btnPrimaryText}>로그인</Text>
+      </TouchableOpacity>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
+        <Text style={{ fontSize: 13, color: colors.muted }}>아직 계정이 없으신가요? </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+          <Text style={{ fontSize: 13, color: colors.accent }}>회원가입</Text>
+        </TouchableOpacity>
+      </View>
+      <Text style={{ fontSize: 11, color: colors.muted2, textAlign: 'center', marginTop: 16, lineHeight: 18 }}>
+        5회 연속 실패 시 10분간 로그인이 제한됩니다.{'\n'}
+        로그인하면 이용약관 및 개인정보 처리방침에 동의한 것으로 간주됩니다.
+      </Text>
+    </>
+  );
 
   if (isDesktop) {
     return (
@@ -129,36 +281,13 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
         <BrandPanel
           tagline={"처방전 한 장이면,\n오늘의 복약·생활습관 가이드."}
           desc="의료 문서를 업로드하면 OCR로 약품을 자동 인식하고, 건강 정보를 바탕으로 개인화된 가이드를 제공합니다."
-          features={[
-            { icon: 'scan', title: '처방전 OCR 자동 인식', sub: '처방전 사진으로 복약 정보 추출' },
-            { icon: 'pill', title: 'AI 맞춤 복약 가이드', sub: 'LLM 기반 개인화 안내 생성' },
-            { icon: 'chat', title: '건강 상담 챗봇', sub: '생활습관 AI 챗봇 실시간 상담' },
-          ]}
+          features={loginFeatures}
         />
         <ScrollView style={{ flex: 1, backgroundColor: colors.canvas }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 48 }} keyboardShouldPersistTaps="handled">
           <View style={{ maxWidth: 420, width: '100%', alignSelf: 'center' }}>
-            <Text style={styles.authTitle}>만나서 반가워요 👋</Text>
-            <Text style={[styles.authSub, { marginBottom: 24 }]}>MediPT 계정으로 로그인해주세요.</Text>
-            <View style={styles.field}>
-              <Text style={styles.label}>이메일</Text>
-              <FocusableInputRow icon="mail" placeholder="name@example.com" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
-            </View>
-            <View style={styles.field}>
-              <Text style={styles.label}>비밀번호</Text>
-              <FocusableInputRow icon="lock" placeholder="8~20자, 영문/숫자/특수문자 3종류 이상" value={pw} onChangeText={setPw} secureTextEntry />
-              <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: 6 }}>
-                <Text style={{ fontSize: 12, color: colors.accent }}>비밀번호 찾기</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.btnPrimary} onPress={submit} activeOpacity={0.85}>
-              <Text style={styles.btnPrimaryText}>로그인</Text>
-            </TouchableOpacity>
-            <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
-              <Text style={{ fontSize: 13, color: colors.muted }}>아직 계정이 없으신가요? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                <Text style={{ fontSize: 13, color: colors.accent }}>회원가입</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.authTitle}>다시 만나서 반가워요 👋</Text>
+            <Text style={[styles.authSub, { marginBottom: 28 }]}>MediPT 계정으로 로그인해주세요.</Text>
+            {formContent}
           </View>
         </ScrollView>
       </View>
@@ -168,58 +297,17 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.authContainer} keyboardShouldPersistTaps="handled">
-        {/* Brand */}
         <View style={styles.brandRow}>
           <View style={styles.brandLogo}><Icon name="robot" size={18} color="#fff" /></View>
           <Text style={styles.brandName}>MediPT</Text>
         </View>
-
-        <Text style={styles.authTitle}>만나서 반가워요 👋</Text>
+        <Text style={styles.authTitle}>다시 만나서 반가워요 👋</Text>
         <Text style={styles.authSub}>MediPT 계정으로 로그인해주세요.</Text>
-
-        {/* Email */}
-        <View style={styles.field}>
-          <Text style={styles.label}>이메일</Text>
-          <FocusableInputRow
-            icon="mail"
-            placeholder="name@example.com"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-        </View>
-
-        {/* Password */}
-        <View style={styles.field}>
-          <Text style={styles.label}>비밀번호</Text>
-          <FocusableInputRow
-            icon="lock"
-            placeholder="8~20자, 영문/숫자/특수문자 3종류 이상"
-            value={pw}
-            onChangeText={setPw}
-            secureTextEntry
-          />
-          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: 6 }}>
-            <Text style={{ fontSize: 12, color: colors.accent }}>비밀번호 찾기</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.btnPrimary} onPress={submit} activeOpacity={0.85}>
-          <Text style={styles.btnPrimaryText}>로그인</Text>
-        </TouchableOpacity>
-
-        <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
-          <Text style={{ fontSize: 13, color: colors.muted }}>아직 계정이 없으신가요? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-            <Text style={{ fontSize: 13, color: colors.accent }}>회원가입</Text>
-          </TouchableOpacity>
-        </View>
+        {formContent}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
 // ─── SignupScreen ─────────────────────────────────────────────────────────────
 
 export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
@@ -227,6 +315,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   const { isDesktop } = useBreakpoint();
   const [form, setForm] = useState({ name: '', email: '', pw: '', pw2: '' });
   const [agreed, setAgreed] = useState({ all: false, tos: true, privacy: false, sensitive: false, ai: false, marketing: false });
+  const [termsModal, setTermsModal] = useState<null | 'tos' | 'privacy' | 'sensitive' | 'ai' | 'marketing'>(null);
 
   // 이메일 인증 상태
   const [codeSent, setCodeSent] = useState(false);
@@ -286,7 +375,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       {/* 이름 */}
       <View style={styles.field}>
         <Text style={styles.label}>이름</Text>
-        <TextInput style={[styles.inputPlain, { outlineStyle: 'none' } as any]} value={form.name} onChangeText={v => set('name', v)} />
+        <FocusableInput value={form.name} onChangeText={(v: string) => set('name', v)} placeholder="2~20자, 한글/영문" />
       </View>
 
       {/* 이메일 + 인증코드 발송 */}
@@ -359,7 +448,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       {/* 비밀번호 */}
       <View style={styles.field}>
         <Text style={styles.label}>비밀번호</Text>
-        <TextInput style={[styles.inputPlain, { outlineStyle: 'none' } as any]} secureTextEntry value={form.pw} onChangeText={v => set('pw', v)} />
+        <FocusableInput secureTextEntry value={form.pw} onChangeText={(v: string) => set('pw', v)} placeholder="8~20자" />
         <View style={{ marginTop: 8, gap: 4 }}>
           <PwRule ok={pwLengthOk}>8자 이상 20자 이하</PwRule>
           <PwRule ok={pwTypesOk}>영문 대/소문자·숫자·특수문자 중 3종류 이상</PwRule>
@@ -370,17 +459,17 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       {/* 비밀번호 확인 */}
       <View style={styles.field}>
         <Text style={styles.label}>비밀번호 확인</Text>
-        <TextInput style={[styles.inputPlain, { outlineStyle: 'none' } as any]} placeholder="비밀번호 재입력" secureTextEntry value={form.pw2} onChangeText={v => set('pw2', v)} />
+        <FocusableInput secureTextEntry placeholder="비밀번호 재입력" value={form.pw2} onChangeText={(v: string) => set('pw2', v)} />
       </View>
 
       {/* 약관 동의 */}
       <View style={[styles.card, { marginBottom: 18 }]}>
         <AgreeRow checked={agreed.all} onPress={() => toggleAgree('all')} label={<Text style={{ fontSize: 13, fontWeight: '700' }}>전체 동의 (선택 항목 포함)</Text>} />
         <View style={styles.divider} />
-        <AgreeRow checked={agreed.tos}       onPress={() => toggleAgree('tos')}       label={<Text style={{ fontSize: 13 }}><Text style={{ color: colors.danger, fontWeight: '600' }}>[필수]</Text> 서비스 이용약관 동의</Text>}           extra="보기 ›" />
-        <AgreeRow checked={agreed.privacy}   onPress={() => toggleAgree('privacy')}   label={<Text style={{ fontSize: 13 }}><Text style={{ color: colors.danger, fontWeight: '600' }}>[필수]</Text> 개인정보 처리방침 동의</Text>}         extra="보기 ›" />
-        <AgreeRow checked={agreed.sensitive} onPress={() => toggleAgree('sensitive')} label={<Text style={{ fontSize: 13 }}><Text style={{ color: colors.danger, fontWeight: '600' }}>[필수]</Text> 민감 건강정보 수집·이용 동의</Text>}   extra="보기 ›" />
-        <AgreeRow checked={agreed.ai}        onPress={() => toggleAgree('ai')}        label={<Text style={{ fontSize: 13 }}><Text style={{ color: colors.danger, fontWeight: '600' }}>[필수]</Text> AI 분석 활용 동의</Text>}             extra="보기 ›" />
+        <AgreeRow checked={agreed.tos}       onPress={() => toggleAgree('tos')}       label={<Text style={{ fontSize: 13 }}><Text style={{ color: colors.danger, fontWeight: '600' }}>[필수]</Text> 서비스 이용약관 동의</Text>}           extra="보기 ›" onExtra={() => setTermsModal('tos')} />
+        <AgreeRow checked={agreed.privacy}   onPress={() => toggleAgree('privacy')}   label={<Text style={{ fontSize: 13 }}><Text style={{ color: colors.danger, fontWeight: '600' }}>[필수]</Text> 개인정보 처리방침 동의</Text>}         extra="보기 ›" onExtra={() => setTermsModal('privacy')} />
+        <AgreeRow checked={agreed.sensitive} onPress={() => toggleAgree('sensitive')} label={<Text style={{ fontSize: 13 }}><Text style={{ color: colors.danger, fontWeight: '600' }}>[필수]</Text> 민감 건강정보 수집·이용 동의</Text>}   extra="보기 ›" onExtra={() => setTermsModal('sensitive')} />
+        <AgreeRow checked={agreed.ai}        onPress={() => toggleAgree('ai')}        label={<Text style={{ fontSize: 13 }}><Text style={{ color: colors.danger, fontWeight: '600' }}>[필수]</Text> AI 분석 활용 동의</Text>}             extra="보기 ›" onExtra={() => setTermsModal('ai')} />
         <AgreeRow checked={agreed.marketing} onPress={() => toggleAgree('marketing')} label="[선택] 마케팅 정보 수신 동의" />
       </View>
 
@@ -396,20 +485,25 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
           <Text style={{ fontSize: 13, color: colors.accent }}>로그인</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 약관 모달 — 보기 › 클릭 시 */}
+      <TermsModal docKey={termsModal} onClose={() => setTermsModal(null)} />
     </>
   );
+
+  const signupFeatures = [
+    { icon: 'mail',   title: '이메일 인증 회원가입',   sub: '안전한 본인 확인으로 계정 생성' },
+    { icon: 'scan',   title: '처방전 OCR 분석',        sub: '가입 즉시 처방전 업로드 가능' },
+    { icon: 'shield', title: '민감 건강정보 별도 동의', sub: '안전하게 보관·관리합니다' },
+  ];
 
   if (isDesktop) {
     return (
       <View style={{ flex: 1, flexDirection: 'row' }}>
         <BrandPanel
-          tagline={"1분이면 가입 완료,\n오늘부터 복약 관리\n시작해요."}
-          desc="이메일과 비밀번호로 간단하게 가입하고 맞춤 복약 가이드를 받아보세요."
-          features={[
-            { icon: 'mail',  title: '이메일 인증 회원가입', sub: '안전한 이메일 인증으로 계정을 생성해요' },
-            { icon: 'scan',  title: '처방전 OCR 분석',      sub: '가입 즉시 처방전 업로드 가능' },
-            { icon: 'wand',  title: 'AI 맞춤 복약 가이드',  sub: '건강 프로필 기반 개인화 안내' },
-          ]}
+          tagline={"오늘의 처방을\n나에게 맞는 가이드로."}
+          desc="가입은 1분이면 충분해요. 입력한 건강 정보는 모두 암호화되며 AI 답변에만 활용됩니다."
+          features={signupFeatures}
         />
         <ScrollView style={{ flex: 1, backgroundColor: colors.canvas }} contentContainerStyle={{ padding: 48, paddingVertical: 40 }} keyboardShouldPersistTaps="handled">
           <View style={{ maxWidth: 480, width: '100%', alignSelf: 'center' }}>
@@ -548,15 +642,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   brandName: { fontSize: 17, fontWeight: '700', color: colors.ink },
-  authTitle: { fontSize: 24, fontWeight: '700', color: colors.ink, marginBottom: 6 },
-  authSub:   { fontSize: 14, color: colors.muted, marginBottom: spacing.s5 },
+  authTitle: { fontSize: 22, fontWeight: '800', color: colors.ink, marginBottom: 6 },
+  authSub:   { fontSize: 13, color: colors.muted, marginBottom: spacing.s5 },
   field:     { marginBottom: spacing.s4 },
-  label:     { fontSize: 13, fontWeight: '600', color: colors.ink2, marginBottom: 6 },
+  label:     { fontSize: 12, fontWeight: '700', color: colors.muted, marginBottom: 6 },
   inputRow: {
     flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderColor: colors.hairlineStrong,
-    borderRadius: radii.md, paddingHorizontal: 12, height: 44,
-    backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.hairline,
+    borderRadius: radii.md, paddingHorizontal: 12, height: 46,
+    backgroundColor: colors.canvas,
   },
   inputRowFocused: {
     borderColor: colors.accent,
@@ -565,16 +659,19 @@ const styles = StyleSheet.create({
   },
   input: { flex: 1, fontSize: 14, color: colors.ink, marginLeft: 8 },
   inputPlain: {
-    borderWidth: 1, borderColor: colors.hairlineStrong,
-    borderRadius: radii.md, paddingHorizontal: 12, height: 44,
-    fontSize: 14, color: colors.ink, backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.hairline,
+    borderRadius: radii.md, paddingHorizontal: 12, height: 46,
+    fontSize: 14, color: colors.ink, backgroundColor: colors.canvas,
   },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
-    padding: spacing.s4,
-    borderWidth: 0.5,
-    borderColor: colors.hairline,
+    padding: spacing.s5,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   divider: { height: 0.5, backgroundColor: colors.hairline, marginVertical: 10 },
   agreeRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, gap: 10 },
@@ -585,15 +682,15 @@ const styles = StyleSheet.create({
   },
   btnPrimary: {
     backgroundColor: colors.accent,
-    borderRadius: radii.pill,
+    borderRadius: radii.md,       // 목표: radii.md (12)
     height: 50,
     alignItems: 'center', justifyContent: 'center',
     marginTop: 8,
   },
   btnPrimaryText: { color: colors.white, fontSize: 15, fontWeight: '700' },
   btnGhost: {
-    borderWidth: 1, borderColor: colors.hairlineStrong,
-    borderRadius: radii.pill, height: 44,
+    borderWidth: 1, borderColor: colors.hairline,
+    borderRadius: radii.md, height: 44,
     alignItems: 'center', justifyContent: 'center',
   },
   btnGhostText: { fontSize: 14, color: colors.ink2, fontWeight: '500' },

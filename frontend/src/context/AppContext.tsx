@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface User {
   name: string;
+  nickname: string;
   email: string;
   loggedIn: boolean;
   age: string;
@@ -109,9 +110,29 @@ interface AppState {
 // ─── Seed data (same as shared.jsx) ──────────────────────────────────────────
 
 const defaultUser: User = {
-  name: '김오즈',
-  email: 'ozkim@example.com',
+  name: '',
+  nickname: '',
+  email: '',
   loggedIn: false,
+  age: '',
+  ageNum: 0,
+  sex: '',
+  conditions: '',
+  allergies: '',
+  otherMeds: '',
+  history: '',
+  notes: '',
+  pregnant: '아니오',
+  smoking: '아니오',
+  profileComplete: false,
+};
+
+// 데모용 시드 데이터 (AsyncStorage에 저장된 값이 있으면 덮어써짐)
+const demoUser: User = {
+  name: '김오즈',
+  nickname: '',
+  email: 'ozkim@example.com',
+  loggedIn: true,
   age: '40대',
   ageNum: 52,
   sex: '여성',
@@ -177,7 +198,7 @@ const seedNotifications: Notification[] = [
 const AppCtx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUserState] = useState<User>(defaultUser);
+  const [user, setUserState] = useState<User>(demoUser);
   const [drugs, setDrugs] = useState<Drug[]>(seedDrugs);
   const [records, setRecords] = useState<Record[]>(seedRecords);
   const [chats, setChats] = useState<Chat[]>(seedChats);
@@ -206,6 +227,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.getItem('medipt_user').then((s) => {
       if (s) {
         try { setUserState(JSON.parse(s)); } catch {}
+      } else {
+        // 저장된 사용자 없음 → 빈 상태로 초기화 (로그인 필요)
+        setUserState(defaultUser);
       }
     });
   }, []);
