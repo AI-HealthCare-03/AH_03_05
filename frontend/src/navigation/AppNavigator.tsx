@@ -1,11 +1,11 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useApp } from '../context/AppContext';
-import type { RootStackParams } from './types';
-import AuthNavigator from './navigators/AuthNavigator';
-import OnboardingNavigator from './navigators/OnboardingNavigator';
-import MainNavigator from './navigators/TabNavigator';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useApp } from "../context/AppContext";
+import type { RootStackParams } from "./types";
+import AuthNavigator from "./navigators/AuthNavigator";
+import OnboardingNavigator from "./navigators/OnboardingNavigator";
+import MainNavigator from "./navigators/TabNavigator";
 
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const noHeader = { headerShown: false };
@@ -13,10 +13,7 @@ const noHeader = { headerShown: false };
 export default function AppNavigator() {
   const { user } = useApp();
 
-  const initialRoute: keyof RootStackParams =
-    !user.loggedIn ? 'Auth' :
-    !user.profileComplete ? 'Onboarding' :
-    'Main';
+  const initialRoute: keyof RootStackParams = !user.loggedIn ? "Auth" : !user.profileComplete ? "Onboarding" : "Main";
 
   return (
     <NavigationContainer>

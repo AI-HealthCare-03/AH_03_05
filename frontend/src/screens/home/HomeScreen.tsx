@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, useWindowDimensions } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { useApp } from "../../context/AppContext";
 import Icon from "../../components/Icon";
 import { colors, radii, spacing, typography, shadows } from "../../theme";
@@ -122,7 +122,10 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
       if (p >= 100) {
         clearInterval(iv);
         setUploadDone(true);
-        setTimeout(() => { handleClose(); onStart(); }, 700);
+        setTimeout(() => {
+          handleClose();
+          onStart();
+        }, 700);
       }
     }, 250);
   };
@@ -144,17 +147,13 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
       {uploading ? (
         /* 업로드 진행 상태 */
         <View style={{ paddingVertical: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12, marginBottom: spacing.s16 }}>
-            <View style={{ width: 40, height: 40, borderRadius: radii.pill, backgroundColor: uploadDone ? colors.success : colors.accent, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name={uploadDone ? 'check' : 'camera'} size={18} color="#fff" />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s12, marginBottom: spacing.s16 }}>
+            <View style={{ width: 40, height: 40, borderRadius: radii.pill, backgroundColor: uploadDone ? colors.success : colors.accent, alignItems: "center", justifyContent: "center" }}>
+              <Icon name={uploadDone ? "check" : "camera"} size={18} color="#fff" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>
-                {uploadDone ? '업로드 완료' : '업로드 중...'}
-              </Text>
-              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>
-                {uploadDone ? '분석 화면으로 이동합니다.' : '잠시만 기다려주세요.'}
-              </Text>
+              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>{uploadDone ? "업로드 완료" : "업로드 중..."}</Text>
+              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>{uploadDone ? "분석 화면으로 이동합니다." : "잠시만 기다려주세요."}</Text>
             </View>
             <Text style={{ fontSize: 16, fontWeight: typography.fw7, color: colors.accent }}>{uploadProgress}%</Text>
           </View>
@@ -179,10 +178,7 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
           {/* 업로드 소스 — 2×2 그리드 */}
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
             {sources.map((src) => (
-              <TouchableOpacity
-                key={src.id}
-                style={[s.srcCard, { width: (cardWidth - 52) / 2 }]}
-                onPress={handleSourcePress}>
+              <TouchableOpacity key={src.id} style={[s.srcCard, { width: (cardWidth - 52) / 2 }]} onPress={handleSourcePress}>
                 <View style={s.srcIcon}>
                   <Icon name={src.icon} size={16} color={colors.accent700} />
                 </View>
@@ -191,9 +187,7 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
             ))}
           </View>
 
-          <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: "center" }}>
-            JPG · PNG · PDF / 최대 10MB · 원본은 90일 후 자동 삭제
-          </Text>
+          <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: "center" }}>JPG · PNG · PDF / 최대 10MB · 원본은 90일 후 자동 삭제</Text>
         </>
       )}
     </>
@@ -244,11 +238,25 @@ export default function HomeScreen({ navigation }: any) {
   const isOnRealToday = viewY === now.getFullYear() && viewM === now.getMonth() + 1 && selectedDay === now.getDate();
   const selectedStatus = monthData.find((x) => x.day === selectedDay)?.status || "future";
 
+  // 달성률: 현재 월 기준 지난 날(done+missed) 중 done 비율
+  const isCurrentMonth = viewY === now.getFullYear() && viewM === now.getMonth() + 1;
+  const pastDays = monthData.filter((d) => d.status === "done" || d.status === "missed");
+  const doneDays = monthData.filter((d) => d.status === "done");
+  const computedAdherence = pastDays.length > 0 ? Math.round((doneDays.length / pastDays.length) * 100) : adherence;
+
   const shiftMonth = (delta: number) => {
-    let m = viewM + delta, y = viewY;
-    if (m < 1) { m = 12; y--; }
-    if (m > 12) { m = 1; y++; }
-    setViewY(y); setViewM(m);
+    let m = viewM + delta,
+      y = viewY;
+    if (m < 1) {
+      m = 12;
+      y--;
+    }
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+    setViewY(y);
+    setViewM(m);
     const isCurrentM = y === now.getFullYear() && m === now.getMonth() + 1;
     setSelectedDay(isCurrentM ? now.getDate() : 1);
   };
@@ -258,75 +266,70 @@ export default function HomeScreen({ navigation }: any) {
     flash("복약 체크 완료 🎉");
   };
 
-  const drugsForDay = selectedStatus === "today" ? drugs
-    : selectedStatus === "done"   ? drugs.map((d) => ({ ...d, status: "완료" }))
-    : selectedStatus === "missed" ? drugs.map((d, i) => ({ ...d, status: i === 1 ? "미복용" : "완료" }))
-    : drugs.map((d) => ({ ...d, status: "예정" }));
+  const drugsForDay = selectedStatus === "today" ? drugs : selectedStatus === "done" ? drugs.map((d) => ({ ...d, status: "완료" })) : selectedStatus === "missed" ? drugs.map((d, i) => ({ ...d, status: i === 1 ? "미복용" : "완료" })) : drugs.map((d) => ({ ...d, status: "예정" }));
 
   const dayCompleted = drugsForDay.filter((d) => d.status === "완료").length;
   const recentChat = chats[0];
-  const lastAiMsg = recentChat?.messages.filter(m => m.from === 'ai').slice(-1)[0]?.text || '';
-  const unread = notifications?.some(n => n.unread);
-  const unreadCount = notifications?.filter(n => n.unread).length || 0;
+  const lastAiMsg = recentChat?.messages.filter((m) => m.from === "ai").slice(-1)[0]?.text || "";
 
-  const dateStr = `${viewY}.${String(viewM).padStart(2, '0')}.${String(selectedDay).padStart(2, '0')}`;
-  const donePastDay = selectedStatus === 'done' && !isOnRealToday;
-  const missedPastDay = selectedStatus === 'missed' && !isOnRealToday;
+  const dateStr = `${viewY}.${String(viewM).padStart(2, "0")}.${String(selectedDay).padStart(2, "0")}`;
+  const donePastDay = selectedStatus === "done" && !isOnRealToday;
+  const missedPastDay = selectedStatus === "missed" && !isOnRealToday;
   const recentGuideId: number | undefined = undefined; // API 연동 시 실제 값으로 교체
 
   return (
     <ScreenLayout noHeader>
       {/* 벨 아이콘 — 콘텐츠 우상단 플로팅 (모바일/데스크탑 공통) */}
-      <TouchableOpacity
-        style={{ position: 'absolute', top: 16, right: 16, zIndex: 10, width: 38, height: 38, borderRadius: radii.pill, backgroundColor: colors.surface, borderWidth: 0.5, borderColor: colors.hairline, alignItems: 'center', justifyContent: 'center', ...shadows.float }}
-        onPress={() => navigation.navigate('SettingsTab', { screen: 'Notifications' })}>
+      <TouchableOpacity style={{ position: "absolute", top: 16, right: 16, zIndex: 10, width: 38, height: 38, borderRadius: radii.pill, backgroundColor: colors.surface, borderWidth: 0.5, borderColor: colors.hairline, alignItems: "center", justifyContent: "center", ...shadows.float }} onPress={() => navigation.navigate("SettingsTab", { screen: "Notifications" })}>
         <Icon name="bell" size={18} color={colors.ink2} />
         {unread && (
-          <View style={{ position: 'absolute', top: 5, right: 5, minWidth: 14, height: 14, borderRadius: 7, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 }}>
-            <Text style={{ fontSize: 8, color: colors.white, fontWeight: typography.fw7, lineHeight: 12 }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+          <View style={{ position: "absolute", top: 5, right: 5, minWidth: 14, height: 14, borderRadius: 7, backgroundColor: colors.danger, alignItems: "center", justifyContent: "center", paddingHorizontal: 2 }}>
+            <Text style={{ fontSize: 8, color: colors.white, fontWeight: typography.fw7, lineHeight: 12 }}>{unreadCount > 9 ? "9+" : unreadCount}</Text>
           </View>
         )}
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={{ padding: spacing.s20, paddingTop: spacing.s56 }}>
         {/* 인사 + 컨디션 칩 */}
-        <Text style={{ fontSize: typography.fz26, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>
-          안녕하세요{user.name ? `, ${user.name}` : ''}님 👋
-        </Text>
+        <Text style={{ fontSize: typography.fz26, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>안녕하세요{user.name ? `, ${user.name}` : ""}님 👋</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: spacing.s20 }}>
-          {user.conditions
-            ? user.conditions.split(/,\s*/).filter(Boolean).slice(0, 4).map((c, i) => (
-                <TouchableOpacity key={i} onPress={() => { if (recentGuideId != null) navigation.navigate("GuideResult", { guideId: recentGuideId }); }} disabled={recentGuideId == null} style={[s.conditionChip, recentGuideId == null && { opacity: 0.55 }]}>
+          {user.conditions ? (
+            user.conditions
+              .split(/,\s*/)
+              .filter(Boolean)
+              .slice(0, 4)
+              .map((c, i) => (
+                <TouchableOpacity
+                  key={i}
+                  onPress={() => {
+                    if (recentGuideId != null) navigation.navigate("GuideResult", { guideId: recentGuideId });
+                  }}
+                  disabled={recentGuideId == null}
+                  style={[s.conditionChip, recentGuideId == null && { opacity: 0.55 }]}
+                >
                   <Text style={{ fontSize: typography.fz12, color: colors.accent700, fontWeight: typography.fw5 }}>{c} 관리</Text>
                 </TouchableOpacity>
               ))
-            : (
-                <View style={[s.conditionChip, { borderStyle: 'dashed', opacity: 0.7 }]}>
-                  <Text style={{ fontSize: typography.fz12, color: colors.muted, fontWeight: typography.fw5 }}>건강 정보 미입력</Text>
-                </View>
-              )
-          }
+          ) : (
+            <View style={[s.conditionChip, { borderStyle: "dashed", opacity: 0.7 }]}>
+              <Text style={{ fontSize: typography.fz12, color: colors.muted, fontWeight: typography.fw5 }}>건강 정보 미입력</Text>
+            </View>
+          )}
         </View>
 
         {/* 프로필 미완료 배너 */}
         {!user.profileComplete && (
           <View style={[s.card, { marginBottom: 14, backgroundColor: colors.accent50, borderColor: colors.accent100 }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12 }}>
-              <View style={{ width: 42, height: 42, borderRadius: radii.pill, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s12 }}>
+              <View style={{ width: 42, height: 42, borderRadius: radii.pill, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center" }}>
                 <Icon name="info" size={18} color={colors.white} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw7, color: colors.ink, marginBottom: 2 }}>
-                  건강 프로필을 완성해주세요
-                </Text>
-                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
-                  건강 정보를 입력할수록 맞춤형 가이드 정확도가 높아져요.
-                </Text>
+                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw7, color: colors.ink, marginBottom: 2 }}>건강 프로필을 완성해주세요</Text>
+                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>건강 정보를 입력할수록 맞춤형 가이드 정확도가 높아져요.</Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={() => (navigation as any).navigate('Onboarding')}
-              style={{ marginTop: spacing.s12, backgroundColor: colors.accent, borderRadius: radii.md, paddingVertical: spacing.s8, alignItems: 'center' }}>
+            <TouchableOpacity onPress={() => (navigation as any).navigate("Onboarding")} style={{ marginTop: spacing.s12, backgroundColor: colors.accent, borderRadius: radii.md, paddingVertical: spacing.s8, alignItems: "center" }}>
               <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.white }}>건강 정보 입력하기</Text>
             </TouchableOpacity>
           </View>
@@ -335,32 +338,29 @@ export default function HomeScreen({ navigation }: any) {
         {/* 복약 달성률(teal) + 최근 상담 */}
         <View style={{ flexDirection: "row", gap: spacing.s12, marginBottom: 14 }}>
           {/* 달성률 카드 — teal 배경 */}
-          <Card style={{ flex: 2, backgroundColor: colors.accent, borderColor: 'transparent' }}>
+          <Card style={{ flex: 2, backgroundColor: colors.accent, borderColor: "transparent" }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <Text style={{ fontSize: typography.fz13, color: 'rgba(255,255,255,0.85)' }}>5월 복약 달성률</Text>
+              <Text style={{ fontSize: typography.fz13, color: "rgba(255,255,255,0.85)" }}>5월 복약 달성률</Text>
               <View style={s.streakBadge}>
                 <Text style={{ fontSize: typography.fz12 }}>🔥</Text>
                 <Text style={{ fontSize: typography.fz12, color: "#92400E", marginLeft: 3 }}>{streak}일 연속 달성 중</Text>
               </View>
             </View>
             <Text style={{ fontSize: 36, fontWeight: typography.fw7, color: colors.white, marginBottom: spacing.s4 }}>{adherence}%</Text>
-            <Text style={{ fontSize: typography.fz12, color: 'rgba(255,255,255,0.75)', marginBottom: 10 }}>
+            <Text style={{ fontSize: typography.fz12, color: "rgba(255,255,255,0.75)", marginBottom: 10 }}>
               총 {Math.round(adherence * 0.22)}일 완료 · 미복용 {Math.round((100 - adherence) * 0.05)}일
             </Text>
-            <View style={[s.progressBg, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
+            <View style={[s.progressBg, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
               <View style={[s.progressFill, { width: `${adherence}%` as any, backgroundColor: colors.white }]} />
             </View>
           </Card>
 
-          {/* 최근 상담 카드 — 날짜 + AI 미리보기 */}
-          <TouchableOpacity style={[s.card, { flex: 1 }]}
-            onPress={() => recentChat && navigation.navigate("ChatTab", { screen: "ChatSession", params: { chatId: recentChat.id } })}>
-            <View style={{ flexDirection: "row", justifyContent: 'space-between', alignItems: "center", marginBottom: 6 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {/* 최근 상담 카드 */}
+          <TouchableOpacity style={[s.card, { flex: isDesktop ? 1 : undefined }]} onPress={() => recentChat && navigation.navigate("ChatTab", { screen: "ChatSession", params: { chatId: recentChat.id } })}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Icon name="chat" size={14} color={colors.accent700} />
-                <Text style={{ fontSize: typography.fz12, fontWeight: typography.fw6, color: colors.ink }}>
-                  최근 상담 {recentChat ? `(${recentChat.time})` : ''}
-                </Text>
+                <Text style={{ fontSize: typography.fz12, fontWeight: typography.fw6, color: colors.ink }}>최근 상담 {recentChat ? `(${recentChat.time})` : ""}</Text>
               </View>
               <Icon name="chevron-right" size={13} color={colors.muted2} />
             </View>
@@ -385,14 +385,16 @@ export default function HomeScreen({ navigation }: any) {
         <View style={{ flexDirection: "row", gap: spacing.s12, marginBottom: spacing.s20 }}>
           <TouchableOpacity style={[s.card, { flex: 1, paddingVertical: 20 }]} onPress={() => setUploadOpen(true)}>
             <View style={s.quickIcon}>
-              <Icon name="camera" size={22} color={colors.accent700} />
+              <Icon name="cloud-upload" size={18} color={colors.accent700} />
             </View>
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>의료 문서 업로드</Text>
             <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>처방전·약봉투·진료기록 분석</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[s.card, { flex: 1, paddingVertical: 20 }, recentGuideId == null && { opacity: 0.45 }]}
-            onPress={() => { if (recentGuideId != null) navigation.navigate("GuideResult", { guideId: recentGuideId }); }}
+            onPress={() => {
+              if (recentGuideId != null) navigation.navigate("GuideResult", { guideId: recentGuideId });
+            }}
             disabled={recentGuideId == null}
           >
             <View style={s.quickIcon}>
@@ -406,23 +408,31 @@ export default function HomeScreen({ navigation }: any) {
         {/* 달력 */}
         <Card shadow style={{ marginBottom: 14 }}>
           <MonthCalendar
-            y={viewY} m={viewM} data={monthData}
-            onPrev={() => shiftMonth(-1)} onNext={() => shiftMonth(1)}
-            onDayClick={setSelectedDay} selectedDay={selectedDay}
+            y={viewY}
+            m={viewM}
+            data={monthData}
+            onPrev={() => shiftMonth(-1)}
+            onNext={() => shiftMonth(1)}
+            onDayClick={setSelectedDay}
+            selectedDay={selectedDay}
             showTodayBtn={!isOnRealToday}
-            onToday={() => { setViewY(now.getFullYear()); setViewM(now.getMonth() + 1); setSelectedDay(now.getDate()); }}
+            onToday={() => {
+              setViewY(now.getFullYear());
+              setViewM(now.getMonth() + 1);
+              setSelectedDay(now.getDate());
+            }}
           />
           {/* 범례 */}
-          <View style={{ flexDirection: 'row', gap: spacing.s16, paddingTop: spacing.s12, marginTop: 8, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <View style={{ flexDirection: "row", gap: spacing.s16, paddingTop: spacing.s12, marginTop: 8, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
               <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: colors.success }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>복약 완료</Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
               <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: colors.danger }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>미복용</Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
               <View style={{ width: 14, height: 4, borderRadius: 2, backgroundColor: colors.hairlineStrong }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>예정</Text>
             </View>
@@ -432,18 +442,26 @@ export default function HomeScreen({ navigation }: any) {
         {/* 과거 완료일 요약 카드 (Image 5) */}
         {donePastDay && (
           <Card shadow style={{ marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s8 }}>
-              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>{viewM}월 {selectedDay}일 기록</Text>
-              <Badge variant="success" size="md">복약 완료</Badge>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s8 }}>
+              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>
+                {viewM}월 {selectedDay}일 기록
+              </Text>
+              <Badge variant="success" size="md">
+                복약 완료
+              </Badge>
             </View>
             <Text style={{ fontSize: typography.fz13, color: colors.muted }}>처방된 약을 모두 복용했어요. 좋은 흐름을 이어가세요!</Text>
           </Card>
         )}
         {missedPastDay && (
           <Card shadow style={{ marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s8 }}>
-              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>{viewM}월 {selectedDay}일 기록</Text>
-              <Badge variant="danger" size="md">미복용 있음</Badge>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s8 }}>
+              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>
+                {viewM}월 {selectedDay}일 기록
+              </Text>
+              <Badge variant="danger" size="md">
+                미복용 있음
+              </Badge>
             </View>
             <Text style={{ fontSize: typography.fz13, color: colors.muted }}>일부 복약이 미복용됐어요. 꾸준히 이어가 보세요!</Text>
           </Card>
@@ -456,12 +474,11 @@ export default function HomeScreen({ navigation }: any) {
               <Icon name="link" size={14} color={colors.ink2} />
               <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>
                 {selectedStatus === "today" ? "오늘 복약 현황" : selectedStatus === "future" ? "예정된 복약" : "복약 기록"}
-                <Text style={{ color: colors.muted, fontWeight: typography.fw4 }}> · {dateStr}</Text>
-                {' '}({dayCompleted}/{drugsForDay.length})
+                <Text style={{ color: colors.muted, fontWeight: typography.fw4 }}> · {dateStr}</Text> ({dayCompleted}/{drugsForDay.length})
               </Text>
             </View>
             {selectedStatus === "missed" && <Badge variant="danger">미복용 있음</Badge>}
-            {selectedStatus === "done"   && <Badge variant="success">모두 복약</Badge>}
+            {selectedStatus === "done" && <Badge variant="success">모두 복약</Badge>}
           </View>
 
           {drugsForDay.map((d, i) => (
@@ -469,7 +486,9 @@ export default function HomeScreen({ navigation }: any) {
               <View style={{ width: 4, height: 32, borderRadius: 2, backgroundColor: d.color }} />
               <View style={{ flex: 1, marginLeft: spacing.s12 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>{d.name}</Text>
-                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{d.freq} · {d.time}</Text>
+                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+                  {d.freq} · {d.time}
+                </Text>
               </View>
               {d.status === "완료" ? (
                 <Badge variant="success">완료</Badge>
@@ -490,13 +509,20 @@ export default function HomeScreen({ navigation }: any) {
       <UploadModal
         visible={uploadOpen}
         onClose={() => setUploadOpen(false)}
-        onStart={() => { setUploadOpen(false); navigation.navigate("OCRProcessing"); }}
+        onStart={() => {
+          setUploadOpen(false);
+          navigation.navigate("OCRProcessing");
+        }}
       />
     </ScreenLayout>
   );
 }
 
 const s = StyleSheet.create({
+  quickBtn: { flex: 1, padding: 16, borderRadius: radii.lg, alignItems: "center", shadowColor: "#0f172a", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  statusDone: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radii.pill, backgroundColor: colors.success50 },
+  statusMissed: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radii.pill, backgroundColor: colors.danger50 },
+  statusPending: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.accent100, backgroundColor: "transparent" },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
@@ -504,10 +530,10 @@ const s = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: colors.hairline,
     marginBottom: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.05,
     shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   conditionChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: radii.pill, backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
@@ -518,6 +544,7 @@ const s = StyleSheet.create({
   drugRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14 },
   chipBtn: { borderWidth: 1, borderColor: colors.accent100, borderRadius: radii.pill, paddingHorizontal: 10, paddingVertical: 5 },
   calHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
+  iconBtn: { width: 32, height: 32, borderRadius: radii.sm, alignItems: "center", justifyContent: "center" },
   iconBtn: { width: 32, height: 32, borderRadius: radii.sm, alignItems: "center", justifyContent: "center" },
   chipSmall: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.accent100 },
   calGrid: { flexDirection: "row", flexWrap: "wrap" },
@@ -537,7 +564,7 @@ const s = StyleSheet.create({
   typeCard: { flex: 1, alignItems: "center", padding: spacing.s12, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
   typeCardActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
   typeIcon: { width: 28, height: 28, borderRadius: radii.sm, alignItems: "center", justifyContent: "center", marginBottom: 6 },
-  closeBtn: { width: 36, height: 36, borderRadius: 999, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' },
+  closeBtn: { width: 36, height: 36, borderRadius: 999, backgroundColor: colors.accent50, alignItems: "center", justifyContent: "center" },
   srcCard: { alignItems: "center", padding: spacing.s16, borderRadius: radii.md, borderWidth: 0.5, borderColor: colors.hairline, backgroundColor: colors.surface },
   srcIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.accent50, alignItems: "center", justifyContent: "center", marginBottom: spacing.s8 },
 });

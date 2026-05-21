@@ -1,6 +1,5 @@
 // Icon.tsx
-// Drop-in replacement for the inline SVG Icon component.
-// Maps original icon names → Feather + MaterialCommunityIcons via @expo/vector-icons.
+// Feather + MaterialCommunityIcons + Ionicons 통합
 // Usage: <Icon name="home" size={16} color="#fff" />
 
 import React from "react";
@@ -15,7 +14,7 @@ interface IconProps {
   color?: string;
 }
 
-// Map original names → Feather
+// ─── Feather map ─────────────────────────────────────────────────────────────
 const FEATHER_MAP: Record<string, FeatherName> = {
   home: "home",
   doc: "file-text",
@@ -80,13 +79,11 @@ export default function Icon({ name, size = 18, color = "#0F172A" }: IconProps) 
   // Check MCI first for icons that map better there
   if (MCI_MAP[name]) {
     return <MaterialCommunityIcons name={MCI_MAP[name]} size={size} color={color} />;
+    return <MaterialCommunityIcons name={MCI_MAP[name]} size={size} color={color} />;
   }
-
   const featherName = FEATHER_MAP[name];
   if (featherName) {
     return <Feather name={featherName} size={size} color={color} />;
   }
-
-  // Fallback: generic circle
   return <Feather name="circle" size={size} color={color} />;
 }
