@@ -110,20 +110,20 @@ interface AppState {
 // ─── Seed data (same as shared.jsx) ──────────────────────────────────────────
 
 const defaultUser: User = {
-  name: '김오즈',
-  email: 'ozkim@example.com',
+  name: '',
+  email: '',
   loggedIn: false,
-  age: '40대',
-  ageNum: 52,
-  sex: '여성',
-  conditions: '고혈압, 제2형 당뇨',
+  age: '',
+  ageNum: 0,
+  sex: '',
+  conditions: '',
   allergies: '',
   otherMeds: '',
   history: '',
-  notes: '저염식 권고, 유산소 운동 주 3회 이상',
-  pregnant: '아니오',
-  smoking: '아니오',
-  profileComplete: true,
+  notes: '',
+  pregnant: '',
+  smoking: '',
+  profileComplete: false,
 };
 
 const seedDrugs: Drug[] = [
@@ -196,9 +196,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // guard: don't persist until the initial AsyncStorage load is complete,
+  // otherwise the first render (defaultUser) overwrites the stored value
+  // before getItem can read it (AsyncStorage processes ops as a FIFO queue)
+  const isLoaded = useRef(false);
 
-  // Persist user to AsyncStorage
+  // Persist user to AsyncStorage — skipped on the very first render
   useEffect(() => {
+    if (!isLoaded.current) return;
     AsyncStorage.setItem('medipt_user', JSON.stringify(user)).catch(() => {});
   }, [user]);
 
@@ -218,6 +223,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUserState(prev => ({ ...prev, loggedIn: hasToken }));
       }
+      // mark loaded AFTER setUserState so the next persist-effect render
+      // sees isLoaded.current = true and actually writes to AsyncStorage
+      isLoaded.current = true;
     })();
 
     tokenStore.registerUnauthorizedHandler(() => {

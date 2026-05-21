@@ -45,7 +45,7 @@ export default function Input({
           />
         )}
         <TextInput
-          style={[s.input, icon && { marginLeft: spacing.s2 }, { outlineStyle: 'none' } as any, style]}
+          style={[s.input, icon && { marginLeft: spacing.s8 }, { outlineStyle: 'none' } as any, style]}
           placeholderTextColor={colors.muted2}
           onFocus={(e) => { setFocused(true); onFocus?.(e); }}
           onBlur={(e) => { setFocused(false); onBlur?.(e); }}
@@ -62,7 +62,7 @@ const s = StyleSheet.create({
     fontSize: typography.fz13,
     fontWeight: typography.fw6,
     color: colors.ink2,
-    marginBottom: spacing.s2,
+    marginBottom: spacing.s8,
   },
   row: {
     flexDirection: 'row',
@@ -70,7 +70,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.hairlineStrong,
     borderRadius: radii.md,
-    paddingHorizontal: spacing.s3,
+    paddingHorizontal: spacing.s12,
     height: 44,
     backgroundColor: colors.surface,
   },
@@ -93,6 +93,6 @@ const s = StyleSheet.create({
   error: {
     fontSize: typography.fz12,
     color: colors.danger,
-    marginTop: spacing.s1,
+    marginTop: spacing.s4,
   },
 });

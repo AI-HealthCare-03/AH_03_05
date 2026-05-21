@@ -29,13 +29,13 @@ const SIZE_HEIGHT: Record<ButtonSize, number | undefined> = {
 };
 
 const SIZE_PX: Record<ButtonSize, number> = {
-  sm: spacing.s3,
+  sm: spacing.s12,
   md: 14,
   lg: 14,
 };
 
 const SIZE_PY: Record<ButtonSize, number> = {
-  sm: spacing.s2,
+  sm: spacing.s8,
   md: 0,
   lg: 0,
 };
@@ -118,7 +118,7 @@ export default function Button({
               s.text,
               s[TEXT_STYLE[variant]],
               { fontSize: SIZE_FZ[size] },
-              leftIcon ? { marginLeft: spacing.s1 } : undefined,
+              leftIcon ? { marginLeft: spacing.s4 } : undefined,
             ]}
           >
             {children}

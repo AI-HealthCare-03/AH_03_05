@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity,
   ScrollView, StyleSheet,
@@ -14,7 +14,7 @@ import { healthProfileApi, extractApiError } from '../../api';
 export default function OnboardingScreen({ navigation, route }: any) {
   const step: number = route?.params?.step ?? 1;
   const { user, setUser } = useApp();
-  const { isDesktop } = useBreakpoint();
+  const { isTabletOrAbove } = useBreakpoint();
 
   const [form, setForm] = useState({
     age: user.age || '40대',
@@ -27,6 +27,15 @@ export default function OnboardingScreen({ navigation, route }: any) {
   const set = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingNav, setPendingNav] = useState(false);
+
+  // Navigate only after AppProvider has re-rendered with the updated context.
+  // Calling navigation.reset() immediately after setUser() races against
+  // React's async state commit — HomeScreen would mount with stale context.
+  useEffect(() => {
+    if (!pendingNav || !user.profileComplete) return;
+    navigation.reset({ index: 0, routes: [{ name: 'Main' as never }] });
+  }, [pendingNav, user.profileComplete, navigation]);
 
   const AGE_MAP: Record<string, string> = { '20대': '20s', '30대': '30s', '40대': '40s', '50대': '50s', '60대+': '60s' };
   const GENDER_MAP: Record<string, string | undefined> = { '여성': 'F', '남성': 'M', '답변 안 함': undefined };
@@ -50,7 +59,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
         medical_history: form.history || undefined,
       });
       setUser({ ...user, ...form, profileComplete: true });
-      navigation.reset({ index: 0, routes: [{ name: 'Main' as never }] });
+      setPendingNav(true);
     } catch (e) {
       setError(extractApiError(e));
     } finally {
@@ -63,7 +72,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
   };
   const skip = () => {
     setUser({ ...user, profileComplete: true });
-    navigation.reset({ index: 0, routes: [{ name: 'Main' as never }] });
+    setPendingNav(true);
   };
 
   const ages  = ['20대', '30대', '40대', '50대', '60대+'];
@@ -72,10 +81,10 @@ export default function OnboardingScreen({ navigation, route }: any) {
   return (
     <ScrollView
       style={styles.root}
-      contentContainerStyle={[styles.container, isDesktop && styles.containerDesktop]}
+      contentContainerStyle={[styles.container, isTabletOrAbove && styles.containerDesktop]}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={[{ width: '100%' }, isDesktop && { maxWidth: 520 }]}>
+      <View style={[{ width: '100%' }, isTabletOrAbove && { maxWidth: 520 }]}>
       {/* Brand */}
       <View style={styles.brandRow}>
         <View style={styles.brandLogo}><Icon name="robot" size={18} color={colors.white} /></View>
@@ -150,9 +159,9 @@ export default function OnboardingScreen({ navigation, route }: any) {
           </>
         )}
 
-        {error ? <Text style={{ fontSize: typography.fz13, color: colors.danger, textAlign: 'center', marginBottom: spacing.s2 }}>{error}</Text> : null}
+        {error ? <Text style={{ fontSize: typography.fz13, color: colors.danger, textAlign: 'center', marginBottom: spacing.s8 }}>{error}</Text> : null}
         {/* Actions */}
-        <View style={{ flexDirection: 'row', gap: spacing.s3, marginTop: spacing.s6 }}>
+        <View style={{ flexDirection: 'row', gap: spacing.s12, marginTop: spacing.s24 }}>
           <Button variant="ghost" size="lg" style={{ flex: 1 }} onPress={step === 1 ? skip : back} disabled={loading}>
             {step === 1 ? '건너뛰기' : '이전'}
           </Button>
@@ -164,7 +173,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
 
       <Text style={styles.hint}>입력하지 않아도 서비스 이용은 가능해요.</Text>
       {step === 1 && (
-        <TouchableOpacity onPress={skip} style={{ alignSelf: 'center', marginTop: spacing.s1 }}>
+        <TouchableOpacity onPress={skip} style={{ alignSelf: 'center', marginTop: spacing.s4 }}>
           <Text style={{ fontSize: typography.fz12, color: colors.accent }}>건너뛰고 둘러보기</Text>
         </TouchableOpacity>
       )}
@@ -175,25 +184,25 @@ export default function OnboardingScreen({ navigation, route }: any) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.canvas },
-  container: { padding: spacing.s6, paddingTop: spacing.s9, alignItems: 'center' },
-  containerDesktop: { padding: 48, paddingVertical: spacing.s8, alignItems: 'center' },
-  brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.s5 },
-  brandLogo: { width: 32, height: 32, borderRadius: 9, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginRight: spacing.s2 },
+  container: { padding: spacing.s24, paddingTop: spacing.s56, alignItems: 'center' },
+  containerDesktop: { padding: 48, paddingVertical: spacing.s40, alignItems: 'center' },
+  brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.s20 },
+  brandLogo: { width: 32, height: 32, borderRadius: 9, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginRight: spacing.s8 },
   brandName: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
-  progressRow: { flexDirection: 'row', gap: 6, marginBottom: spacing.s5, width: '100%' },
+  progressRow: { flexDirection: 'row', gap: 6, marginBottom: spacing.s20, width: '100%' },
   progressBar: { height: 4, borderRadius: 2 },
-  card: { width: '100%', backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s6, borderWidth: 0.5, borderColor: colors.hairline },
-  stepLabel: { fontSize: typography.fz12, fontWeight: typography.fw7, color: colors.accent, marginBottom: spacing.s1, letterSpacing: 0.5 },
+  card: { width: '100%', backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s24, borderWidth: 0.5, borderColor: colors.hairline },
+  stepLabel: { fontSize: typography.fz12, fontWeight: typography.fw7, color: colors.accent, marginBottom: spacing.s4, letterSpacing: 0.5 },
   title: { fontSize: typography.fz22, fontWeight: typography.fw7, color: colors.ink, marginBottom: 6 },
-  sub: { fontSize: typography.fz14, color: colors.muted, marginBottom: spacing.s4 },
-  infoBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.accent50, borderRadius: radii.md, padding: 14, marginBottom: spacing.s4, gap: 10 },
+  sub: { fontSize: typography.fz14, color: colors.muted, marginBottom: spacing.s16 },
+  infoBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.accent50, borderRadius: radii.md, padding: 14, marginBottom: spacing.s16, gap: 10 },
   infoText: { fontSize: typography.fz13, color: colors.accent700, flex: 1 },
-  fieldLabel: { fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s2 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.s2, marginBottom: spacing.s4 },
-  chip: { paddingHorizontal: spacing.s4, paddingVertical: spacing.s2, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.surface },
+  fieldLabel: { fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s8 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.s8, marginBottom: spacing.s16 },
+  chip: { paddingHorizontal: spacing.s16, paddingVertical: spacing.s8, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.surface },
   chipGrow: { flex: 1, alignItems: 'center' },
   chipActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
   chipText: { fontSize: typography.fz13, color: colors.ink2 },
   chipTextActive: { color: colors.accent700, fontWeight: typography.fw6 },
-  hint: { fontSize: typography.fz12, color: colors.muted, textAlign: 'center', marginTop: spacing.s4 },
+  hint: { fontSize: typography.fz12, color: colors.muted, textAlign: 'center', marginTop: spacing.s16 },
 });

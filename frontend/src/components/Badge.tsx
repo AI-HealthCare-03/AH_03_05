@@ -51,7 +51,7 @@ export default function Badge({
 const s = StyleSheet.create({
   base: {
     borderRadius: radii.pill,
-    paddingHorizontal: spacing.s2,
+    paddingHorizontal: spacing.s8,
     paddingVertical: 3,
     alignSelf: 'flex-start',
   },

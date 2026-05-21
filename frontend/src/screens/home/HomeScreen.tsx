@@ -4,7 +4,6 @@ import { useApp } from "../../context/AppContext";
 import Icon from "../../components/Icon";
 import { colors, radii, spacing, typography, shadows } from "../../theme";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
-import Button from "../../components/Button";
 import Card from "../../components/Card";
 import Badge from "../../components/Badge";
 import ScreenLayout from "../../components/ScreenLayout";
@@ -74,7 +73,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
           return (
             <TouchableOpacity key={day} style={[s.calCell, isToday && s.calToday, isSelected && !isToday && s.calSelected]} onPress={() => onDayClick(day)}>
               <Text style={[s.calDayText, isToday && { color: colors.white }, isSelected && !isToday && { color: colors.accent700, fontWeight: typography.fw7 }, dow === 0 && !isToday && { color: colors.danger }, dow === 6 && !isToday && { color: colors.accent700 }]}>{day}</Text>
-              <View style={{ width: status === "missed" ? 4 : 16, height: 3, borderRadius: 999, marginTop: spacing.s1, backgroundColor: isToday ? "rgba(255,255,255,0.6)" : colorFor(status) }} />
+              <View style={{ width: status === "missed" ? 4 : 16, height: 3, borderRadius: 999, marginTop: spacing.s4, backgroundColor: isToday ? "rgba(255,255,255,0.6)" : colorFor(status) }} />
             </TouchableOpacity>
           );
         })}
@@ -103,9 +102,9 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
     { id: "manual", label: "직접입력", icon: "keyboard" },
   ];
 
-  const { isDesktop } = useBreakpoint();
+  const { isTabletOrAbove } = useBreakpoint();
   const { width } = useWindowDimensions();
-  const cardWidth = isDesktop ? 520 : width - 40;
+  const cardWidth = isTabletOrAbove ? 520 : width - 40;
 
   const handleClose = () => {
     setUploading(false);
@@ -130,7 +129,7 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
 
   const ModalContent = () => (
     <>
-      {!isDesktop && <View style={s.modalHandle} />}
+      {!isTabletOrAbove && <View style={s.modalHandle} />}
       <View style={s.modalHead}>
         <View>
           <Text style={s.modalTitle}>의료 문서 업로드</Text>
@@ -145,7 +144,7 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
       {uploading ? (
         /* 업로드 진행 상태 */
         <View style={{ paddingVertical: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s3, marginBottom: spacing.s4 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12, marginBottom: spacing.s16 }}>
             <View style={{ width: 40, height: 40, borderRadius: radii.pill, backgroundColor: uploadDone ? colors.success : colors.accent, alignItems: 'center', justifyContent: 'center' }}>
               <Icon name={uploadDone ? 'check' : 'camera'} size={18} color="#fff" />
             </View>
@@ -166,7 +165,7 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
       ) : (
         <>
           {/* 문서 유형 선택 */}
-          <View style={{ flexDirection: "row", gap: spacing.s2, marginBottom: 14 }}>
+          <View style={{ flexDirection: "row", gap: spacing.s8, marginBottom: 14 }}>
             {types.map((t) => (
               <TouchableOpacity key={t.id} style={[s.typeCard, type === t.id && s.typeCardActive]} onPress={() => setType(t.id)}>
                 <View style={[s.typeIcon, { backgroundColor: type === t.id ? colors.accent100 : colors.surface2 }]}>
@@ -200,7 +199,7 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
     </>
   );
 
-  if (isDesktop) {
+  if (isTabletOrAbove) {
     return (
       <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
         <TouchableOpacity style={s.scrimCenter} activeOpacity={1} onPress={onClose}>
@@ -227,7 +226,6 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
 
 export default function HomeScreen({ navigation }: any) {
   const { user, drugs, setDrugs, adherence, streak, chats, flash, notifications, pendingUpload, setPendingUpload } = useApp();
-  const { isDesktop } = useBreakpoint();
   const [uploadOpen, setUploadOpen] = useState(false);
 
   useEffect(() => {
@@ -274,6 +272,7 @@ export default function HomeScreen({ navigation }: any) {
   const dateStr = `${viewY}.${String(viewM).padStart(2, '0')}.${String(selectedDay).padStart(2, '0')}`;
   const donePastDay = selectedStatus === 'done' && !isOnRealToday;
   const missedPastDay = selectedStatus === 'missed' && !isOnRealToday;
+  const recentGuideId: number | undefined = undefined; // API 연동 시 실제 값으로 교체
 
   return (
     <ScreenLayout noHeader>
@@ -289,21 +288,52 @@ export default function HomeScreen({ navigation }: any) {
         )}
       </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={{ padding: spacing.s5, paddingTop: spacing.s9 }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.s20, paddingTop: spacing.s56 }}>
         {/* 인사 + 컨디션 칩 */}
-        <Text style={{ fontSize: typography.fz26, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s2 }}>안녕하세요, {user.name}님 👋</Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: spacing.s5 }}>
-          {(user.conditions || "고혈압, 제2형 당뇨")
-            .split(/,\s*/).filter(Boolean).slice(0, 4)
-            .map((c, i) => (
-              <TouchableOpacity key={i} onPress={() => navigation.navigate("GuideResult")} style={s.conditionChip}>
-                <Text style={{ fontSize: typography.fz12, color: colors.accent700, fontWeight: typography.fw5 }}>{c} 관리</Text>
-              </TouchableOpacity>
-            ))}
+        <Text style={{ fontSize: typography.fz26, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>
+          안녕하세요{user.name ? `, ${user.name}` : ''}님 👋
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: spacing.s20 }}>
+          {user.conditions
+            ? user.conditions.split(/,\s*/).filter(Boolean).slice(0, 4).map((c, i) => (
+                <TouchableOpacity key={i} onPress={() => { if (recentGuideId != null) navigation.navigate("GuideResult", { guideId: recentGuideId }); }} disabled={recentGuideId == null} style={[s.conditionChip, recentGuideId == null && { opacity: 0.55 }]}>
+                  <Text style={{ fontSize: typography.fz12, color: colors.accent700, fontWeight: typography.fw5 }}>{c} 관리</Text>
+                </TouchableOpacity>
+              ))
+            : (
+                <View style={[s.conditionChip, { borderStyle: 'dashed', opacity: 0.7 }]}>
+                  <Text style={{ fontSize: typography.fz12, color: colors.muted, fontWeight: typography.fw5 }}>건강 정보 미입력</Text>
+                </View>
+              )
+          }
         </View>
 
+        {/* 프로필 미완료 배너 */}
+        {!user.profileComplete && (
+          <View style={[s.card, { marginBottom: 14, backgroundColor: colors.accent50, borderColor: colors.accent100 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12 }}>
+              <View style={{ width: 42, height: 42, borderRadius: radii.pill, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="info" size={18} color={colors.white} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw7, color: colors.ink, marginBottom: 2 }}>
+                  건강 프로필을 완성해주세요
+                </Text>
+                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+                  건강 정보를 입력할수록 맞춤형 가이드 정확도가 높아져요.
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => (navigation as any).navigate('Onboarding')}
+              style={{ marginTop: spacing.s12, backgroundColor: colors.accent, borderRadius: radii.md, paddingVertical: spacing.s8, alignItems: 'center' }}>
+              <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.white }}>건강 정보 입력하기</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* 복약 달성률(teal) + 최근 상담 */}
-        <View style={{ flexDirection: "row", gap: spacing.s3, marginBottom: 14 }}>
+        <View style={{ flexDirection: "row", gap: spacing.s12, marginBottom: 14 }}>
           {/* 달성률 카드 — teal 배경 */}
           <Card style={{ flex: 2, backgroundColor: colors.accent, borderColor: 'transparent' }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -313,7 +343,7 @@ export default function HomeScreen({ navigation }: any) {
                 <Text style={{ fontSize: typography.fz12, color: "#92400E", marginLeft: 3 }}>{streak}일 연속 달성 중</Text>
               </View>
             </View>
-            <Text style={{ fontSize: 36, fontWeight: typography.fw7, color: colors.white, marginBottom: spacing.s1 }}>{adherence}%</Text>
+            <Text style={{ fontSize: 36, fontWeight: typography.fw7, color: colors.white, marginBottom: spacing.s4 }}>{adherence}%</Text>
             <Text style={{ fontSize: typography.fz12, color: 'rgba(255,255,255,0.75)', marginBottom: 10 }}>
               총 {Math.round(adherence * 0.22)}일 완료 · 미복용 {Math.round((100 - adherence) * 0.05)}일
             </Text>
@@ -336,7 +366,7 @@ export default function HomeScreen({ navigation }: any) {
             </View>
             {recentChat ? (
               <>
-                <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, marginBottom: spacing.s1 }} numberOfLines={2}>
+                <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, marginBottom: spacing.s4 }} numberOfLines={2}>
                   "{recentChat.title}"
                 </Text>
                 {lastAiMsg ? (
@@ -352,7 +382,7 @@ export default function HomeScreen({ navigation }: any) {
         </View>
 
         {/* 빠른 액션 */}
-        <View style={{ flexDirection: "row", gap: spacing.s3, marginBottom: spacing.s5 }}>
+        <View style={{ flexDirection: "row", gap: spacing.s12, marginBottom: spacing.s20 }}>
           <TouchableOpacity style={[s.card, { flex: 1, paddingVertical: 20 }]} onPress={() => setUploadOpen(true)}>
             <View style={s.quickIcon}>
               <Icon name="camera" size={22} color={colors.accent700} />
@@ -360,7 +390,11 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>의료 문서 업로드</Text>
             <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>처방전·약봉투·진료기록 분석</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[s.card, { flex: 1, paddingVertical: 20 }]} onPress={() => navigation.navigate("GuideResult")}>
+          <TouchableOpacity
+            style={[s.card, { flex: 1, paddingVertical: 20 }, recentGuideId == null && { opacity: 0.45 }]}
+            onPress={() => { if (recentGuideId != null) navigation.navigate("GuideResult", { guideId: recentGuideId }); }}
+            disabled={recentGuideId == null}
+          >
             <View style={s.quickIcon}>
               <Icon name="doc" size={22} color={colors.accent700} />
             </View>
@@ -379,7 +413,7 @@ export default function HomeScreen({ navigation }: any) {
             onToday={() => { setViewY(now.getFullYear()); setViewM(now.getMonth() + 1); setSelectedDay(now.getDate()); }}
           />
           {/* 범례 */}
-          <View style={{ flexDirection: 'row', gap: spacing.s4, paddingTop: spacing.s3, marginTop: 8, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
+          <View style={{ flexDirection: 'row', gap: spacing.s16, paddingTop: spacing.s12, marginTop: 8, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: colors.success }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>복약 완료</Text>
@@ -398,7 +432,7 @@ export default function HomeScreen({ navigation }: any) {
         {/* 과거 완료일 요약 카드 (Image 5) */}
         {donePastDay && (
           <Card shadow style={{ marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s2 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s8 }}>
               <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>{viewM}월 {selectedDay}일 기록</Text>
               <Badge variant="success" size="md">복약 완료</Badge>
             </View>
@@ -407,7 +441,7 @@ export default function HomeScreen({ navigation }: any) {
         )}
         {missedPastDay && (
           <Card shadow style={{ marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s2 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s8 }}>
               <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>{viewM}월 {selectedDay}일 기록</Text>
               <Badge variant="danger" size="md">미복용 있음</Badge>
             </View>
@@ -433,7 +467,7 @@ export default function HomeScreen({ navigation }: any) {
           {drugsForDay.map((d, i) => (
             <View key={d.id} style={[s.drugRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
               <View style={{ width: 4, height: 32, borderRadius: 2, backgroundColor: d.color }} />
-              <View style={{ flex: 1, marginLeft: spacing.s3 }}>
+              <View style={{ flex: 1, marginLeft: spacing.s12 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>{d.name}</Text>
                 <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{d.freq} · {d.time}</Text>
               </View>
@@ -466,7 +500,7 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
-    padding: spacing.s5,
+    padding: spacing.s20,
     borderWidth: 0.5,
     borderColor: colors.hairline,
     marginBottom: 0,
@@ -477,33 +511,33 @@ const s = StyleSheet.create({
     elevation: 2,
   },
   conditionChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: radii.pill, backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
-  streakBadge: { flexDirection: "row", alignItems: "center", backgroundColor: colors.warning50, borderRadius: radii.pill, paddingHorizontal: spacing.s2, paddingVertical: spacing.s1 },
+  streakBadge: { flexDirection: "row", alignItems: "center", backgroundColor: colors.warning50, borderRadius: radii.pill, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4 },
   progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: "hidden" },
   progressFill: { height: "100%", backgroundColor: colors.accent, borderRadius: 3 },
-  quickIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: colors.accent100, alignItems: "center", justifyContent: "center", marginBottom: spacing.s3 },
+  quickIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: colors.accent100, alignItems: "center", justifyContent: "center", marginBottom: spacing.s12 },
   drugRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14 },
   chipBtn: { borderWidth: 1, borderColor: colors.accent100, borderRadius: radii.pill, paddingHorizontal: 10, paddingVertical: 5 },
   calHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
   iconBtn: { width: 32, height: 32, borderRadius: radii.sm, alignItems: "center", justifyContent: "center" },
   chipSmall: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.accent100 },
   calGrid: { flexDirection: "row", flexWrap: "wrap" },
-  calWeekHead: { width: "14.28%", textAlign: "center", fontSize: typography.fz11, paddingVertical: spacing.s1 },
+  calWeekHead: { width: "14.28%", textAlign: "center", fontSize: typography.fz11, paddingVertical: spacing.s4 },
   calCell: { width: "14.28%", alignItems: "center", paddingVertical: 6, borderRadius: radii.sm },
   calToday: { backgroundColor: colors.accent },
   calSelected: { backgroundColor: colors.accent100 },
   calDayText: { fontSize: typography.fz13, color: colors.ink },
   scrim: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" },
   scrimCenter: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center" },
-  modalCenter: { backgroundColor: colors.surface, borderRadius: 20, padding: spacing.s5 },
-  modal: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: spacing.s5 },
-  modalHandle: { width: 36, height: 4, backgroundColor: colors.hairlineStrong, borderRadius: 2, alignSelf: "center", marginBottom: spacing.s4 },
+  modalCenter: { backgroundColor: colors.surface, borderRadius: 20, padding: spacing.s20 },
+  modal: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: spacing.s20 },
+  modalHandle: { width: 36, height: 4, backgroundColor: colors.hairlineStrong, borderRadius: 2, alignSelf: "center", marginBottom: spacing.s16 },
   modalHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 },
   modalTitle: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   modalSub: { fontSize: typography.fz13, color: colors.muted },
-  typeCard: { flex: 1, alignItems: "center", padding: spacing.s3, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
+  typeCard: { flex: 1, alignItems: "center", padding: spacing.s12, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
   typeCardActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
   typeIcon: { width: 28, height: 28, borderRadius: radii.sm, alignItems: "center", justifyContent: "center", marginBottom: 6 },
   closeBtn: { width: 36, height: 36, borderRadius: 999, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' },
-  srcCard: { alignItems: "center", padding: spacing.s4, borderRadius: radii.md, borderWidth: 0.5, borderColor: colors.hairline, backgroundColor: colors.surface },
-  srcIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.accent50, alignItems: "center", justifyContent: "center", marginBottom: spacing.s2 },
+  srcCard: { alignItems: "center", padding: spacing.s16, borderRadius: radii.md, borderWidth: 0.5, borderColor: colors.hairline, backgroundColor: colors.surface },
+  srcIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.accent50, alignItems: "center", justifyContent: "center", marginBottom: spacing.s8 },
 });

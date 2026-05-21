@@ -1,1 +1,3 @@
-export { LoginScreen as default, SignupScreen, ForgotPasswordScreen } from './LoginScreen';
+export { default } from './LoginScreen';
+export { default as SignupScreen } from './SignupScreen';
+export { default as ForgotPasswordScreen } from './ForgotPasswordScreen';

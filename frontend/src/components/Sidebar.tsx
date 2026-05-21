@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   {
     section: '메인',
     items: [
-      { label: '홈 대시보드', icon: 'home',     tab: 'HomeTab' },
+      { label: '홈 대시보드', icon: 'home',     tab: 'HomeTab', screen: 'Home' },
       { label: '진료기록',   icon: 'doc',      tab: 'RecordsTab' },
       { label: '복약 가이드', icon: 'wand',     tab: 'HomeTab', screen: 'GuideResult' },
     ],
@@ -49,29 +49,22 @@ export default function Sidebar() {
     // 복약 가이드는 GuideResult 스크린일 때만 활성
     if (item.screen === 'GuideResult') return activeScreen === 'GuideResult';
     // 홈 대시보드는 GuideResult 가 아닐 때 활성
-    if (item.tab === 'HomeTab' && !item.screen) return activeScreen !== 'GuideResult';
+    if (item.tab === 'HomeTab' && item.screen !== 'GuideResult') return activeScreen !== 'GuideResult';
     return true;
   };
 
-  // React Navigation 6: navigate to nested tab
   const go = (tab: string, screen?: string) => {
-    try {
-      if (screen) {
-        navigation.navigate('Main' as never, { screen: tab, params: { screen } } as never);
-      } else {
-        navigation.navigate('Main' as never, { screen: tab } as never);
-      }
-    } catch {
-      try { navigation.navigate(tab as never); } catch (e2) {
-        console.warn('Sidebar nav error:', e2);
-      }
+    if (screen) {
+      navigation.navigate(tab as never, { screen } as never);
+    } else {
+      navigation.navigate(tab as never);
     }
   };
 
   return (
     <View style={s.sidebar}>
       {/* 브랜드 — 로고 클릭 시 홈 이동 */}
-      <TouchableOpacity style={s.brand} onPress={() => go('HomeTab')} activeOpacity={0.7}>
+      <TouchableOpacity style={s.brand} onPress={() => go('HomeTab', 'Home')} activeOpacity={0.7}>
         <View style={s.logo}>
           <Icon name="robot" size={16} color="#fff" />
         </View>
@@ -81,7 +74,7 @@ export default function Sidebar() {
       {/* 메뉴 */}
       <View style={{ flex: 1 }}>
         {NAV_ITEMS.map(sec => (
-          <View key={sec.section} style={{ marginBottom: spacing.s5 }}>
+          <View key={sec.section} style={{ marginBottom: spacing.s20 }}>
             <Text style={s.sectionLabel}>{sec.section}</Text>
             {sec.items.map(item => {
               const isActive = isItemActive(item);
@@ -124,13 +117,13 @@ const s = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRightWidth: 0.5,
     borderRightColor: colors.hairline,
-    paddingHorizontal: spacing.s4,
+    paddingHorizontal: spacing.s16,
     paddingTop: 20,
     paddingBottom: 16,
   },
   brand: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    marginBottom: spacing.s6, paddingHorizontal: 4,
+    marginBottom: spacing.s24, paddingHorizontal: 4,
   },
   logo: {
     width: 30, height: 30, borderRadius: 8,

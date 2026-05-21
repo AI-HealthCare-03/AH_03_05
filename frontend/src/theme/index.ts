@@ -1,9 +1,10 @@
 export const colors = {
-  // Accent (teal default)
+  // Accent (teal)
   accent: "#0891B2",
   accent700: "#0E7490",
   accent50: "#ECFCFE",
   accent100: "#CFFAFE",
+  accentAlpha30: "rgba(8,145,178,0.3)",
   accentOn: "#ffffff",
 
   // Canvas / Surface
@@ -24,11 +25,22 @@ export const colors = {
   // Status
   success: "#059669",
   success50: "#D1FAE5",
+  successText: "#065F46",
   warning: "#D97706",
   warning50: "#FEF3C7",
+  warningText: "#92400E",
   danger: "#DC2626",
   danger50: "#FEE2E2",
 
+  // Schedule (가이드 복약 시간대)
+  scheduleMorning: "#0EA5E9",
+  scheduleLunch: "#10B981",
+  scheduleEvening: "#8B5CF6",
+
+  // Overlay
+  scrim: "rgba(0,0,0,0.45)",
+
+  // Base
   white: "#ffffff",
   black: "#000000",
 };
@@ -36,6 +48,9 @@ export const colors = {
 export const radii = {
   xs: 3,
   sm: 8,
+  checkbox: 6,
+  icon: 10,
+  bubble: 14,
   md: 12,
   lg: 18,
   xl: 20,
@@ -43,29 +58,37 @@ export const radii = {
 };
 
 export const spacing = {
-  s1: 4,
-  s2: 8,
-  s3: 12,
-  s4: 16,
-  s5: 20,
-  s6: 24,
-  s7: 32,
-  s8: 40,
-  s9: 56,
+  s4: 4,
+  s6: 6,
+  s8: 8,
+  s10: 10,
+  s12: 12,
+  s14: 14,
+  s16: 16,
+  s20: 20,
+  s24: 24,
+  s32: 32,
+  s40: 40,
+  s48: 48,
+  s56: 56,
   safeTop: 52,
 };
 
 export const typography = {
+  fz10: 10,
   fz11: 11,
   fz12: 12,
   fz13: 13,
   fz14: 14,
   fz15: 15,
+  fz16: 16,
   fz17: 17,
+  fz18: 18,
   fz20: 20,
   fz22: 22,
   fz24: 24,
   fz26: 26,
+  fz36: 36,
   fw4: "400" as const,
   fw5: "500" as const,
   fw6: "600" as const,
