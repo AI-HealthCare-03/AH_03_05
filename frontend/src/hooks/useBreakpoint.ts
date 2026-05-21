@@ -10,8 +10,7 @@ export type Breakpoint = "mobile" | "tablet" | "desktop";
 export function useBreakpoint() {
   const { width } = useWindowDimensions();
 
-  const breakpoint: Breakpoint =
-    width >= 992 ? "desktop" : width >= 768 ? "tablet" : "mobile";
+  const breakpoint: Breakpoint = width >= 992 ? "desktop" : width >= 768 ? "tablet" : "mobile";
 
   return {
     breakpoint,
