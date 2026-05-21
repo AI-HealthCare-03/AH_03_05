@@ -305,7 +305,7 @@ export function DrugSearchScreen({ navigation, route }: any) {
     setSearched(true);
     try {
       const res = await drugsApi.searchDrugs({ q: query.trim(), size: 10 });
-      setResults(res.items);
+      setResults(res.results);
     } catch {
       setResults([]);
     } finally {

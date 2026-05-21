@@ -19,9 +19,7 @@ export async function uploadRecord(
   const form = new FormData();
   form.append('file', { uri: file.uri, name: file.name, type: file.type } as any);
   form.append('record_type', record_type);
-  const res = await apiClient.post<RecordUploadResponse>('/records', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const res = await apiClient.post<RecordUploadResponse>('/records', form);
   return res.data;
 }
 
