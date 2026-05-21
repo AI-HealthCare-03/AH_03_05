@@ -1,0 +1,32 @@
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, status
+
+from app.dependencies.security import get_request_user
+from app.dtos.health_profiles import HealthProfileResponse, HealthProfileUpdateRequest, HealthProfileUpdateResponse
+from app.exceptions.common import NotFoundException
+from app.models.users import User
+from app.services.health_profiles import HealthProfileService
+
+health_profile_router = APIRouter(prefix="/health-profile", tags=["health-profile"])
+
+
+@health_profile_router.get("", response_model=HealthProfileResponse, status_code=status.HTTP_200_OK)
+async def get_health_profile(
+    user: Annotated[User, Depends(get_request_user)],
+    health_profile_service: Annotated[HealthProfileService, Depends(HealthProfileService)],
+) -> HealthProfileResponse:
+    profile = await health_profile_service.get_health_profile(user)
+    if profile is None:
+        raise NotFoundException(detail="건강 프로필이 없습니다.")
+    return HealthProfileResponse.model_validate(profile)
+
+
+@health_profile_router.put("", response_model=HealthProfileUpdateResponse, status_code=status.HTTP_200_OK)
+async def upsert_health_profile(
+    request: HealthProfileUpdateRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    health_profile_service: Annotated[HealthProfileService, Depends(HealthProfileService)],
+) -> HealthProfileUpdateResponse:
+    profile = await health_profile_service.upsert_health_profile(user, request)
+    return HealthProfileUpdateResponse.model_validate(profile)
