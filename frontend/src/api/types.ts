@@ -1,6 +1,6 @@
 // ─── Common ───────────────────────────────────────────────────────────────────
 
-export type AsyncJobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'timeout';
+export type AsyncJobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'timeout';
 export type RecordType = 'prescription' | 'medicine_bag' | 'medical_record';
 export type ConsentType = 'terms' | 'privacy' | 'sensitive_health' | 'ai_analysis' | 'marketing';
 
@@ -105,7 +105,6 @@ export interface HealthProfileUpdateResponse {
 export type RecordStatus =
   | 'uploaded'
   | 'ocr_pending'
-  | 'ocr_processing'
   | 'ocr_completed'
   | 'ocr_failed';
 
@@ -177,6 +176,11 @@ export interface MedicationCandidate {
   drug_name: string;
   confidence: number;
   is_verified: boolean;
+  dosage?: string;
+  frequency?: string;
+  timing?: string;
+  caution?: string;
+  drug_ref_id?: number;
 }
 
 export interface OcrResultResponse {
@@ -201,10 +205,9 @@ export interface OcrTextUpdateResponse {
 
 export interface ProcessingJobResponse {
   job_id: number;
-  job_type: 'ocr' | 'guide';
+  job_type: 'ocr' | 'guide_generation';
   status: AsyncJobStatus;
-  progress?: number;
-  result_ref?: { record_id?: number; guide_id?: number };
+  record_id?: number;
 }
 
 // ─── Drugs & Medications ──────────────────────────────────────────────────────
@@ -218,7 +221,9 @@ export interface DrugSearchResult {
 }
 
 export interface DrugSearchResponse {
-  items: DrugSearchResult[];
+  results: DrugSearchResult[];
+  keyword?: string;
+  message?: string;
 }
 
 export interface DrugDetail {
