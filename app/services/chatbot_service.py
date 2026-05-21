@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from app.services.guideline_loader import get_guideline_context, get_disease_names
+from app.services.guideline_loader import get_disease_names, get_guideline_context
 from app.services.safety_filter import check_safety, get_safety_response
 
 load_dotenv()
@@ -79,8 +79,8 @@ def build_chatbot_user_prompt(
     conversation_history: list,
 ) -> str:
     diseases = health_profile.get("chronic_diseases", [])
-    age = health_profile.get("age", 0)
-    medications = health_profile.get("medications", [])
+    age_group = health_profile.get("age_group", "")
+    medications = health_profile.get("current_medications") or health_profile.get("medications") or []
     disease_names = get_disease_names(diseases)
 
     med_list = (
@@ -97,7 +97,7 @@ def build_chatbot_user_prompt(
             history_text += f"{role}: {turn.get('content', '')}\n"
 
     return f"""[환자 정보]
-나이: {age}세
+나이: {age_group}
 만성질환: {", ".join(disease_names) if disease_names else "없음"}
 복용 약물: {med_list}
 {history_text}
@@ -129,8 +129,8 @@ def chat(
 
     # 로어북 로드
     chronic_diseases = health_profile.get("chronic_diseases", [])
-    age = health_profile.get("age", 0)
-    guideline_context = get_guideline_context(chronic_diseases, age)
+    age_group = health_profile.get("age_group", "")
+    guideline_context = get_guideline_context(chronic_diseases, age_group)
 
     # LLM 호출
     try:
