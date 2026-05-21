@@ -34,6 +34,7 @@ DISEASE_LORE_MAP = {
 
 LORE_DIR = "docs/guidelines/lore"
 
+ AH_03_05_LJ_chatbot-safety
 # age_group 문자열 → 숫자 변환 매핑
 # 두 형태 모두 지원 ("30s" / "30대")
 # FIXME: 프론트 형태 "30대" 로 통일 예정 (이레님 PR #45 기준)
@@ -71,6 +72,8 @@ def parse_age(age_group: str | int) -> int:
     return AGE_GROUP_MAP.get(str(age_group), 50)
 
 
+ develop
+
 def load_lore(filename: str) -> str:
     """로어북 텍스트 파일 로드"""
     path = os.path.join(LORE_DIR, f"{filename}.txt")
@@ -80,12 +83,20 @@ def load_lore(filename: str) -> str:
         return f.read()
 
 
+ AH_03_05_LJ_chatbot-safety
 def get_guideline_context(chronic_diseases: list, age_group: str | int) -> str:
     """
     건강 프로필의 만성질환 목록과 나이를 받아
     해당하는 가이드라인 로어북을 조합하여 반환
     """
     age = parse_age(age_group)
+
+def get_guideline_context(chronic_diseases: list, age: int) -> str:
+    """
+    건강 프로필의 만성질환 목록과 나이를 받아
+    해당하는 가이드라인 로어북을 조합하여 반환
+    """
+ develop
     loaded = set()
     context_parts = []
 
@@ -113,7 +124,11 @@ def get_guideline_context(chronic_diseases: list, age_group: str | int) -> str:
     return "\n\n---\n\n".join(context_parts)
 
 
+ AH_03_05_LJ_chatbot-safety
 def get_disease_names(diseases: list) -> list:
+
+def get_disease_names(chronic_diseases: list) -> list:
+ develop
     """질환 코드를 질환명으로 변환"""
     code_to_name = {
         "I10": "고혈압",
@@ -126,4 +141,8 @@ def get_disease_names(diseases: list) -> list:
         "J45": "천식",
         "J44": "만성폐쇄성폐질환",
     }
+ AH_03_05_LJ_chatbot-safety
     return [code_to_name.get(d, d) for d in diseases]
+
+    return [code_to_name.get(d, d) for d in chronic_diseases]
+ develop

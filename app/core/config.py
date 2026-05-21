@@ -36,3 +36,11 @@ class Config(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 14 * 24 * 60
     JWT_LEEWAY: int = 5
+
+    # ⭐ 외부 API (PR #18 리뷰 반영 - 유정님)
+    # 필수 필드: 기본값 없음 → Pydantic이 환경 변수 누락 시 ValidationError 발생
+    # → 앱 시작 시점에 fail-fast (런타임 500 방지)
+    MFDS_API_KEY: str
+    OPENAI_API_KEY: str
+    OPENAI_CHAT_MODEL: str = "gpt-4o-mini"
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
