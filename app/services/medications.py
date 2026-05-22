@@ -12,26 +12,35 @@ class MedicationVerifyService:
     """약품 후보 일괄 확정 서비스."""
 
     # verify 호출 가능한 record 상태
-    # (현재 RecordStatus에 REVIEWED가 없어서 ocr_completed에서만 verify 허용.
-    #  추후 RecordStatus.REVIEWED 추가되면 재호출 허용으로 확장 가능)
     ALLOWED_RECORD_STATUSES = {RecordStatus.OCR_COMPLETED}
 
+    def _get_default_alarm_times(self, frequency: str | None, timing: str | None) -> list[str]:
+        """
+        [스프린트 3] 정훈님의 알림 규칙 매핑 가이드에 따른 기본 알림 시간 파싱 유틸 함수.
+        추후 정훈님의 파일(예: app/core/notification_defaults.py)이 병합되면 이 함수를 교체하거나 바인딩합니다.
+        """
+        # 기본 스케줄 예시 매핑 (주 1회, 필요시 복용 등 특이 케이스는 아침 기본 배치)
+        if not frequency or "1" in frequency:
+            return ["08:00"]
+        elif "2" in frequency:
+            return ["08:00", "19:00"]
+        elif "3" in frequency or "세번" in (frequency or ""):
+            return ["08:00", "13:00", "19:00"]
+        elif "4" in frequency:
+            return ["08:00", "13:00", "18:00", "22:00"]
+
+        # 매칭되는 빈도가 없으면 안전하게 아침/저녁 식후 기본값 배치
+        return ["09:00", "19:00"]
+
     async def verify_medications_batch(
-        self,
-        user: User,
-        record_id: int,
-        items: list[MedicationVerifyItem],
+            self,
+            user: User,
+            record_id: int,
+            items: list[MedicationVerifyItem],
     ) -> dict | None:
         """
-        한 record에 속한 여러 medication을 일괄 확정한다.
-
-        반환값:
-            - dict: 정상 처리 시 라우터에서 응답 DTO로 변환할 결과
-            - None: record 없음 또는 다른 사용자 소유 (라우터에서 404)
-
-        예외:
-            - BadRequestException: record 상태가 verify 불가, 잘못된 medication_id,
-              존재하지 않는 drug_ref_id(식약처 코드) 등
+        한 record에 속한 여러 medication을 일괄 확정하고,
+        동시에 스프린트 3 요구사항에 따른 초기 맞춤형 알림 시간을 자동으로 산출하여 저장합니다.
         """
         # 1. record 조회 + 소유자 검증
         record = await MedicalRecord.get_or_none(id=record_id, user=user, deleted_at=None)
@@ -68,9 +77,7 @@ class MedicationVerifyService:
                     )
                 )
 
-        # 5. 트랜잭션으로 medication 일괄 업데이트
-        # (현재는 medication만 확정. record.status 전환은 RecordStatus.REVIEWED가
-        #  추가되면 같이 처리할 예정.)
+        # 5. 트랜잭션으로 medication 일괄 업데이트 + 알림 기본 시간 주입
         medication_map = {m.id: m for m in medications}
         async with in_transaction():
             for item in items:
@@ -78,8 +85,20 @@ class MedicationVerifyService:
                 medication.is_verified = True
                 medication.api_status = ApiStatus.SELECTED
                 medication.review_status = ReviewStatus.REVIEWED
+
                 if item.drug_ref_id is not None:
                     medication.drug_ref_id = drug_ref_map[item.drug_ref_id]
+
+                # ─── 스프린트 3 연동 구역 ───
+                # OCR로 추출된 약품의 복용 빈도(frequency)와 복용 시점(timing)을 기반으로 기본 알림 배열 세팅
+                if medication.alarm_times is None:
+                    medication.alarm_times = self._get_default_alarm_times(
+                        frequency=medication.frequency,
+                        timing=medication.timing
+                    )
+                    medication.is_alarm_enabled = True
+                # ────────────────────────────
+
                 await medication.save()
 
         # 6. 응답용 데이터 구성
@@ -100,6 +119,8 @@ class MedicationVerifyService:
                     "is_verified": m.is_verified,
                     "review_status": m.review_status.value,
                     "api_status": m.api_status.value,
+                    "alarm_times": m.alarm_times,  # 응답 규격 확장
+                    "is_alarm_enabled": m.is_alarm_enabled  # 응답 규격 확장
                 }
                 for m in medications
             ],
