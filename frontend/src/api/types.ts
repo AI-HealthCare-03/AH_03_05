@@ -243,9 +243,9 @@ export interface DrugDetail {
   side_effect?: string;
 }
 
-export interface VerifyMedicationRequest {
-  drug_name: string;
-  is_verified: boolean;
+export interface MedicationVerifyItem {
+  medication_id: number;
+  drug_ref_id: string;
 }
 
 export interface VerifyMedicationResponse {
