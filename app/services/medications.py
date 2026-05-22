@@ -33,10 +33,10 @@ class MedicationVerifyService:
         return ["09:00", "19:00"]
 
     async def verify_medications_batch(
-            self,
-            user: User,
-            record_id: int,
-            items: list[MedicationVerifyItem],
+        self,
+        user: User,
+        record_id: int,
+        items: list[MedicationVerifyItem],
     ) -> dict | None:
         """
         한 record에 속한 여러 medication을 일괄 확정하고,
@@ -93,8 +93,7 @@ class MedicationVerifyService:
                 # OCR로 추출된 약품의 복용 빈도(frequency)와 복용 시점(timing)을 기반으로 기본 알림 배열 세팅
                 if medication.alarm_times is None:
                     medication.alarm_times = self._get_default_alarm_times(
-                        frequency=medication.frequency,
-                        timing=medication.timing
+                        frequency=medication.frequency, timing=medication.timing
                     )
                     medication.is_alarm_enabled = True
                 # ────────────────────────────
@@ -120,7 +119,7 @@ class MedicationVerifyService:
                     "review_status": m.review_status.value,
                     "api_status": m.api_status.value,
                     "alarm_times": m.alarm_times,  # 응답 규격 확장
-                    "is_alarm_enabled": m.is_alarm_enabled  # 응답 규격 확장
+                    "is_alarm_enabled": m.is_alarm_enabled,  # 응답 규격 확장
                 }
                 for m in medications
             ],

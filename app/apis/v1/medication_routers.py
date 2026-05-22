@@ -1,16 +1,17 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies.security import get_request_user
 from app.dtos.medications import (
+    MedicationAlarmResponse,  # 스프린트 3 DTO
+    MedicationAlarmUpdateRequest,  # 스프린트 3 DTO
     MedicationVerifyRequest,
     MedicationVerifyResponse,
-    MedicationAlarmUpdateRequest,  # 스프린트 3 DTO
-    MedicationAlarmResponse,  # 스프린트 3 DTO
 )
 from app.exceptions.common import NotFoundException
-from app.models.users import User
 from app.models.medications import Medication  # 스프린트 3 ORM 모델
+from app.models.users import User
 from app.services.medications import MedicationVerifyService
 
 medication_router = APIRouter(prefix="/medications", tags=["Medications"])
@@ -34,11 +35,12 @@ async def verify_medication(medication_id: int):
 
 # ─── 스프린트 3: 맞춤형 복용 알림 관리 API 추가 ───
 
+
 @medication_router.patch("/{medication_id}/alarm", response_model=MedicationAlarmResponse)
 async def update_medication_alarm(
-        medication_id: int,
-        payload: MedicationAlarmUpdateRequest,
-        user: Annotated[User, Depends(get_request_user)]  # 현재 요청한 유저 보안 검증
+    medication_id: int,
+    payload: MedicationAlarmUpdateRequest,
+    user: Annotated[User, Depends(get_request_user)],  # 현재 요청한 유저 보안 검증
 ):
     """
     [스프린트 3] 특정 약품의 커스텀 알림 시간 배열 및 활성화 여부를 수정합니다.
@@ -62,9 +64,7 @@ async def update_medication_alarm(
 
 
 @medication_router.get("/alarms", response_model=list[MedicationAlarmResponse])
-async def get_medication_alarms(
-        user: Annotated[User, Depends(get_request_user)]
-):
+async def get_medication_alarms(user: Annotated[User, Depends(get_request_user)]):
     """
     [스프린트 3] 현재 로그인한 사용자가 등록한 모든 약품의 알림 설정 목록을 조회합니다.
     """
@@ -83,10 +83,10 @@ records_medications_router = APIRouter(prefix="/records/{record_id}/medications"
     status_code=200,
 )
 async def verify_medications_batch(
-        record_id: int,
-        request: MedicationVerifyRequest,
-        user: Annotated[User, Depends(get_request_user)],
-        service: Annotated[MedicationVerifyService, Depends(MedicationVerifyService)],
+    record_id: int,
+    request: MedicationVerifyRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[MedicationVerifyService, Depends(MedicationVerifyService)],
 ) -> MedicationVerifyResponse:
     """
     약품 후보 일괄 확정 API.
