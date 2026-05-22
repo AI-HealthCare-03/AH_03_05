@@ -21,6 +21,7 @@ export default function AppNavigator() {
         <RootStack.Screen name="Auth" component={AuthNavigator} />
         <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
         <RootStack.Screen name="Main" component={MainNavigator} />
+        <RootStack.Screen name="UploadModal" component={UploadModalScreen} options={{ presentation: "transparentModal" }} />
       </RootStack.Navigator>
     </NavigationContainer>
   );

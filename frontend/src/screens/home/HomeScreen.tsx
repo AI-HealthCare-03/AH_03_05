@@ -219,15 +219,7 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export default function HomeScreen({ navigation }: any) {
-  const { user, drugs, setDrugs, adherence, streak, chats, flash, pendingUpload, setPendingUpload } = useApp();
-  const [uploadOpen, setUploadOpen] = useState(false);
-
-  useEffect(() => {
-    if (pendingUpload) {
-      setUploadOpen(true);
-      setPendingUpload(false);
-    }
-  }, [pendingUpload]);
+  const { user, drugs, setDrugs, adherence, streak, chats, flash } = useApp();
 
   const now = new Date();
   const [viewY, setViewY] = useState(now.getFullYear());
@@ -388,7 +380,7 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* 빠른 액션 */}
         <View style={{ flexDirection: "row", gap: spacing.s12, marginBottom: spacing.s20 }}>
-          <TouchableOpacity style={[s.card, { flex: 1, paddingVertical: 20 }]} onPress={() => setUploadOpen(true)}>
+          <TouchableOpacity style={[s.card, { flex: 1, paddingVertical: 20 }]} onPress={() => (navigation as any).navigate('UploadModal')}>
             <View style={s.quickIcon}>
               <Icon name="cloud-upload" size={18} color={colors.accent700} />
             </View>
