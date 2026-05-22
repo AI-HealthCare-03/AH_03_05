@@ -28,7 +28,6 @@ export function RecordDetailScreen({ navigation, route }: any) {
       try {
         const [rec, meds] = await Promise.allSettled([
           recordsApi.getRecord(recordId),
-          // TODO: Backend - GET /records/{record_id}/medications 미구현. 구현 전까지 404 반환됨.
           recordsApi.getRecordMedications(recordId),
         ]);
         if (rec.status === 'fulfilled') setRecord(rec.value);
@@ -138,7 +137,6 @@ export function RecordDetailScreen({ navigation, route }: any) {
         </Text>
       </Card>
 
-      {/* 기록 삭제 — TODO: PR #45 머지 후 활성화 / 현재 백엔드 미구현, 호출 시 404 */}
       <TouchableOpacity
         disabled
         style={{ borderWidth: 1, borderColor: colors.danger, borderRadius: radii.pill, height: 50, alignItems: 'center', justifyContent: 'center', opacity: 0.35 }}

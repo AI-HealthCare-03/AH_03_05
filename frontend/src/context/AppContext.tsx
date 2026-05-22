@@ -31,6 +31,7 @@ export interface Drug {
   time: string;
   color: string;
   status: string;
+  defaultStatus: string;
 }
 
 export interface Record {
@@ -63,9 +64,11 @@ export interface Notification {
   icon: string;
   title: string;
   time: string;
+  date: string;
   body: string;
   unread: boolean;
-  target?: string;
+  type: "medication" | "record" | "chat" | "info";
+  target_id?: string;
 }
 
 export interface OcrDrug {
@@ -103,6 +106,10 @@ interface AppState {
   setOcrSession: (s: OcrSession) => void;
   flash: (msg: string) => void;
   toast: string | null;
+  notifDrawerOpen: boolean;
+  setNotifDrawerOpen: (v: boolean) => void;
+  markNotificationRead: (id: string) => void;
+  unreadCount: number;
 }
 
 // ─── Seed data (same as shared.jsx) ──────────────────────────────────────────
@@ -183,6 +190,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       { name: "메트포르?정 500mg", maker: "제조사 미확인", time: "—", confidence: 52, status: "needsCheck" },
     ],
   });
+  const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const streakCountedRef = useRef(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // guard: don't persist until the initial AsyncStorage load is complete,
@@ -218,6 +228,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUserState({ ...defaultUser, loggedIn: false });
     });
   }, []);
+
+  useEffect(() => {
+    if (drugs.length === 0) return;
+    const allDone = drugs.every((d) => d.status === "완료");
+    if (allDone && !streakCountedRef.current) {
+      streakCountedRef.current = true;
+      setStreak((s) => s + 1);
+    } else if (!allDone) {
+      streakCountedRef.current = false;
+    }
+  }, [drugs]);
 
   const setUser = useCallback((u: User) => setUserState(u), []);
 

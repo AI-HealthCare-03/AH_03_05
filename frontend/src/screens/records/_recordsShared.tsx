@@ -22,6 +22,7 @@ export const RECORD_LABEL: Record<RecordType, string> = {
 };
 
 export const FILTER_TO_TYPE: Record<string, RecordType | undefined> = {
+  '전체': undefined,
   '처방전': 'prescription',
   '약봉투': 'medicine_bag',
   '진료기록': 'medical_record',

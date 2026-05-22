@@ -60,6 +60,11 @@ export function RecordListScreen({ navigation }: any) {
           ))}
         </View>
       }
+      scrollable={!loading && !error}
+      scrollPadding={false}
+      contentStyle={!loading && !error ? { padding: spacing.s16, gap: spacing.s12 } : undefined}
+      refreshing={refreshing}
+      onRefresh={() => fetchRecords(true)}
     >
       {loading ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
