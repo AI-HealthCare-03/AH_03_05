@@ -33,6 +33,9 @@ export function ChatListScreen({ navigation }: any) {
           <TextInput style={{ flex: 1, fontSize: typography.fz14, color: colors.ink, marginLeft: spacing.s8, height: 36 }} placeholder="검색" value={query} onChangeText={setQuery} />
         </View>
       }
+      scrollable
+      scrollPadding={false}
+      contentStyle={{ padding: spacing.s8 }}
     >
       <ScrollView contentContainerStyle={{ padding: spacing.s8 }}>
         {chats.length === 0 ? (
@@ -60,10 +63,11 @@ export function ChatListScreen({ navigation }: any) {
                   {c.preview}
                 </Text>
               </View>
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
+              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }} numberOfLines={1}>{c.preview}</Text>
+            </View>
+          </TouchableOpacity>
+        ))
+      )}
     </ScreenLayout>
   );
 }

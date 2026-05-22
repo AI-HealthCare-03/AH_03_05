@@ -67,7 +67,7 @@ export function DeleteAccountScreen({ navigation }: any) {
               <Text style={{ fontWeight: typography.fw7, color: colors.danger }}>"회원 탈퇴"</Text>를 입력해주세요.
             </Text>
             <Input placeholder="회원 탈퇴" value={confirm} onChangeText={setConfirm} />
-            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 10 }}>{user.email} 계정이 삭제됩니다.</Text>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 10 }}>{user.email || '이 계정'}이 삭제됩니다.</Text>
           </>
         )}
       </Card>

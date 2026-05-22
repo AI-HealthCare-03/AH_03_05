@@ -32,7 +32,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar() {
-  const { user, notifications } = useApp();
+  const { user } = useApp();
   const navigation = useNavigation<any>();
   const unread = notifications?.some((n) => n.unread);
   const unreadCount = notifications?.filter((n) => n.unread).length || 0;
@@ -74,7 +74,7 @@ export default function Sidebar() {
 
   return (
     <View style={s.sidebar}>
-      {/* 브랜드 — 로고 클릭 시 홈 이동 */}
+      {/* 브랜드 */}
       <TouchableOpacity style={s.brand} onPress={() => go('HomeTab', 'Home')} activeOpacity={0.7}>
         <View style={s.logo}>
           <Icon name="robot" size={16} color="#fff" />

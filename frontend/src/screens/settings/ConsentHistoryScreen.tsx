@@ -18,8 +18,8 @@ export function ConsentHistoryScreen({ navigation }: any) {
     { key: 'tos',       name: '서비스 이용약관',           required: true,  date: '2026.05.01 14:23', docKey: 'tos' },
     { key: 'privacy',   name: '개인정보 처리방침',           required: true,  date: '2026.05.01 14:23', docKey: 'privacy' },
     { key: 'sensitive', name: '민감 건강정보 수집·이용 동의', required: true,  date: '2026.05.01 14:23', docKey: 'sensitive' },
-    { key: 'ai',        name: 'AI 분석 활용 동의',           required: true,  date: '2026.05.01 14:23', docKey: 'tos' },
-    { key: 'marketing', name: '마케팅 수신 동의',            required: false, date: marketing ? '2026.05.01 14:23' : null, docKey: 'tos' },
+    { key: 'ai',        name: 'AI 분석 활용 동의',           required: true,  date: '2026.05.01 14:23', docKey: 'sensitive' },
+    { key: 'marketing', name: '마케팅 수신 동의',            required: false, date: marketing ? '2026.05.01 14:23' : null, docKey: 'privacy' },
   ];
 
   return (

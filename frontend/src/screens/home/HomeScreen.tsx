@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { useApp } from "../../context/AppContext";
 import Icon from "../../components/Icon";
-import { colors, radii, spacing, typography, shadows } from "../../theme";
+import { colors, radii, spacing, typography } from "../../theme";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import Card from "../../components/Card";
 import Badge from "../../components/Badge";
@@ -219,7 +219,7 @@ function UploadModal({ visible, onClose, onStart }: { visible: boolean; onClose:
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export default function HomeScreen({ navigation }: any) {
-  const { user, drugs, setDrugs, adherence, streak, chats, flash, notifications, pendingUpload, setPendingUpload } = useApp();
+  const { user, drugs, setDrugs, adherence, streak, chats, flash, pendingUpload, setPendingUpload } = useApp();
   const [uploadOpen, setUploadOpen] = useState(false);
 
   useEffect(() => {
@@ -262,8 +262,13 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   const markDose = (id: string) => {
-    setDrugs(drugs.map((d) => (d.id === id ? { ...d, status: "완료" } : d)));
-    flash("복약 체크 완료 🎉");
+    const target = drugs.find((d) => d.id === id);
+    if (!target) return;
+    const isDone = target.status === "완료";
+    setDrugs(drugs.map((d) =>
+      d.id === id ? { ...d, status: isDone ? d.defaultStatus : "완료" } : d
+    ));
+    flash(isDone ? "복약 체크 취소했어요" : "복약 체크 완료 🎉");
   };
 
   const drugsForDay = selectedStatus === "today" ? drugs : selectedStatus === "done" ? drugs.map((d) => ({ ...d, status: "완료" })) : selectedStatus === "missed" ? drugs.map((d, i) => ({ ...d, status: i === 1 ? "미복용" : "완료" })) : drugs.map((d) => ({ ...d, status: "예정" }));
@@ -437,7 +442,6 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>예정</Text>
             </View>
           </View>
-        </Card>
 
         {/* 과거 완료일 요약 카드 (Image 5) */}
         {donePastDay && (
@@ -491,7 +495,13 @@ export default function HomeScreen({ navigation }: any) {
                 </Text>
               </View>
               {d.status === "완료" ? (
-                <Badge variant="success">완료</Badge>
+                <TouchableOpacity
+                  disabled={selectedStatus !== "today"}
+                  onPress={() => markDose(d.id)}
+                  activeOpacity={0.6}
+                >
+                  <Badge variant="success">완료</Badge>
+                </TouchableOpacity>
               ) : d.status === "미복용" ? (
                 <Badge variant="danger">미복용</Badge>
               ) : d.status === "예정" ? (
@@ -504,7 +514,6 @@ export default function HomeScreen({ navigation }: any) {
             </View>
           ))}
         </Card>
-      </ScrollView>
 
       <UploadModal
         visible={uploadOpen}

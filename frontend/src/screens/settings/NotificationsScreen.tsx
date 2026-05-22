@@ -12,8 +12,12 @@ export function NotificationsScreen({ navigation }: any) {
   const { notifications, setNotifications, flash } = useApp();
   const markAll = () => { setNotifications(notifications.map(n => ({ ...n, unread: false }))); flash('모두 읽음 처리했어요'); };
   const clear   = () => { setNotifications([]); flash('알림을 모두 지웠어요'); };
-  const today   = notifications.filter(n => /오늘|^\d{2}:/.test(n.time));
-  const earlier = notifications.filter(n => !/오늘|^\d{2}:/.test(n.time));
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const isToday = (n: { date: string }) => new Date(n.date) >= todayStart;
+  const today   = notifications.filter(isToday);
+  const earlier = notifications.filter(n => !isToday(n));
 
   return (
     <ScreenLayout

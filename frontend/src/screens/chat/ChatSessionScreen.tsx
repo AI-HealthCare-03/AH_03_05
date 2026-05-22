@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  TextInput, KeyboardAvoidingView, Platform,
+  TextInput, KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native';
 import { useApp, ChatMessage } from '../../context/AppContext';
 import Icon from '../../components/Icon';
@@ -16,7 +16,7 @@ const DANGER_KEYWORDS = ['중단', '끊어', '끊기', '뺄', '생략', '줄여'
 export function ChatSessionScreen({ navigation, route }: any) {
   const { chats, setChats } = useApp();
   const chatId = route?.params?.chatId;
-  const current = chats.find(c => c.id === chatId) ?? chats[0] ?? null;
+  const current = chats.find(c => c.id === chatId) ?? null;
   const [input, setInput] = useState('');
   const scrollRef = useRef<ScrollView>(null);
 
@@ -59,6 +59,16 @@ export function ChatSessionScreen({ navigation, route }: any) {
     }, 600);
   };
 
+  if (!current) {
+    return (
+      <ScreenLayout back onBack={() => navigation.goBack()}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontSize: typography.fz14, color: colors.muted }}>상담 내역을 찾을 수 없어요.</Text>
+        </View>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.canvas }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
       <ScreenLayout
@@ -66,38 +76,39 @@ export function ChatSessionScreen({ navigation, route }: any) {
         subtitle={current?.preview || '상담을 이어가보세요.'}
         back
         onBack={() => navigation.goBack()}
-        noHeader={false}
+        scrollable
+        scrollRef={scrollRef}
+        scrollPadding={false}
+        contentStyle={{ padding: spacing.s20, paddingBottom: spacing.s20 }}
       >
-        <ScrollView ref={scrollRef} contentContainerStyle={{ padding: spacing.s20, paddingBottom: spacing.s20 }}>
-          {!current?.messages.length && (
-            <View style={{ alignItems: 'center', padding: spacing.s40 }}>
-              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>무엇이든 물어보세요</Text>
-              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>예) "혈압약 먹는데 사우나 가도 되나요?"</Text>
-            </View>
-          )}
-          {current?.messages.map((msg, i) => <Bubble key={i} msg={msg} />)}
-        </ScrollView>
-
-        {/* 상시 안전 고지 (REQ-SAFE-001) */}
-        <View style={{ backgroundColor: colors.surface2, paddingHorizontal: spacing.s16, paddingVertical: 6, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
-          <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: 'center' }}>
-            본 챗봇은 진단·처방을 대체하지 않습니다. 의료 판단은 의사·약사와 상담하세요.
-          </Text>
-        </View>
-
-        <View style={s.inputBar}>
-          <TextInput
-            style={s.chatInput}
-            placeholder="궁금한 점을 입력해주세요"
-            value={input}
-            onChangeText={setInput}
-            onSubmitEditing={send}
-            returnKeyType="send"
-            multiline
-          />
-          <Button variant="primary" size="sm" leftIcon="send" onPress={send}>전송</Button>
-        </View>
+        {!current?.messages.length && (
+          <View style={{ alignItems: 'center', padding: spacing.s40 }}>
+            <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>무엇이든 물어보세요</Text>
+            <Text style={{ fontSize: typography.fz13, color: colors.muted }}>예) "혈압약 먹는데 사우나 가도 되나요?"</Text>
+          </View>
+        )}
+        {current?.messages.map((msg, i) => <Bubble key={i} msg={msg} />)}
       </ScreenLayout>
+
+      {/* 상시 안전 고지 (REQ-SAFE-001) */}
+      <View style={cs.safetyNotice}>
+        <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: 'center' }}>
+          본 챗봇은 진단·처방을 대체하지 않습니다. 의료 판단은 의사·약사와 상담하세요.
+        </Text>
+      </View>
+
+      <View style={s.inputBar}>
+        <TextInput
+          style={s.chatInput}
+          placeholder="궁금한 점을 입력해주세요"
+          value={input}
+          onChangeText={setInput}
+          onSubmitEditing={send}
+          returnKeyType="send"
+          multiline
+        />
+        <Button variant="primary" size="sm" leftIcon="send" onPress={send}>전송</Button>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -146,5 +157,15 @@ function Bubble({ msg }: { msg: ChatMessage }) {
     </View>
   );
 }
+
+const cs = StyleSheet.create({
+  safetyNotice: {
+    backgroundColor: colors.surface2,
+    paddingHorizontal: spacing.s16,
+    paddingVertical: 6,
+    borderTopWidth: 0.5,
+    borderTopColor: colors.hairline,
+  },
+});
 
 export default ChatSessionScreen;

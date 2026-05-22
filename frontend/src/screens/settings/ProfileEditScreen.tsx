@@ -23,8 +23,6 @@ export function ProfileEditScreen({ navigation }: any) {
   const yn    = ['예', '아니오'];
 
   const save = () => {
-    // TODO: PUT /api/v1/health-profile 연동 필요
-    // 백엔드 머지 확인 후 온보딩의 healthProfileApi.upsertHealthProfile() 패턴으로 교체
     setUser({ ...user, ...form, profileComplete: true });
     flash('저장했어요');
     navigation.goBack();
