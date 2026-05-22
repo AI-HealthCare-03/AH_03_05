@@ -30,10 +30,30 @@ export function RecordDetailScreen({ navigation, route }: any) {
           recordsApi.getRecord(recordId),
           recordsApi.getRecordMedications(recordId),
         ]);
-        if (rec.status === 'fulfilled') setRecord(rec.value);
-        else setError(extractApiError((rec as PromiseRejectedResult).reason));
-        if (meds.status === 'fulfilled') setMedications(meds.value.medications);
-        else console.warn('[RecordDetail] medications 로드 실패 (백엔드 미구현):', (meds as PromiseRejectedResult).reason);
+        if (rec.status === 'fulfilled') {
+          setRecord(rec.value);
+        } else if (__DEV__) {
+          setRecord({
+            record_id: 1,
+            record_type: 'prescription',
+            status: 'ocr_completed',
+            uploaded_at: '2026-05-11T10:00:00',
+            ocr_confidence: 0.91,
+          });
+        } else {
+          setError(extractApiError((rec as PromiseRejectedResult).reason));
+        }
+        if (meds.status === 'fulfilled') {
+          setMedications(meds.value.medications);
+        } else if (__DEV__) {
+          setMedications([
+            { medication_id: 1, drug_name: '암로디핀정 5mg', dosage: '1정', frequency: '1일 1회 아침 식후', is_verified: true },
+            { medication_id: 2, drug_name: '로수바스타틴 10mg', dosage: '1정', frequency: '1일 1회 저녁 식후', is_verified: true },
+            { medication_id: 3, drug_name: '메트포르민 500mg', dosage: '1정', frequency: '1일 2회 식후', is_verified: false },
+          ]);
+        } else {
+          console.warn('[RecordDetail] medications 로드 실패 (백엔드 미구현):', (meds as PromiseRejectedResult).reason);
+        }
       } finally {
         setLoading(false);
       }
@@ -42,7 +62,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
 
   if (loading) {
     return (
-      <ScreenLayout noHeader>
+      <ScreenLayout back onBack={() => navigation.goBack()}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator color={colors.accent} size="large" />
         </View>
