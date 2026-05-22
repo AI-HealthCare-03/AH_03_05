@@ -9,6 +9,7 @@ import { colors, radii, shadows, spacing } from "../../theme";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import HomeNavigator from "./HomeNavigator";
 import RecordsNavigator from "./RecordsNavigator";
+import GuideNavigator from "./GuideNavigator";
 import ChatNavigator from "./ChatNavigator";
 import SettingsNavigator from "./SettingsNavigator";
 
@@ -78,6 +79,22 @@ function TabNavigator() {
         options={{
           title: "진료기록",
           tabBarIcon: ({ focused }) => <TabIcon name="doc" focused={focused} />,
+        }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            const isFocused = navigation.isFocused();
+            if (isFocused) return;
+            e.preventDefault();
+            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+          },
+        })}
+      />
+      <Tab.Screen
+        name="GuideTab"
+        component={GuideNavigator}
+        options={{
+          title: "가이드",
+          tabBarIcon: ({ focused }) => <TabIcon name="wand" focused={focused} />,
         }}
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {

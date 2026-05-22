@@ -37,6 +37,7 @@ export function PasswordChangeScreen({ navigation }: any) {
           <Rule ok={pwTypesOk}>영문 대/소문자·숫자·특수문자 중 3종류 이상</Rule>
           <Rule ok={matchOk}>새 비밀번호와 확인이 일치</Rule>
         </View>
+        {/* TODO: [BE 대기] PATCH /users/me/password 백엔드 미구현 — 구현 완료 후 연결 필요 */}
         <Button
           variant="primary"
           size="lg"

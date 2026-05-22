@@ -24,6 +24,11 @@ export type RecordsStackParams = {
   DrugDosage: undefined;
 };
 
+export type GuideStackParams = {
+  GuideResult: { guideId?: number };
+  GuideLoading: { recordId?: number };
+};
+
 export type ChatStackParams = {
   ChatList: undefined;
   ChatSession: { chatId: string };

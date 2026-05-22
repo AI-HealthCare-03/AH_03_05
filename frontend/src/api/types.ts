@@ -173,7 +173,8 @@ export interface OcrJobResponse {
 }
 
 export interface MedicationCandidate {
-  drug_name: string;
+  name: string;
+  edited_name?: string;
   confidence: number;
   is_verified: boolean;
   dosage?: string;
@@ -208,6 +209,13 @@ export interface ProcessingJobResponse {
   job_type: 'ocr' | 'guide_generation';
   status: AsyncJobStatus;
   record_id?: number;
+}
+
+export interface GetGuideJobResponse {
+  job_id: number;
+  guide_id: number;
+  status: AsyncJobStatus;
+  result?: { guide_id: number };
 }
 
 // ─── Drugs & Medications ──────────────────────────────────────────────────────

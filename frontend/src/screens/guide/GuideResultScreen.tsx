@@ -13,6 +13,7 @@ export function GuideResultScreen({ navigation }: any) {
   const [feedback, setFeedback] = useState<'good' | 'bad' | null>(null);
   const { flash } = useApp();
 
+  // TODO: [BE 대기] GET /guides/{guide_id} 백엔드 미구현 — 구현 완료 후 아래 정적 데이터를 API 응답으로 교체 필요
   const schedule = [
     { time: '08:30', label: '아침 식후 30분', drug: '암로디핀정 5mg', color: '#0EA5E9' },
     { time: '12:30', label: '점심 식후 30분', drug: '메트포르민 500mg', color: '#10B981' },
@@ -160,6 +161,7 @@ export function GuideResultScreen({ navigation }: any) {
         <View style={{ flexDirection: 'row', gap: spacing.s12 }}>
           <TouchableOpacity
             style={[{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 18, paddingVertical: 10, borderRadius: radii.pill, borderWidth: 1, borderColor: feedback === 'good' ? colors.accent : colors.hairlineStrong, backgroundColor: feedback === 'good' ? colors.accent50 : 'transparent' }]}
+            // TODO: [BE 대기] POST /guides/{guide_id}/feedback 백엔드 미구현 — 구현 완료 후 연결 필요
             onPress={() => { setFeedback('good'); flash('도움이 됐다고 알려주셨어요 😊'); }}>
             <Text style={{ fontSize: 18 }}>👍</Text>
             <Text style={{ fontSize: typography.fz13, color: feedback === 'good' ? colors.accent700 : colors.ink2, fontWeight: typography.fw6 }}>도움됨</Text>

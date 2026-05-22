@@ -13,11 +13,15 @@ export interface UploadFile {
 }
 
 export async function uploadRecord(
-  file: UploadFile,
+  file: UploadFile | globalThis.File,
   record_type: RecordType,
 ): Promise<RecordUploadResponse> {
   const form = new FormData();
-  form.append('file', { uri: file.uri, name: file.name, type: file.type } as any);
+  if ('uri' in file) {
+    form.append('file', { uri: file.uri, name: file.name, type: file.type } as any);
+  } else {
+    form.append('file', file as any);
+  }
   form.append('record_type', record_type);
   const res = await apiClient.post<RecordUploadResponse>('/records', form, {
     headers: { 'Content-Type': undefined },
