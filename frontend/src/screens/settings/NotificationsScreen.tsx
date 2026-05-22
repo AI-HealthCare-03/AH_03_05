@@ -9,8 +9,11 @@ import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
 
 export function NotificationsScreen({ navigation }: any) {
+  // TODO: [BE 대기] GET /notifications 백엔드 미구현 — 구현 완료 후 AppContext 목업 대신 API 응답으로 교체 필요
   const { notifications, setNotifications, flash } = useApp();
+  // TODO: [BE 대기] PATCH /notifications/read-all 백엔드 미구현 — 구현 완료 후 연결 필요
   const markAll = () => { setNotifications(notifications.map(n => ({ ...n, unread: false }))); flash('모두 읽음 처리했어요'); };
+  // TODO: [BE 대기] DELETE /notifications 백엔드 미구현 — 구현 완료 후 연결 필요
   const clear   = () => { setNotifications([]); flash('알림을 모두 지웠어요'); };
 
   const todayStart = new Date();

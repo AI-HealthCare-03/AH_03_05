@@ -1,13 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, Platform } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import Icon from '../components/Icon';
 import { colors, radii, spacing, typography } from '../theme';
+import { uploadRecord } from '../api/records';
+import type { UploadFile } from '../api/records';
+import type { RecordType } from '../api/types';
+
+const TYPE_MAP: Record<string, RecordType> = {
+  '처방전': 'prescription',
+  '약봉투': 'medicine_bag',
+  '진료기록': 'medical_record',
+};
+
+function notify(title: string, msg?: string) {
+  if (Platform.OS === 'web') {
+    window.alert(msg ? `${title}\n${msg}` : title);
+  } else {
+    Alert.alert(title, msg);
+  }
+}
 
 export default function UploadModalScreen({ navigation }: any) {
   const [type, setType] = useState('처방전');
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadDone, setUploadDone] = useState(false);
 
   const types = [
@@ -28,28 +46,77 @@ export default function UploadModalScreen({ navigation }: any) {
 
   const handleClose = () => {
     setUploading(false);
-    setUploadProgress(0);
     setUploadDone(false);
     navigation.goBack();
   };
 
-  const handleSourcePress = () => {
+  const doUpload = async (file: UploadFile | globalThis.File) => {
     setUploading(true);
-    let p = 0;
-    const iv = setInterval(() => {
-      p += 25;
-      setUploadProgress(p);
-      if (p >= 100) {
-        clearInterval(iv);
-        setUploadDone(true);
-        setTimeout(() => {
-          (navigation as any).navigate('Main', {
-            screen: 'HomeTab',
-            params: { screen: 'OCRProcessing' },
-          });
-        }, 700);
-      }
-    }, 250);
+    try {
+      const res = await uploadRecord(file, TYPE_MAP[type]);
+      setUploadDone(true);
+      setTimeout(() => {
+        (navigation as any).navigate('Main', {
+          screen: 'HomeTab',
+          params: { screen: 'OCRProcessing', params: { recordId: res.record_id } },
+        });
+      }, 700);
+    } catch (e: any) {
+      setUploading(false);
+      const msg = e?.response?.data?.detail ?? e?.message ?? '업로드에 실패했습니다.';
+      notify('업로드 실패', msg);
+    }
+  };
+
+  const pickFileWeb = (srcId: string) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    if (srcId === 'camera') {
+      input.accept = 'image/*';
+      (input as any).capture = 'environment';
+    } else if (srcId === 'gallery') {
+      input.accept = 'image/*';
+    } else {
+      input.accept = 'application/pdf';
+    }
+    input.onchange = (e: Event) => {
+      const f = (e.target as HTMLInputElement).files?.[0];
+      if (f) doUpload(f);
+    };
+    input.click();
+  };
+
+  const handleSourcePress = async (srcId: string) => {
+    if (srcId === 'manual') {
+      notify('직접입력', '직접입력 기능은 준비 중입니다.');
+      return;
+    }
+
+    if (Platform.OS === 'web') {
+      pickFileWeb(srcId);
+      return;
+    }
+
+    if (srcId === 'camera') {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) { notify('권한 필요', '카메라 권한이 필요합니다.'); return; }
+      const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
+      if (result.canceled || !result.assets?.length) return;
+      const a = result.assets[0];
+      await doUpload({ uri: a.uri, name: a.fileName ?? `photo_${Date.now()}.jpg`, type: a.mimeType ?? 'image/jpeg' });
+    } else if (srcId === 'gallery') {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) { notify('권한 필요', '사진 라이브러리 권한이 필요합니다.'); return; }
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
+      if (result.canceled || !result.assets?.length) return;
+      const a = result.assets[0];
+      await doUpload({ uri: a.uri, name: a.fileName ?? `image_${Date.now()}.jpg`, type: a.mimeType ?? 'image/jpeg' });
+    } else if (srcId === 'pdf') {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
+      if (result.canceled || !result.assets?.length) return;
+      const a = result.assets[0];
+      await doUpload({ uri: a.uri, name: a.name, type: a.mimeType ?? 'application/pdf' });
+    }
   };
 
   const content = (
@@ -79,10 +146,9 @@ export default function UploadModalScreen({ navigation }: any) {
                 {uploadDone ? '분석 화면으로 이동합니다.' : '잠시만 기다려주세요.'}
               </Text>
             </View>
-            <Text style={{ fontSize: 16, fontWeight: typography.fw7, color: colors.accent }}>{uploadProgress}%</Text>
           </View>
           <View style={s.progressBg}>
-            <View style={[s.progressFill, { width: `${uploadProgress}%` as any }]} />
+            <View style={[s.progressFill, uploadDone && { width: '100%' as any }]} />
           </View>
         </View>
       ) : (
@@ -103,7 +169,7 @@ export default function UploadModalScreen({ navigation }: any) {
               <TouchableOpacity
                 key={src.id}
                 style={[s.srcCard, { width: (cardWidth - 52) / 2 }]}
-                onPress={handleSourcePress}
+                onPress={() => handleSourcePress(src.id)}
               >
                 <View style={s.srcIcon}>
                   <Icon name={src.icon} size={16} color={colors.accent700} />
@@ -156,5 +222,5 @@ const s = StyleSheet.create({
   srcCard: { alignItems: 'center', padding: spacing.s16, borderRadius: radii.md, borderWidth: 0.5, borderColor: colors.hairline, backgroundColor: colors.surface },
   srcIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s8 },
   progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3 },
+  progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3, width: '60%' },
 });

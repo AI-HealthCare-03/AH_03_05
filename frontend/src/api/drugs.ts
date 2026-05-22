@@ -2,22 +2,14 @@ import { apiClient } from './client';
 import type { DrugSearchResponse, DrugDetail } from './types';
 
 export interface DrugSearchParams {
-  q: string;
+  keyword: string;
   search_type?: string;
   page?: number;
-  size?: number;
+  limit?: number;
 }
 
-// Spec uses `q` + `size`; backend uses `keyword` + `limit` — transformed here
 export async function searchDrugs(params: DrugSearchParams): Promise<DrugSearchResponse> {
-  const res = await apiClient.get<DrugSearchResponse>('/drugs/search', {
-    params: {
-      keyword: params.q,
-      search_type: params.search_type,
-      page: params.page,
-      limit: params.size,
-    },
-  });
+  const res = await apiClient.get<DrugSearchResponse>('/drugs/search', { params });
   return res.data;
 }
 

@@ -40,6 +40,7 @@ export function ConsentHistoryScreen({ navigation }: any) {
                 {c.required ? '필수' : '선택'}
               </Badge>
               {c.key === 'marketing' ? (
+                // TODO: [BE 대기] PATCH /users/me/consents/marketing 백엔드 미구현 — 구현 완료 후 연결 필요
                 <Switch
                   value={marketing}
                   onValueChange={v => { setMarketing(v); flash(v ? '마케팅 수신에 동의했어요' : '마케팅 수신 동의를 철회했어요'); }}

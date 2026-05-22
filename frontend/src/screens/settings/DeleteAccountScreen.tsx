@@ -22,6 +22,7 @@ export function DeleteAccountScreen({ navigation }: any) {
   const proceed = () => {
     if (step === 1 && allChecked) setStep(2);
     else if (step === 2 && confirmOk) {
+      // TODO: [BE 대기] DELETE /users/me 백엔드 미구현 — 구현 완료 후 연결 필요
       flash('탈퇴 처리가 완료됐어요. 안녕히 가세요 👋');
       (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)?.reset({ index: 0, routes: [{ name: 'Auth' }] });
     }

@@ -19,7 +19,7 @@ export function DrugSearchScreen({ navigation, route }: any) {
     setLoading(true);
     setSearched(true);
     try {
-      const res = await drugsApi.searchDrugs({ q: query.trim(), size: 10 });
+      const res = await drugsApi.searchDrugs({ keyword: query.trim(), limit: 10 });
       setResults(res.results);
     } catch {
       setResults([]);
