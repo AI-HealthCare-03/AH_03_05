@@ -100,8 +100,8 @@ def build_medication_system_prompt(drug_context: str, guideline_context: str) ->
 
 
 def build_medication_user_prompt(health_profile: dict) -> str:
-    medications = health_profile.get("medications", [])
-    age = health_profile.get("age", 0)
+    medications = health_profile.get("current_medications") or health_profile.get("medications") or []
+    age_group = health_profile.get("age_group", "")
     diseases = health_profile.get("chronic_diseases", [])
     disease_names = get_disease_names(diseases)
 
@@ -114,22 +114,22 @@ def build_medication_user_prompt(health_profile: dict) -> str:
     return f"""다음 환자의 복약 안내를 생성해주세요.
 
 [환자 정보]
-나이: {age}세
+나이: {age_group}
 만성질환: {", ".join(disease_names) if disease_names else "없음"}
 
 [현재 복용 약물]
 {med_list}
 
 _logic에서 warning_factors를 먼저 정리한 뒤
-각 약품마다 MEDICATION 항목 1개씩 생성해주세요.
+각 약품마다 MEDICATION 항목 1개씩,
+WARNING 기준에 해당하는 경우에만 WARNING 항목을 추가해서
+JSON 형식으로 생성해주세요.
 
 약품 주의사항에 아래 키워드가 포함된 경우
 반드시 WARNING 항목으로 생성해주세요.
 - 임신 / 수유 / 임부
 - 신기능 / 간기능 저하
-- 저혈당
-
-JSON 형식으로 생성해주세요."""
+- 저혈당"""
 
 
 def build_lifestyle_system_prompt(guideline_context: str) -> str:
@@ -189,7 +189,7 @@ def build_lifestyle_system_prompt(guideline_context: str) -> str:
 
 def build_lifestyle_user_prompt(health_profile: dict, medication_result: dict) -> str:
     diseases = health_profile.get("chronic_diseases", [])
-    age = health_profile.get("age", 0)
+    age_group = health_profile.get("age_group", "")
     doctor_opinion = health_profile.get("doctor_opinion", "")
     disease_names = get_disease_names(diseases)
 
@@ -198,7 +198,7 @@ def build_lifestyle_user_prompt(health_profile: dict, medication_result: dict) -
     return f"""다음 환자의 생활습관 가이드를 생성해주세요.
 
 [환자 정보]
-나이: {age}세
+나이: {age_group}
 만성질환: {", ".join(disease_names) if disease_names else "없음"}
 
 [의사 소견]
@@ -219,10 +219,10 @@ _logic에서 의사 소견 항목과 가이드라인 추가 항목을 먼저 정
 
 def generate_guide(health_profile: dict) -> dict:
     chronic_diseases = health_profile.get("chronic_diseases", [])
-    age = health_profile.get("age", 0)
-    medications = health_profile.get("medications", [])
+    age_group = health_profile.get("age_group", "")
+    medications = health_profile.get("current_medications") or health_profile.get("medications") or []
 
-    guideline_context = get_guideline_context(chronic_diseases, age)
+    guideline_context = get_guideline_context(chronic_diseases, age_group)
     drug_context = build_drug_context(medications)
 
     # ── 1호출: 복약 가이드 생성 ──
