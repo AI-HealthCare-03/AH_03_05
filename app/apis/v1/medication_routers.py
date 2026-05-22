@@ -1,13 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies.security import get_request_user
 from app.dtos.medications import (
+    MedicationAlarmResponse,  # 스프린트 3 DTO
+    MedicationAlarmUpdateRequest,  # 스프린트 3 DTO
     MedicationVerifyRequest,
     MedicationVerifyResponse,
 )
 from app.exceptions.common import NotFoundException
+from app.models.medications import Medication  # 스프린트 3 ORM 모델
 from app.models.users import User
 from app.services.medications import MedicationVerifyService
 
@@ -21,9 +24,6 @@ async def verify_medication(medication_id: int):
 
     OCR 결과로 추출된 약품 후보를 사용자가 식약처 API 검색 결과로
     최종 확정할 때 호출된다.
-
-    - medication_id: medications 테이블 PK
-      (record_id는 medication_id로 서버에서 내부 조회)
     """
     return {
         "medication_id": medication_id,
@@ -33,7 +33,47 @@ async def verify_medication(medication_id: int):
     }
 
 
-# 일괄 확정용 별도 라우터 (URL: /records/{record_id}/medications/verify)
+# ─── 스프린트 3: 맞춤형 복용 알림 관리 API 추가 ───
+
+
+@medication_router.patch("/{medication_id}/alarm", response_model=MedicationAlarmResponse)
+async def update_medication_alarm(
+    medication_id: int,
+    payload: MedicationAlarmUpdateRequest,
+    user: Annotated[User, Depends(get_request_user)],  # 현재 요청한 유저 보안 검증
+):
+    """
+    [스프린트 3] 특정 약품의 커스텀 알림 시간 배열 및 활성화 여부를 수정합니다.
+
+    - medication_id: medications 테이블 PK
+    - alarm_times: 수정할 알림 시간 배열 (ex: ["08:30", "20:00"])
+    - is_alarm_enabled: 알림 On/Off 토글 상태
+    """
+    # 1. 수정할 약품이 존재하고, 본인의 처방 데이터가 맞는지 엄격하게 검증
+    medication = await Medication.get_or_none(id=medication_id, user_id=user.id)
+    if not medication:
+        raise HTTPException(status_code=404, detail="해당 약품 정보를 찾을 수 없거나 권한이 없습니다.")
+
+    # 2. 페이로드 바인딩 및 업데이트
+    medication.alarm_times = payload.alarm_times
+    medication.is_alarm_enabled = payload.is_alarm_enabled
+
+    # 3. 데이터베이스 상태 반영
+    await medication.save()
+    return medication
+
+
+@medication_router.get("/alarms", response_model=list[MedicationAlarmResponse])
+async def get_medication_alarms(user: Annotated[User, Depends(get_request_user)]):
+    """
+    [스프린트 3] 현재 로그인한 사용자가 등록한 모든 약품의 알림 설정 목록을 조회합니다.
+    """
+    # 현재 로그인한 사용자의 약품 테이블 데이터만 필터링하여 최신순 추출
+    alarms = await Medication.filter(user_id=user.id).order_by("-created_at")
+    return alarms
+
+
+# ─── 일괄 확정용 별도 라우터 (URL: /records/{record_id}/medications/verify) ───
 records_medications_router = APIRouter(prefix="/records/{record_id}/medications", tags=["Medications"])
 
 
@@ -54,22 +94,6 @@ async def verify_medications_batch(
     한 medical record에 속한 여러 medication을 한 번에 확정한다.
     OCR 완료 후 사용자가 약품들을 검토하고 식약처 검색 결과로 매칭한 뒤
     "검토 완료" 액션을 누를 때 호출된다.
-
-    - record_id: medical_records 테이블 PK (path)
-    - verifications: 확정할 항목 목록 (body, 최소 1개)
-
-    처리 내용:
-    - 각 medication의 is_verified=True, api_status=SELECTED,
-      review_status=REVIEWED로 전환
-    - drug_ref_id 매칭 (선택 사항, 식약처 코드 문자열)
-    - 1개 이상 확정되면 record.status = REVIEWED로 전환
-
-    에러:
-    - 401: 미인증
-    - 404: record 없음 또는 다른 사용자 record
-    - 400: record 상태가 verify 불가 / 잘못된 medication_id /
-           존재하지 않는 drug_ref_id
-    - 422: 요청 스키마 검증 실패
     """
     result = await service.verify_medications_batch(user=user, record_id=record_id, items=request.verifications)
     if result is None:

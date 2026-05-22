@@ -40,6 +40,14 @@ class Medication(models.Model):
     is_verified = fields.BooleanField(default=False)
     ocr_confidence = fields.DecimalField(max_digits=5, decimal_places=4, null=True)
     api_fetched_at = fields.DatetimeField(null=True)
+
+    # ─── 스프린트 3: 맞춤형 복용 알림 관리 커스텀 필드 추가 ───
+    # 정훈님의 기본값 처리 로직 결과 혹은 사용자의 커스텀 변경 시간 배열을 JSON 구조로 저장 (예: ["08:00", "19:00"])
+    alarm_times = fields.JSONField(null=True)
+    # 해당 약품에 대한 복용 푸시 알림 수신 여부 스위치 (기본 활성화)
+    is_alarm_enabled = fields.BooleanField(default=True)
+    # ──────────────────────────────────────────────────────────
+
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
