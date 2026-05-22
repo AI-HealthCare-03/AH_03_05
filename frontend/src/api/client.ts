@@ -13,6 +13,15 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// interceptor를 거치지 않는 별도 인스턴스 — refresh 전용
+const refreshClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10_000,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = tokenStore.accessToken;
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -22,10 +31,34 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 apiClient.interceptors.response.use(
   (res) => res,
   async (error: AxiosError<ApiError>) => {
-    if (error.response?.status === 401) {
-      await tokenStore.clear();
-      tokenStore.triggerUnauthorized();
+    const config = error.config as RetryableConfig | undefined;
+
+    if (error.response?.status === 401 && config && !config._retry) {
+      const refreshToken = tokenStore.refreshToken;
+
+      if (!refreshToken) {
+        await tokenStore.clear();
+        tokenStore.triggerUnauthorized();
+        return Promise.reject(error);
+      }
+
+      config._retry = true;
+
+      try {
+        const { data } = await refreshClient.post<{ access_token: string; refresh_token: string }>(
+          '/auth/refresh',
+          { refresh_token: refreshToken },
+        );
+        await tokenStore.save(data.access_token, data.refresh_token);
+        config.headers.Authorization = `Bearer ${data.access_token}`;
+        return apiClient(config);
+      } catch {
+        await tokenStore.clear();
+        tokenStore.triggerUnauthorized();
+        return Promise.reject(error);
+      }
     }
+
     return Promise.reject(error);
   },
 );
