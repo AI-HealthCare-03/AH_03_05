@@ -175,3 +175,45 @@ class TestMedicalRecordAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_manual_input_success(self):
+        # Given
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "manual1@example.com",
+                    "password": "Password123!",
+                    "name": "직접입력테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "manual1@example.com", "password": "Password123!"},
+            )
+            headers = {"Authorization": f"Bearer {login_response.json()['access_token']}"}
+
+            # When
+            response = await client.post(
+                "/api/v1/records/manual-input",
+                json={"ocr_edited_text": "타이레놀 500mg 1정 식후 복용"},
+                headers=headers,
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["record_id"] is not None
+        assert response.json()["input_method"] == "manual"
+        assert response.json()["status"] == "ocr_completed"
+
+    async def test_manual_input_unauthorized(self):
+        # Given & When
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post(
+                "/api/v1/records/manual-input",
+                json={"ocr_edited_text": "타이레놀 500mg 1정 식후 복용"},
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

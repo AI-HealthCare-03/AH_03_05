@@ -32,3 +32,14 @@ class MedicalRecordDetailResponse(BaseSerializerModel):
     record_type: str
     status: str
     ocr_confidence: float | None = None
+
+
+class ManualInputRequest(BaseModel):
+    record_type: str = "manual"
+    ocr_edited_text: str
+
+
+class ManualInputResponse(BaseModel):
+    record_id: int
+    input_method: str
+    status: str

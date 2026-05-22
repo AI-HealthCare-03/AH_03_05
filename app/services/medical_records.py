@@ -76,3 +76,17 @@ class MedicalRecordService:
         record.status = RecordStatus.OCR_COMPLETED
         await record.save()
         return record
+
+    async def create_manual_record(
+        self,
+        user: User,
+        ocr_edited_text: str,
+    ) -> MedicalRecord:
+        record = await MedicalRecord.create(
+            user=user,
+            record_type=RecordType.PRESCRIPTION,
+            status=RecordStatus.OCR_COMPLETED,
+            input_method=InputMethod.MANUAL,
+            ocr_edited_text=ocr_edited_text,
+        )
+        return record

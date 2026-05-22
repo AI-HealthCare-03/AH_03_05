@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 
 from app.dependencies.security import get_request_user
 from app.dtos.medical_records import (
+    ManualInputRequest,
+    ManualInputResponse,
     MedicalRecordDetailResponse,
     MedicalRecordListItem,
     MedicalRecordListResponse,
@@ -35,6 +37,23 @@ async def upload_medical_record(
         file_size_bytes=file.size,
     )
     return MedicalRecordUploadResponse.model_validate(record)
+
+
+@records_router.post("/manual-input", response_model=ManualInputResponse, status_code=status.HTTP_201_CREATED)
+async def create_manual_record(
+    request: ManualInputRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    medical_record_service: Annotated[MedicalRecordService, Depends(MedicalRecordService)],
+) -> ManualInputResponse:
+    record = await medical_record_service.create_manual_record(
+        user=user,
+        ocr_edited_text=request.ocr_edited_text,
+    )
+    return ManualInputResponse(
+        record_id=record.id,
+        input_method=record.input_method,
+        status=record.status,
+    )
 
 
 @records_router.get("", response_model=MedicalRecordListResponse, status_code=status.HTTP_200_OK)
