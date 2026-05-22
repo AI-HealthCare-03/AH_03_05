@@ -1,7 +1,6 @@
 import React from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { CommonActions } from "@react-navigation/native";
 import Sidebar from "../../components/Sidebar";
 import NotificationDrawer from "../../components/NotificationDrawer";
 import Icon from "../../components/Icon";
@@ -64,15 +63,12 @@ function TabNavigator() {
           title: "홈",
           tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />,
         }}
-        listeners={({ navigation }) => ({
+        listeners={({ navigation, route }) => ({
           tabPress: (e) => {
+            const isFocused = navigation.isFocused();
+            if (isFocused) return;
             e.preventDefault();
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: "HomeTab", state: { routes: [{ name: "Home" }] } }],
-              }),
-            );
+            navigation.reset({ index: 0, routes: [{ name: route.name }] });
           },
         })}
       />
@@ -83,6 +79,14 @@ function TabNavigator() {
           title: "진료기록",
           tabBarIcon: ({ focused }) => <TabIcon name="doc" focused={focused} />,
         }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            const isFocused = navigation.isFocused();
+            if (isFocused) return;
+            e.preventDefault();
+            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+          },
+        })}
       />
       <Tab.Screen
         name="ChatTab"
@@ -91,6 +95,14 @@ function TabNavigator() {
           title: "챗봇",
           tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />,
         }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            const isFocused = navigation.isFocused();
+            if (isFocused) return;
+            e.preventDefault();
+            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+          },
+        })}
       />
       <Tab.Screen
         name="SettingsTab"
@@ -99,6 +111,14 @@ function TabNavigator() {
           title: "마이",
           tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />,
         }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            const isFocused = navigation.isFocused();
+            if (isFocused) return;
+            e.preventDefault();
+            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+          },
+        })}
       />
     </Tab.Navigator>
   );

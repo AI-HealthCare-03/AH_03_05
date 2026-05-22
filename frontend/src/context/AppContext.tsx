@@ -98,8 +98,6 @@ interface AppState {
   setActiveChat: (id: string) => void;
   notifications: Notification[];
   setNotifications: (n: Notification[]) => void;
-  pendingUpload: boolean;
-  setPendingUpload: (v: boolean) => void;
   adherence: number;
   streak: number;
   ocrSession: OcrSession;

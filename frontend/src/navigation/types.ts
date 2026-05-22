@@ -45,4 +45,5 @@ export type RootStackParams = {
   Auth: undefined;
   Onboarding: undefined;
   Main: undefined;
+  UploadModal: undefined;
 };
