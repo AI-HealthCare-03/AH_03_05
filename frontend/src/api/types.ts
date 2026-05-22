@@ -173,8 +173,7 @@ export interface OcrJobResponse {
 }
 
 export interface MedicationCandidate {
-  name: string;
-  edited_name?: string;
+  drug_name: string;
   confidence: number;
   is_verified: boolean;
   dosage?: string;

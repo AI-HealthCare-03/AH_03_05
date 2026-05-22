@@ -29,7 +29,7 @@ export function OCRResultScreen({ navigation, route }: any) {
         setOcrSession({
           ...ocrSession,
           drugs: (res.medication_candidates ?? []).map(c => ({
-            name: c.name,
+            name: c.drug_name,
             maker: '',
             time: '',
             confidence: Math.round(c.confidence * 100),
@@ -46,7 +46,7 @@ export function OCRResultScreen({ navigation, route }: any) {
 
   const displayDrugs = recordId
     ? candidates.map(c => ({
-        name: c.name,
+        name: c.drug_name,
         maker: '',
         time: '',
         confidence: Math.round(c.confidence * 100),
