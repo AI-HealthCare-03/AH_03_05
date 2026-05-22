@@ -1,4 +1,3 @@
-import pytest
 from app.services.safety_filter import check_safety, get_safety_response
 
 
