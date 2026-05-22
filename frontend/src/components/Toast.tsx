@@ -7,7 +7,6 @@ export default function Toast() {
   const { toast } = useApp();
   if (!toast) return null;
   return (
-    // wrapper: position absolute, spans full screen width
     <View style={styles.wrapper} pointerEvents="none">
       <View style={styles.pill}>
         <Text style={styles.text}>{toast}</Text>
