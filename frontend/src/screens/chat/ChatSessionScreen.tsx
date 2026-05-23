@@ -9,6 +9,7 @@ import { ChatSessionPane } from './ChatSessionPane';
 export function ChatSessionScreen({ navigation, route }: any) {
   const { chats } = useApp();
   const chatId: string | undefined = route?.params?.chatId;
+  // TODO: [BE 대기] GET /chat/sessions/{session_id}/messages 미구현 — 현재 컨텍스트 로컬 상태 사용
   const chat = chats.find(c => c.id === chatId);
 
   if (!chatId || !chat) {

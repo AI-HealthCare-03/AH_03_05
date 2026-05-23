@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { colors, radii, spacing, typography } from '../../theme';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
@@ -7,13 +7,30 @@ import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_guideShared';
+import { guidesApi } from '../../api';
+import type { GuideResponse } from '../../api';
 
-export function GuideResultScreen({ navigation }: any) {
+export function GuideResultScreen({ navigation, route }: any) {
   const [tab, setTab] = useState<'med' | 'life'>('med');
   const [feedback, setFeedback] = useState<'good' | 'bad' | null>(null);
   const { flash } = useApp();
+  const guideId: number | undefined = route?.params?.guideId;
+  const [guide, setGuide] = useState<GuideResponse | null>(null);
+  const [guideLoading, setGuideLoading] = useState(!!guideId);
 
-  // TODO: [BE 대기] GET /guides/{guide_id} 백엔드 미구현 — 구현 완료 후 아래 정적 데이터를 API 응답으로 교체 필요
+  useEffect(() => {
+    if (!guideId) return;
+    setGuideLoading(true);
+    guidesApi.getGuide(guideId)
+      .then(setGuide)
+      .catch(() => {})
+      .finally(() => setGuideLoading(false));
+  }, [guideId]);
+
+  const apiMedItems = guide?.items.filter(it => it.item_type === 'medication') ?? [];
+  const apiLifeItems = guide?.items.filter(it => it.item_type === 'lifestyle') ?? [];
+
+  // Static fallback data (used when no guideId or API returns no items)
   const schedule = [
     { time: '08:30', label: '아침 식후 30분', drug: '암로디핀정 5mg', color: '#0EA5E9' },
     { time: '12:30', label: '점심 식후 30분', drug: '메트포르민 500mg', color: '#10B981' },
@@ -27,7 +44,7 @@ export function GuideResultScreen({ navigation }: any) {
   const medSteps = ['복용 시간을 매일 같은 시간으로 지켜주세요.', '두통, 발목 부종이 생기면 의사에게 알려주세요.', '다른 약과 함께 먹기 전에 약사와 상의하세요.'];
 
   const [checks, setChecks] = useState<Record<string, boolean>>({});
-  const lifeItems = [
+  const staticLifeItems = [
     { id: 'salt', title: '나트륨 2,000mg 이하 저염식 실천하기', sub: '국물은 남기고, 소금 대신 레몬이나 식초로 간을 맞추세요.' },
     { id: 'walk', title: '주 5회, 30분 이상 빠르게 걷기', sub: '숨이 약간 찰 정도의 강도로 유산소 운동을 해주세요.' },
     { id: 'stroll', title: '식후 1시간 뒤 가벼운 산책하기', sub: '당뇨 관리를 위해 식사 후 급격한 혈당 상승을 방지합니다.' },
@@ -62,6 +79,24 @@ export function GuideResultScreen({ navigation }: any) {
 
       {tab === 'med' ? (
         <>
+          {guideLoading ? (
+            <View style={{ alignItems: 'center', paddingVertical: spacing.s24 }}>
+              <ActivityIndicator color={colors.accent} />
+            </View>
+          ) : apiMedItems.length > 0 ? (
+            apiMedItems.map((item, i) => (
+              <Card key={i} style={{ marginBottom: 14 }}>
+                {item.title ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.s12 }}>
+                    <Icon name="link" size={14} color={colors.ink2} />
+                    <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>{item.title}</Text>
+                  </View>
+                ) : null}
+                <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{item.content}</Text>
+              </Card>
+            ))
+          ) : (
+          <>
           {/* Schedule */}
           <Card style={{ marginBottom: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.s12 }}>
@@ -110,15 +145,35 @@ export function GuideResultScreen({ navigation }: any) {
               </View>
             ))}
           </Card>
+          </>
+          )}
         </>
       ) : (
         <>
+          {guideLoading ? (
+            <View style={{ alignItems: 'center', paddingVertical: spacing.s24 }}>
+              <ActivityIndicator color={colors.accent} />
+            </View>
+          ) : apiLifeItems.length > 0 ? (
+            apiLifeItems.map((item, i) => (
+              <Card key={i} style={{ marginBottom: 14 }}>
+                {item.title ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.s12 }}>
+                    <Icon name="link" size={14} color={colors.ink2} />
+                    <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>{item.title}</Text>
+                  </View>
+                ) : null}
+                <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{item.content}</Text>
+              </Card>
+            ))
+          ) : (
+          <>
           <Card style={{ marginBottom: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.s12 }}>
               <Icon name="link" size={14} color={colors.ink2} />
               <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>고혈압·당뇨 관리 실천 체크리스트</Text>
             </View>
-            {lifeItems.map(it => (
+            {staticLifeItems.map(it => (
               <TouchableOpacity key={it.id} style={{ flexDirection: 'row', gap: spacing.s12, alignItems: 'flex-start', paddingVertical: 10 }}
                 onPress={() => setChecks(c => ({ ...c, [it.id]: !c[it.id] }))}>
                 <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: checks[it.id] ? colors.accent : colors.hairlineStrong, backgroundColor: checks[it.id] ? colors.accent : 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
@@ -137,6 +192,8 @@ export function GuideResultScreen({ navigation }: any) {
               <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.accent700 }}>출처: 대한고혈압학회 2023 / 대한당뇨병학회</Text>
             </View>
           </Card>
+          </>
+          )}
         </>
       )}
 
