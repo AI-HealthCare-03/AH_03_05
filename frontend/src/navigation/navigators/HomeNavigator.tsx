@@ -6,6 +6,7 @@ import OCRProcessingScreen from "../../screens/ocr/OCRProcessingScreen";
 import { OCRResultScreen } from "../../screens/ocr/OCRResultScreen";
 import { DrugSearchScreen } from "../../screens/ocr/DrugSearchScreen";
 import { DrugDosageScreen } from "../../screens/ocr/DrugDosageScreen";
+import { DrugDetailScreen } from "../../screens/ocr/DrugDetailScreen";
 import GuideLoadingScreen from "../../screens/guide/GuideLoadingScreen";
 import { GuideResultScreen } from "../../screens/guide/GuideResultScreen";
 const HomeStack = createNativeStackNavigator<HomeStackParams>();
@@ -19,6 +20,7 @@ export default function HomeNavigator() {
       <HomeStack.Screen name="OCRResult" component={OCRResultScreen} />
       <HomeStack.Screen name="DrugSearch" component={DrugSearchScreen} />
       <HomeStack.Screen name="DrugDosage" component={DrugDosageScreen} />
+      <HomeStack.Screen name="DrugDetail" component={DrugDetailScreen} />
       <HomeStack.Screen name="GuideLoading" component={GuideLoadingScreen} />
       <HomeStack.Screen name="GuideResult" component={GuideResultScreen} />
     </HomeStack.Navigator>

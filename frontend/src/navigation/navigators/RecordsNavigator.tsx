@@ -4,6 +4,7 @@ import type { RecordsStackParams } from '../types';
 import RecordListScreen from '../../screens/records/RecordListScreen';
 import { RecordDetailScreen } from '../../screens/records/RecordDetailScreen';
 import { DrugDosageScreen } from '../../screens/ocr/DrugDosageScreen';
+import { DrugDetailScreen } from '../../screens/ocr/DrugDetailScreen';
 
 const RecordsStack = createNativeStackNavigator<RecordsStackParams>();
 const noHeader = { headerShown: false };
@@ -14,6 +15,7 @@ export default function RecordsNavigator() {
       <RecordsStack.Screen name="RecordList" component={RecordListScreen} />
       <RecordsStack.Screen name="RecordDetail" component={RecordDetailScreen} />
       <RecordsStack.Screen name="DrugDosage" component={DrugDosageScreen} />
+      <RecordsStack.Screen name="DrugDetail" component={DrugDetailScreen} />
     </RecordsStack.Navigator>
   );
 }

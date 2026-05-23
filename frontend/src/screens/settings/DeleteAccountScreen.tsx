@@ -10,21 +10,34 @@ import Card from '../../components/Card';
 import Input from '../../components/Input';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
+import { usersApi, tokenStore, extractApiError } from '../../api';
 
 export function DeleteAccountScreen({ navigation }: any) {
   const { user, flash } = useApp();
   const [step, setStep] = useState(1);
   const [checked, setChecked] = useState({ data: false, irreversible: false, alt: false });
   const [confirm, setConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const allChecked = checked.data && checked.irreversible && checked.alt;
   const confirmOk  = confirm === '회원 탈퇴';
 
-  const proceed = () => {
-    if (step === 1 && allChecked) setStep(2);
-    else if (step === 2 && confirmOk) {
-      // TODO: [BE 대기] DELETE /users/me 백엔드 미구현 — 구현 완료 후 연결 필요
-      flash('탈퇴 처리가 완료됐어요. 안녕히 가세요 👋');
-      (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+  const proceed = async () => {
+    if (step === 1 && allChecked) { setStep(2); return; }
+    if (step === 2 && confirmOk) {
+      setLoading(true);
+      setError('');
+      try {
+        await usersApi.deleteAccount();
+        await tokenStore.clear();
+        flash('탈퇴 처리가 완료됐어요. 안녕히 가세요 👋');
+        (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)
+          ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      } catch (e) {
+        setError(extractApiError(e));
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -73,17 +86,22 @@ export function DeleteAccountScreen({ navigation }: any) {
         )}
       </Card>
 
+      {!!error && (
+        <Text style={{ fontSize: typography.fz13, color: colors.danger, textAlign: 'center', marginTop: spacing.s12 }}>{error}</Text>
+      )}
       <View style={{ flexDirection: 'row', gap: spacing.s12, marginTop: spacing.s16 }}>
         <Button
           variant="ghost"
           size="lg"
           style={{ flex: 1 }}
+          disabled={loading}
           onPress={() => step === 2 ? setStep(1) : navigation.goBack()}
         >{step === 2 ? '이전' : '취소'}</Button>
         <Button
           variant="danger"
           size="lg"
           style={{ flex: 1, borderRadius: radii.md, opacity: (step === 1 ? allChecked : confirmOk) ? 1 : 0.4 }}
+          loading={loading}
           onPress={proceed}
         >{step === 1 ? '다음' : '탈퇴하기'}</Button>
       </View>

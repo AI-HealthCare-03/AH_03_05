@@ -1,13 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import { colors, spacing, typography } from '../../theme';
 import { ChatSessionPane } from './ChatSessionPane';
 
+const TAB_BAR_HEIGHT = 80;
+
 export function ChatSessionScreen({ navigation, route }: any) {
   const { chats } = useApp();
+  const { top: safeTop } = useSafeAreaInsets();
   const chatId: string | undefined = route?.params?.chatId;
   // TODO: [BE 대기] GET /chat/sessions/{session_id}/messages 미구현 — 현재 컨텍스트 로컬 상태 사용
   const chat = chats.find(c => c.id === chatId);
@@ -24,9 +28,9 @@ export function ChatSessionScreen({ navigation, route }: any) {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.canvas }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={0}
+      keyboardVerticalOffset={TAB_BAR_HEIGHT}
     >
-      <View style={cs.header}>
+      <View style={[cs.header, { paddingTop: safeTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={cs.iconBtn}>
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
@@ -50,7 +54,6 @@ const cs = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: spacing.safeTop,
     paddingBottom: 14,
     paddingHorizontal: spacing.s16,
     backgroundColor: colors.canvas,
