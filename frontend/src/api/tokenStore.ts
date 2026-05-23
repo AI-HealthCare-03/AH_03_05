@@ -22,10 +22,14 @@ export const tokenStore = {
   async save(access: string, refresh: string) {
     _access = access;
     _refresh = refresh;
-    await Promise.all([
-      AsyncStorage.setItem(KEYS.access, access),
-      AsyncStorage.setItem(KEYS.refresh, refresh),
-    ]);
+    try {
+      await Promise.all([
+        AsyncStorage.setItem(KEYS.access, access),
+        AsyncStorage.setItem(KEYS.refresh, refresh),
+      ]);
+    } catch (e) {
+      console.error('[tokenStore.save] AsyncStorage 토큰 저장 실패 — 자동 로그인 불가:', e);
+    }
   },
 
   async clear() {
