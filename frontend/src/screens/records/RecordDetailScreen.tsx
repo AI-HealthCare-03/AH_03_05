@@ -40,6 +40,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
         } else {
           setError(extractApiError((rec as PromiseRejectedResult).reason));
         }
+        // TODO: [BE 대기] GET /records/{record_id}/medications 미구현 — 구현 완료 후 __DEV__ 분기 제거
         if (meds.status === "fulfilled") {
           setMedications(meds.value.medications);
         } else if (__DEV__) {
@@ -49,7 +50,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
             { medication_id: 3, drug_name: "메트포르민 500mg", dosage: "1정", frequency: "1일 2회 식후", is_verified: false },
           ]);
         } else {
-          console.warn("[RecordDetail] medications 로드 실패 (백엔드 미구현):", (meds as PromiseRejectedResult).reason);
+          console.warn("[RecordDetail] medications 로드 실패:", (meds as PromiseRejectedResult).reason);
         }
       } finally {
         setLoading(false);
@@ -85,6 +86,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
       back
       onBack={() => navigation.goBack()}
       right={
+        // TODO: [BE 대기] GET /records/{record_id}/guide(또는 POST /guides/generate) — guideId 없이 이동 중, 구현 완료 후 params에 guideId 전달
         <Button variant="primary" size="sm" leftIcon="wand" onPress={() => navigation.getParent()?.navigate("HomeTab", { screen: "GuideResult" })}>
           가이드
         </Button>
@@ -149,6 +151,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
         </Text>
       </Card>
 
+      {/* TODO: [BE 대기] DELETE /records/{record_id} 미구현 — 구현 완료 후 disabled 해제 및 API 연결 필요 */}
       <TouchableOpacity disabled style={{ borderWidth: 1, borderColor: colors.danger, borderRadius: radii.pill, height: 50, alignItems: "center", justifyContent: "center", opacity: 0.35 }} onPress={() => {}}>
         <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.danger }}>기록 삭제</Text>
       </TouchableOpacity>
