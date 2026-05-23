@@ -1,3 +1,7 @@
+// TODO: 채팅 삭제 기능 미구현
+//   - 백엔드 엔드포인트 확인 필요: DELETE /chat/sessions/{id}
+//   - chat.ts에 deleteChatSession() 함수 추가 필요
+//   - ChatListScreen에 스와이프 삭제 UI 구현 필요 (react-native-gesture-handler Swipeable 또는 커스텀)
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import { useApp, Chat } from '../../context/AppContext';

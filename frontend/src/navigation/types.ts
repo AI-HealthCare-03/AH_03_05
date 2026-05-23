@@ -14,6 +14,7 @@ export type HomeStackParams = {
   OCRResult: { recordId?: number };
   DrugSearch: { medicationName?: string };
   DrugDosage: undefined;
+  DrugDetail: { drugId: number };
   GuideLoading: { recordId?: number };
   GuideResult: { guideId?: number };
 };
@@ -22,6 +23,7 @@ export type RecordsStackParams = {
   RecordList: undefined;
   RecordDetail: { recordId: number };
   DrugDosage: undefined;
+  DrugDetail: { drugId: number };
 };
 
 export type GuideStackParams = {
