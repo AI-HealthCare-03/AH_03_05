@@ -44,6 +44,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MFDS_API_KEY: ci-dummy-key-not-used-in-tests
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: ozcoding
+      DB_PASSWORD: pw1234
+      DB_NAME: ai_health
       OPENAI_API_KEY: ci-dummy-key-not-used-in-tests
     services:
       postgresql:
