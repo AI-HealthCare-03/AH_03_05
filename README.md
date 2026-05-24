@@ -1,5 +1,7 @@
 # AI Healthcare Project Template
 
+[![codecov](https://codecov.io/gh/AI-HealthCare-03/AH_03_05/branch/develop/graph/badge.svg)](https://codecov.io/gh/AI-HealthCare-03/AH_03_05)
+
 이 프로젝트는 AI 모델 추론(Inference) 워커와 FastAPI API 서버를 통합한 서비스 템플릿입니다. 
 현대적인 Python 패키지 관리 도구인 `uv`와 컨테이너화 도구인 `Docker`를 활용하여 일관된 개발 및 배포 환경을 제공합니다.
 
@@ -70,13 +72,13 @@ uv sync --group ai   # AI 워커용
 
 `envs/` 디렉토리에 있는 예시 파일을 복사하여 `.env` 파일을 생성합니다.
 - 로컬용 
-    ```bash
+```bash
     cp envs/example.local.env envs/.local.env
-    ```
+```
 - 배포용 
-    ```bash
+```bash
     cp envs/example.prod.env envs/.prod.env
-    ```
+```
 
 생성된 `env` 파일 내의 환경변수들은 프로젝트 상황에 맞게 수정하세요.
 
