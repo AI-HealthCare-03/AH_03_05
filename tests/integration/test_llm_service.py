@@ -57,41 +57,41 @@ class TestGenerateGuide:
             "doctor_opinion": "",
         }
 
-    def test_response_has_medication_guide(self, health_profile_hypertension):
+    def test_response_has_medication_guide(self, mock_generate_guide_hypertension, health_profile_hypertension):
         result = generate_guide(health_profile_hypertension)
         assert result["medication_guide"] != ""
 
-    def test_response_has_lifestyle_guide(self, health_profile_hypertension):
+    def test_response_has_lifestyle_guide(self, mock_generate_guide_hypertension, health_profile_hypertension):
         result = generate_guide(health_profile_hypertension)
         assert result["lifestyle_guide"] != ""
 
-    def test_response_has_disclaimer(self, health_profile_hypertension):
+    def test_response_has_disclaimer(self, mock_generate_guide_hypertension, health_profile_hypertension):
         result = generate_guide(health_profile_hypertension)
         assert "임상진료지침" in result["disclaimer"]
 
-    def test_safety_flag_false(self, health_profile_hypertension):
+    def test_safety_flag_false(self, mock_generate_guide_hypertension, health_profile_hypertension):
         result = generate_guide(health_profile_hypertension)
         assert result["safety_flag"] is False
 
-    def test_logic_not_in_response(self, health_profile_hypertension):
+    def test_logic_not_in_response(self, mock_generate_guide_hypertension, health_profile_hypertension):
         result = generate_guide(health_profile_hypertension)
         assert "_logic" not in result
 
-    def test_generation_status_completed(self, health_profile_hypertension):
+    def test_generation_status_completed(self, mock_generate_guide_hypertension, health_profile_hypertension):
         result = generate_guide(health_profile_hypertension)
         assert result["generation_status"]["medication"] == "completed"
         assert result["generation_status"]["lifestyle"] == "completed"
 
-    def test_guide_items_not_empty(self, health_profile_hypertension):
+    def test_guide_items_not_empty(self, mock_generate_guide_hypertension, health_profile_hypertension):
         result = generate_guide(health_profile_hypertension)
         assert len(result["guide_items"]) > 0
 
-    def test_guide_items_sort_order(self, health_profile_hypertension):
+    def test_guide_items_sort_order(self, mock_generate_guide_hypertension, health_profile_hypertension):
         result = generate_guide(health_profile_hypertension)
         orders = [item["sort_order"] for item in result["guide_items"]]
         assert orders == sorted(orders)
 
-    def test_warning_for_pregnancy(self):
+    def test_warning_for_pregnancy(self, mock_generate_guide_pregnancy):
         health_profile = {
             "age_group": "30대",
             "chronic_diseases": ["고혈압"],
@@ -109,11 +109,11 @@ class TestGenerateGuide:
         item_types = [item["item_type"] for item in result["guide_items"]]
         assert "WARNING" in item_types
 
-    def test_age_group_over65_uses_old_lore(self, health_profile_over65):
+    def test_age_group_over65_uses_old_lore(self, mock_generate_guide_over65, health_profile_over65):
         result = generate_guide(health_profile_over65)
         assert result["medication_guide"] != ""
 
-    def test_diabetes_guide(self, health_profile_diabetes):
+    def test_diabetes_guide(self, mock_generate_guide_diabetes, health_profile_diabetes):
         result = generate_guide(health_profile_diabetes)
         assert result["medication_guide"] != ""
         assert result["lifestyle_guide"] != ""
