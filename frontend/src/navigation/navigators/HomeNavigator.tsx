@@ -1,4 +1,7 @@
 import React from "react";
+import { View } from "react-native";
+import BellButton from "../../components/BellButton";
+import NotificationDrawer from "../../components/NotificationDrawer";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { HomeStackParams } from "../types";
 import HomeScreen from "../../screens/home/HomeScreen";
@@ -14,15 +17,19 @@ const noHeader = { headerShown: false };
 
 export default function HomeNavigator() {
   return (
-    <HomeStack.Navigator screenOptions={noHeader}>
-      <HomeStack.Screen name="Home" component={HomeScreen} />
-      <HomeStack.Screen name="OCRProcessing" component={OCRProcessingScreen} />
-      <HomeStack.Screen name="OCRResult" component={OCRResultScreen} />
-      <HomeStack.Screen name="DrugSearch" component={DrugSearchScreen} />
-      <HomeStack.Screen name="DrugDosage" component={DrugDosageScreen} />
-      <HomeStack.Screen name="DrugDetail" component={DrugDetailScreen} />
-      <HomeStack.Screen name="GuideLoading" component={GuideLoadingScreen} />
-      <HomeStack.Screen name="GuideResult" component={GuideResultScreen} />
-    </HomeStack.Navigator>
+    <View style={{ flex: 1 }}>
+      <HomeStack.Navigator screenOptions={noHeader}>
+        <HomeStack.Screen name="Home" component={HomeScreen} />
+        <HomeStack.Screen name="OCRProcessing" component={OCRProcessingScreen} />
+        <HomeStack.Screen name="OCRResult" component={OCRResultScreen} />
+        <HomeStack.Screen name="DrugSearch" component={DrugSearchScreen} />
+        <HomeStack.Screen name="DrugDosage" component={DrugDosageScreen} />
+        <HomeStack.Screen name="DrugDetail" component={DrugDetailScreen} />
+        <HomeStack.Screen name="GuideLoading" component={GuideLoadingScreen} />
+        <HomeStack.Screen name="GuideResult" component={GuideResultScreen} />
+      </HomeStack.Navigator>
+      <BellButton />
+      <NotificationDrawer />
+    </View>
   );
 }

@@ -15,18 +15,11 @@ const TYPE_MAP: Record<string, RecordType> = {
   '진료기록': 'medical_record',
 };
 
-function notify(title: string, msg?: string) {
-  if (Platform.OS === 'web') {
-    window.alert(msg ? `${title}\n${msg}` : title);
-  } else {
-    Alert.alert(title, msg);
-  }
-}
-
 export default function UploadModalScreen({ navigation }: any) {
   const [type, setType] = useState('처방전');
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const types = [
     { id: '처방전', icon: 'doc' },
@@ -47,10 +40,12 @@ export default function UploadModalScreen({ navigation }: any) {
   const handleClose = () => {
     setUploading(false);
     setUploadDone(false);
+    setUploadError('');
     navigation.goBack();
   };
 
   const doUpload = async (file: UploadFile | globalThis.File) => {
+    setUploadError('');
     setUploading(true);
     try {
       const res = await uploadRecord(file, TYPE_MAP[type]);
@@ -63,8 +58,11 @@ export default function UploadModalScreen({ navigation }: any) {
       }, 700);
     } catch (e: any) {
       setUploading(false);
-      const msg = e?.response?.data?.detail ?? e?.message ?? '업로드에 실패했습니다.';
-      notify('업로드 실패', msg);
+      if (e?.response?.status === 413) {
+        setUploadError('파일 크기가 너무 큽니다. 10MB 이하의 파일을 업로드해주세요.');
+      } else {
+        setUploadError(e?.response?.data?.detail ?? e?.message ?? '업로드에 실패했습니다.');
+      }
     }
   };
 
@@ -88,7 +86,7 @@ export default function UploadModalScreen({ navigation }: any) {
 
   const handleSourcePress = async (srcId: string) => {
     if (srcId === 'manual') {
-      notify('직접입력', '직접입력 기능은 준비 중입니다.');
+      setUploadError('직접입력 기능은 준비 중입니다.');
       return;
     }
 
@@ -99,14 +97,14 @@ export default function UploadModalScreen({ navigation }: any) {
 
     if (srcId === 'camera') {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted) { notify('권한 필요', '카메라 권한이 필요합니다.'); return; }
+      if (!perm.granted) { Alert.alert('권한 필요', '카메라 권한이 필요합니다.'); return; }
       const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
       if (result.canceled || !result.assets?.length) return;
       const a = result.assets[0];
       await doUpload({ uri: a.uri, name: a.fileName ?? `photo_${Date.now()}.jpg`, type: a.mimeType ?? 'image/jpeg' });
     } else if (srcId === 'gallery') {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) { notify('권한 필요', '사진 라이브러리 권한이 필요합니다.'); return; }
+      if (!perm.granted) { Alert.alert('권한 필요', '사진 라이브러리 권한이 필요합니다.'); return; }
       const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
       if (result.canceled || !result.assets?.length) return;
       const a = result.assets[0];
@@ -164,20 +162,31 @@ export default function UploadModalScreen({ navigation }: any) {
             ))}
           </View>
 
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
-            {sources.map((src) => (
-              <TouchableOpacity
-                key={src.id}
-                style={[s.srcCard, { width: (cardWidth - 52) / 2 }]}
-                onPress={() => handleSourcePress(src.id)}
-              >
-                <View style={s.srcIcon}>
-                  <Icon name={src.icon} size={16} color={colors.accent700} />
-                </View>
-                <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>{src.label}</Text>
-              </TouchableOpacity>
+          <View style={{ gap: spacing.s8, marginBottom: 14 }}>
+            {[sources.slice(0, 2), sources.slice(2, 4)].map((row, ri) => (
+              <View key={ri} style={{ flexDirection: 'row', gap: spacing.s8 }}>
+                {row.map((src) => (
+                  <TouchableOpacity
+                    key={src.id}
+                    style={[s.srcCard, { flex: 1 }]}
+                    onPress={() => handleSourcePress(src.id)}
+                  >
+                    <View style={s.srcIcon}>
+                      <Icon name={src.icon} size={14} color={colors.accent700} />
+                    </View>
+                    <Text style={{ fontSize: typography.fz12, fontWeight: typography.fw6 }}>{src.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             ))}
           </View>
+
+          {uploadError ? (
+            <View style={s.errorBox}>
+              <Icon name="alert" size={13} color={colors.danger} />
+              <Text style={s.errorText}>{uploadError}</Text>
+            </View>
+          ) : null}
 
           <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: 'center' }}>
             JPG · PNG · PDF / 최대 10MB · 원본은 90일 후 자동 삭제
@@ -219,8 +228,10 @@ const s = StyleSheet.create({
   typeCard: { flex: 1, alignItems: 'center', padding: spacing.s12, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
   typeCardActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
   typeIcon: { width: 28, height: 28, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  srcCard: { alignItems: 'center', padding: spacing.s16, borderRadius: radii.md, borderWidth: 0.5, borderColor: colors.hairline, backgroundColor: colors.surface },
-  srcIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s8 },
+  srcCard: { alignItems: 'center', padding: spacing.s12, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
+  srcIcon: { width: 28, height: 28, borderRadius: radii.sm, backgroundColor: colors.accent100, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3, width: '60%' },
+  errorBox: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: spacing.s8 },
+  errorText: { flex: 1, fontSize: typography.fz12, color: colors.danger, lineHeight: 18 },
 });
