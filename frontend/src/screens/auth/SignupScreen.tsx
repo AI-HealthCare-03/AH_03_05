@@ -10,6 +10,7 @@ import Card from '../../components/Card';
 import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
+import axios from 'axios';
 import { authApi, extractApiError } from '../../api';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
 
@@ -90,8 +91,15 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
     }
   };
 
+  const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+
   const sendCode = () => {
     if (!form.email) return;
+    if (!EMAIL_RE.test(form.email)) {
+      setCodeError('이메일 형식이 올바르지 않습니다');
+      return;
+    }
+    // TODO: [BE 대기] POST /auth/email-verify/send 연결 필요 — 현재 데모 목업
     setCodeSent(true);
     setEmailVerified(false);
     setCode('');
@@ -99,7 +107,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   };
 
   const verifyCode = () => {
-    // 데모: 임의 코드 "123456" 통과
+    // TODO: [BE 대기] POST /auth/email-verify/confirm 연결 필요 — 현재 데모 목업
     if (code === '123456') {
       setEmailVerified(true);
       setCodeError('');
@@ -140,7 +148,17 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       (navigation as any).reset({ index: 0, routes: [{ name: 'Onboarding' as never }] });
     } catch (e) {
       console.error('[Signup] submit error:', e);
-      setApiError(extractApiError(e));
+      // TODO: 디버깅 완료 후 제거
+      if (axios.isAxiosError(e)) console.log('[Signup] 422 detail:', JSON.stringify(e.response?.data));
+      if (axios.isAxiosError(e) && e.response?.status === 409) {
+        setApiError('이미 사용 중인 이메일입니다.');
+      } else if (axios.isAxiosError(e) && e.response?.status === 401) {
+        setApiError('이메일 또는 비밀번호가 올바르지 않습니다');
+      } else if (axios.isAxiosError(e) && !e.response) {
+        setApiError('네트워크 오류가 발생했습니다. 연결을 확인해주세요');
+      } else {
+        setApiError(extractApiError(e));
+      }
     } finally {
       setLoading(false);
     }
@@ -238,6 +256,9 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       <View style={styles.field}>
         <Text style={styles.label}>비밀번호 확인</Text>
         <Input placeholder="비밀번호 재입력" secureTextEntry value={form.pw2} onChangeText={v => set('pw2', v)} style={{ outlineStyle: 'none' } as any} />
+        {form.pw2.length > 0 && form.pw !== form.pw2 && (
+          <Text style={{ fontSize: typography.fz12, color: colors.danger, marginTop: spacing.s4 }}>비밀번호가 일치하지 않습니다.</Text>
+        )}
       </View>
 
       {/* 약관 동의 */}
@@ -262,7 +283,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       </View>
 
       {/* 약관 모달 */}
-      <Modal visible={termsModal !== null} transparent animationType={isTabletOrAbove ? 'fade' : 'slide'} onRequestClose={() => setTermsModal(null)}>
+      <Modal visible={termsModal !== null} transparent animationType="fade" onRequestClose={() => setTermsModal(null)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: isTabletOrAbove ? 'center' : 'flex-end', alignItems: isTabletOrAbove ? 'center' : 'stretch' }}>
           <View style={[{ backgroundColor: colors.surface, maxHeight: '72%' }, isTabletOrAbove ? { borderRadius: 16, width: '90%', maxWidth: 560 } : { borderTopLeftRadius: 20, borderTopRightRadius: 20 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.s20, borderBottomWidth: 0.5, borderBottomColor: colors.hairline }}>
@@ -312,7 +333,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.authContainer} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.authContainer, { paddingBottom: spacing.s56 }]} keyboardShouldPersistTaps="handled">
         <View style={styles.brandRow}>
           <View style={styles.brandLogo}><Icon name="robot" size={18} color={colors.white} /></View>
           <Text style={styles.brandName}>MediPT</Text>
