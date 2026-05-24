@@ -76,28 +76,18 @@ export function extractApiError(error: unknown): string {
       code: error.code,
     });
 
-    if (data?.detail) {
-      // FastAPI 422: detail is an array of validation errors
-      if (Array.isArray(data.detail)) {
-        return data.detail
-          .map((d: any) => d.msg ?? d.message ?? String(d))
-          .join(' · ');
-      }
-      if (typeof data.detail === 'string') return data.detail;
-    }
-
     if (status === 401) return '로그인이 필요합니다.';
     if (status === 403) return '권한이 없습니다.';
     if (status === 404) return '요청한 정보를 찾을 수 없습니다.';
     if (status === 409) return '이미 존재하는 정보입니다.';
     if (status === 413) return '파일 크기가 너무 큽니다. (최대 10MB)';
-    if (status === 422) return `입력값 오류 (${JSON.stringify(data)})`;
+    if (status === 422) return '입력값을 확인해주세요.';
     if (status === 429) return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.';
-    if (status === 504) return '요청 시간이 초과됐습니다. 잠시 후 다시 시도해주세요';
-    if (status !== undefined && status >= 500) return '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요';
+    if (status === 504) return '요청 시간이 초과됐습니다. 잠시 후 다시 시도해주세요.';
+    if (status !== undefined && status >= 500) return '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
     if (error.code === 'ECONNABORTED') return '요청 시간이 초과되었습니다.';
-    if (!error.response) return `서버에 연결할 수 없습니다. (${error.code ?? 'NETWORK_ERROR'})`;
-    return `오류가 발생했습니다. (${status})`;
+    if (!error.response) return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
+    return '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
   }
   console.error('[Unknown Error]', error);
   return '알 수 없는 오류가 발생했습니다.';
