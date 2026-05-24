@@ -33,11 +33,12 @@ export type GuideStackParams = {
 
 export type ChatStackParams = {
   ChatList: undefined;
-  ChatSession: { chatId: string };
+  ChatSession: { sessionId: string; guideId?: string };
 };
 
 export type SettingsStackParams = {
   Settings: undefined;
+  MyPage: undefined;
   NotificationSettings: undefined;
   ProfileEdit: undefined;
   Notifications: undefined;

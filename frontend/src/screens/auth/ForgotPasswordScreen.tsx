@@ -12,9 +12,12 @@ import { BrandPanel, styles, type AuthNavProp } from './_authShared';
 
 // ─── ForgotPasswordScreen ─────────────────────────────────────────────────────
 
+const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+
 export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }) {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const { isTabletOrAbove } = useBreakpoint();
 
   const formContent = sent ? (
@@ -39,13 +42,26 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
           icon="mail"
           placeholder="name@example.com"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={v => { setEmail(v); setEmailError(''); }}
           autoCapitalize="none"
           keyboardType="email-address"
           autoFocus
         />
+        {emailError ? <Text style={styles.fieldError}>{emailError}</Text> : null}
       </View>
-      <Button variant="primary" size="lg" disabled={!email} onPress={() => email && setSent(true)} fullWidth>재설정 링크 받기</Button>
+      <Button
+        variant="primary"
+        size="lg"
+        disabled={!email || !EMAIL_RE.test(email)}
+        onPress={() => {
+          if (!EMAIL_RE.test(email)) {
+            setEmailError('올바른 이메일 형식이 아닙니다');
+            return;
+          }
+          setSent(true);
+        }}
+        fullWidth
+      >재설정 링크 받기</Button>
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: spacing.s16 }}>
         <Text style={{ fontSize: typography.fz13, color: colors.muted }}>기억나셨나요? </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>

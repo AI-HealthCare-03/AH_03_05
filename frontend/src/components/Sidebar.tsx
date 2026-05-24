@@ -94,7 +94,7 @@ export default function Sidebar() {
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={{ fontSize: 13, fontWeight: '600', color: colors.ink }} numberOfLines={1}>
-            {user.name}
+            {user.nickname || user.name}
           </Text>
           <Text style={{ fontSize: 11, color: colors.muted }} numberOfLines={1}>
             {user.email}
