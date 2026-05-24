@@ -2,8 +2,6 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Sidebar from "../../components/Sidebar";
-import NotificationDrawer from "../../components/NotificationDrawer";
-import BellButton from "../../components/BellButton";
 import Icon from "../../components/Icon";
 import { colors } from "../../theme";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
@@ -131,13 +129,7 @@ export default function MainNavigator() {
   const { isDesktop } = useBreakpoint();
 
   if (!isDesktop) {
-    return (
-      <>
-        <TabNavigator />
-        <BellButton />
-        <NotificationDrawer />
-      </>
-    );
+    return <TabNavigator />;
   }
 
   return (
@@ -146,8 +138,6 @@ export default function MainNavigator() {
       <View style={nav.desktopContent}>
         <TabNavigator />
       </View>
-      <BellButton />
-      <NotificationDrawer />
     </View>
   );
 }

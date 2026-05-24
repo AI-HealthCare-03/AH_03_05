@@ -15,6 +15,6 @@ export const s = StyleSheet.create({
   spinnerWrap: { width: 84, height: 84, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s16 },
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s12, paddingVertical: spacing.s8, alignSelf: 'stretch' },
   stepDot: { width: 24, height: 24, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center' },
-  progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3 },
+  progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: 'hidden', flexDirection: 'row', alignSelf: 'stretch' },
+  progressFill: { backgroundColor: colors.accent },
 });

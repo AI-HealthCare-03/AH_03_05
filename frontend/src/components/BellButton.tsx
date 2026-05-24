@@ -1,20 +1,18 @@
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useNavigationState } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
 import Icon from './Icon';
 import { colors, spacing } from '../theme';
 
 export default function BellButton() {
   const { unreadCount, setNotifDrawerOpen } = useApp();
-  const isHomeTab = useNavigationState(state =>
-    state?.routes[state.index]?.name === 'HomeTab'
-  );
+  const insets = useSafeAreaInsets();
 
   return (
-    <TouchableOpacity style={styles.bellBtn} onPress={() => setNotifDrawerOpen(true)}>
+    <TouchableOpacity style={[styles.bellBtn, { top: insets.top + spacing.s8 }]} onPress={() => setNotifDrawerOpen(true)}>
       <Icon name="bell" size={18} color={colors.ink2} />
-      {unreadCount > 0 && isHomeTab && (
+      {unreadCount > 0 && (
         <View style={styles.bellBadge}>
           <Text style={{ fontSize: 8, color: '#fff', fontWeight: '700', lineHeight: 12 }}>
             {unreadCount > 9 ? '9+' : unreadCount}
