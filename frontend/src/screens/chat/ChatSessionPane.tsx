@@ -1,94 +1,121 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
-import { useApp, ChatMessage } from '../../context/AppContext';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import { StyleSheet } from 'react-native';
+import { chatApi } from '../../api';
+import type { ChatMessageItem } from '../../api';
 import { s } from './_chatShared';
 
-const EMERGENCY_KEYWORDS = ['흉통', '호흡곤란', '의식 잃', '심한 출혈', '토혈', '검은 변'];
-const DANGER_KEYWORDS = ['중단', '끊어', '끊기', '뺄', '생략', '줄여', '늘려', '반으로', '복약 중단', '약 끊'];
-
 interface Props {
-  chatId: string;
+  sessionId: string;
 }
 
-export function ChatSessionPane({ chatId }: Props) {
-  const { chats, setChats } = useApp();
-  const current = chats.find(c => c.id === chatId) ?? null;
+const MOCK_AI_RESPONSE = '도움이 되도록 답변드릴게요. 다만 복약·치료 결정을 바꾸기 전에는 반드시 담당 의사·약사와 상담해주세요.';
+
+export function ChatSessionPane({ sessionId }: Props) {
+  const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
+    if (!sessionId) return;
+    // TODO: [BE 대기] GET /chat/sessions/{session_id}/messages 미구현 — 구현 완료 후 mock 제거
+    chatApi.getChatMessages(Number(sessionId), { limit: 50 })
+      .then(res => setMessages(res.messages))
+      .catch(err => {
+        console.error('[ChatPane] 메시지 로드 실패:', err);
+        if (__DEV__) setMessages([]);
+      });
+  }, [sessionId]);
+
+  useEffect(() => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-  }, [current?.messages.length]);
+  }, [messages.length]);
 
-  const send = () => {
-    if (!input.trim() || !current) return;
-    const msg = input.trim();
+  const send = async () => {
+    const text = input.trim();
+    if (!text || sending) return;
     setInput('');
+    setSendError('');
 
-    setChats(prev => prev.map(c => {
-      if (c.id !== current.id) return c;
-      const isFirst = c.messages.length === 0;
-      return {
-        ...c,
-        title: isFirst ? msg.substring(0, 20) + (msg.length > 20 ? '…' : '') : c.title,
-        preview: msg.substring(0, 30),
-        messages: [...c.messages, { from: 'user' as const, text: msg }],
+    const tempId = Date.now();
+    const userMsg: ChatMessageItem = { message_id: tempId, sender_type: 'user', content: text };
+    setMessages(prev => [...prev, userMsg]);
+    setSending(true);
+
+    try {
+      // TODO: [BE 대기] POST /chat/sessions/{session_id}/messages 미구현 — 구현 완료 후 mock 제거
+      const res = await chatApi.sendChatMessage(Number(sessionId), { message: text });
+      const aiMsg: ChatMessageItem = {
+        message_id: res.message_id,
+        sender_type: 'assistant',
+        content: res.answer,
+        safety_flag: res.safety_flag,
+        created_at: res.created_at,
       };
-    }));
-
-    // TODO: [BE 대기] POST /chat/sessions/{session_id}/messages 백엔드 미구현 — 구현 완료 후 아래 로컬 응답 목업을 API 호출로 교체 필요
-    setTimeout(() => {
-      const hasEmergency = EMERGENCY_KEYWORDS.some(k => msg.includes(k));
-      const hasDanger = DANGER_KEYWORDS.some(k => msg.includes(k));
-
-      let response: ChatMessage;
-      if (hasEmergency) {
-        response = { from: 'warn' as const, text: '⚠️ 즉시 119에 연락하거나 응급실로 가세요. 심한 흉통·호흡곤란·의식 변화 등은 즉각적인 의료 처치가 필요한 응급 증상입니다.' };
-      } else if (hasDanger) {
-        response = { from: 'warn' as const, text: '⚠️ 의료 판단이 필요한 질문입니다. 복약 중단이나 용량 변경은 반드시 담당 의사·약사와 상담 후 결정해주세요.' };
+      setMessages(prev => [...prev, aiMsg]);
+    } catch (err: any) {
+      console.error('[ChatPane] 메시지 전송 실패:', err);
+      const status = err?.response?.status;
+      if (status === 429) {
+        setSendError('잠시 후 다시 시도해주세요.');
+      } else if (__DEV__) {
+        // TODO: [BE 대기] 목업 응답 — 구현 완료 후 제거
+        await new Promise<void>(res => setTimeout(res, 1500));
+        const mockMsg: ChatMessageItem = {
+          message_id: Date.now(),
+          sender_type: 'assistant',
+          content: MOCK_AI_RESPONSE,
+          safety_flag: false,
+        };
+        setMessages(prev => [...prev, mockMsg]);
       } else {
-        response = { from: 'ai' as const, text: '도움이 되도록 답변드릴게요. 다만 복약·치료 결정을 바꾸기 전에는 반드시 담당 의사·약사와 상담해주세요.' };
+        setSendError('메시지 전송에 실패했어요. 다시 시도해주세요.');
       }
-
-      setChats(prev => prev.map(c =>
-        c.id === current.id ? { ...c, messages: [...c.messages, response] } : c
-      ));
-    }, 600);
+    } finally {
+      setSending(false);
+    }
   };
-
-  if (!current) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: typography.fz14, color: colors.muted }}>상담 내역을 찾을 수 없어요.</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.canvas }}>
+      {/* 의료 안내 배너 */}
+      <View style={ps.noticeBanner}>
+        <Icon name="alert-circle" size={13} color={colors.muted2} />
+        <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s4, flex: 1 }}>
+          AI 답변은 의료 진단을 대체하지 않습니다.
+        </Text>
+      </View>
+
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: spacing.s20, paddingBottom: spacing.s20 }}
       >
-        {!current.messages.length && (
+        {messages.length === 0 && (
           <View style={{ alignItems: 'center', padding: spacing.s40 }}>
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>무엇이든 물어보세요</Text>
             <Text style={{ fontSize: typography.fz13, color: colors.muted }}>예) "혈압약 먹는데 사우나 가도 되나요?"</Text>
           </View>
         )}
-        {current.messages.map((msg, i) => <Bubble key={i} msg={msg} />)}
+        {messages.map((msg, i) => <Bubble key={msg.message_id ?? i} msg={msg} />)}
+        {sending && (
+          <View style={[s.bubbleRow, { alignItems: 'center', gap: spacing.s8 }]}>
+            <View style={s.aiAvatar}><Text style={{ fontSize: 10, fontWeight: typography.fw7, color: colors.accent700 }}>AI</Text></View>
+            <ActivityIndicator color={colors.accent} size="small" />
+          </View>
+        )}
       </ScrollView>
 
-      <View style={ps.safetyNotice}>
-        <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: 'center' }}>
-          본 챗봇은 진단·처방을 대체하지 않습니다. 의료 판단은 의사·약사와 상담하세요.
+      {sendError ? (
+        <Text style={{ fontSize: typography.fz12, color: colors.danger, textAlign: 'center', paddingVertical: spacing.s4, paddingHorizontal: spacing.s16 }}>
+          {sendError}
         </Text>
-      </View>
+      ) : null}
 
       <View style={s.inputBar}>
         <TextInput
@@ -100,25 +127,17 @@ export function ChatSessionPane({ chatId }: Props) {
           returnKeyType="send"
           multiline
         />
-        <Button variant="primary" size="sm" leftIcon="send" onPress={send}>전송</Button>
+        <Button variant="primary" size="sm" leftIcon="send" onPress={send} disabled={sending}>전송</Button>
       </View>
     </View>
   );
 }
 
-function Bubble({ msg }: { msg: ChatMessage }) {
+function Bubble({ msg }: { msg: ChatMessageItem }) {
   const [fb, setFb] = useState<'good' | 'bad' | null>(null);
+  const isUser = msg.sender_type === 'user';
+  const isSafe = msg.safety_flag === true;
 
-  if (msg.from === 'warn') {
-    return (
-      <View style={s.warnBubble}>
-        <Icon name="alert-circle" size={14} color={colors.warning} />
-        <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, marginLeft: 6, flex: 1 }}>{msg.text}</Text>
-      </View>
-    );
-  }
-
-  const isUser = msg.from === 'user';
   return (
     <View style={{ marginBottom: 14 }}>
       <View style={[s.bubbleRow, isUser && { justifyContent: 'flex-end' }]}>
@@ -127,8 +146,18 @@ function Bubble({ msg }: { msg: ChatMessage }) {
             <Text style={{ fontSize: 10, fontWeight: typography.fw7, color: colors.accent700 }}>AI</Text>
           </View>
         )}
-        <View style={[s.bubble, isUser ? s.bubbleUser : s.bubbleAI]}>
-          <Text style={{ fontSize: typography.fz13, lineHeight: 20, color: isUser ? colors.white : colors.ink }}>{msg.text}</Text>
+        <View style={[
+          s.bubble,
+          isUser ? s.bubbleUser : s.bubbleAI,
+          isSafe && { borderWidth: 1.5, borderColor: colors.danger },
+        ]}>
+          {isSafe && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: spacing.s4 }}>
+              <Icon name="alert-circle" size={13} color={colors.danger} />
+              <Text style={{ fontSize: typography.fz11, color: colors.danger, fontWeight: typography.fw6 }}>주의가 필요한 답변입니다</Text>
+            </View>
+          )}
+          <Text style={{ fontSize: typography.fz13, lineHeight: 20, color: isUser ? colors.white : colors.ink }}>{msg.content}</Text>
         </View>
         {isUser && (
           <View style={s.userAvatar}>
@@ -157,12 +186,14 @@ function Bubble({ msg }: { msg: ChatMessage }) {
 }
 
 const ps = StyleSheet.create({
-  safetyNotice: {
+  noticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface2,
     paddingHorizontal: spacing.s16,
     paddingVertical: 6,
-    borderTopWidth: 0.5,
-    borderTopColor: colors.hairline,
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.hairline,
   },
 });
 

@@ -10,6 +10,7 @@ import { DeviceManagementScreen } from '../../screens/settings/DeviceManagementS
 import { LegalDocScreen } from '../../screens/settings/LegalDocScreen';
 import { DeleteAccountScreen } from '../../screens/settings/DeleteAccountScreen';
 import { ConsentHistoryScreen } from '../../screens/settings/ConsentHistoryScreen';
+import MyPageScreen from '../../screens/settings/MyPageScreen';
 
 const SettingsStack = createNativeStackNavigator<SettingsStackParams>();
 const noHeader = { headerShown: false };
@@ -18,6 +19,7 @@ export default function SettingsNavigator() {
   return (
     <SettingsStack.Navigator screenOptions={noHeader}>
       <SettingsStack.Screen name="Settings" component={SettingsScreen} />
+      <SettingsStack.Screen name="MyPage" component={MyPageScreen} />
       <SettingsStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
       <SettingsStack.Screen name="ProfileEdit" component={ProfileEditScreen} />
       <SettingsStack.Screen name="Notifications" component={NotificationsScreen} />
