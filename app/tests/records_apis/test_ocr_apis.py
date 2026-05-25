@@ -205,3 +205,28 @@ class TestOcrAPI(TestCase):
         assert len(candidates) == 1
         assert candidates[0]["drug_name"] == "타이레놀정500mg"
         assert candidates[0]["manufacturer"] == "한국얀센"
+
+    async def test_create_ocr_job_record_not_found(self):
+        """존재하지 않는 record_id로 OCR job 생성 (services/processing_jobs.py 15)"""
+        signup_data = {
+            "email": "ocr_notfound@example.com",
+            "password": "Password123!",
+            "name": "OCRJob404",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "ocr_notfound@example.com", "password": "Password123!"},
+            )
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            response = await client.post(
+                "/api/v1/ocr/jobs",
+                json={"record_id": 99999},
+                headers=headers,
+            )
+
+            assert response.status_code == status.HTTP_404_NOT_FOUND

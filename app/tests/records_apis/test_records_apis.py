@@ -217,3 +217,76 @@ class TestMedicalRecordAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_get_records_filter_by_record_type(self):
+        """record_type 필터 적용 분기 검증 (services/medical_records.py 41)"""
+        signup_data = {
+            "email": "record_filter@example.com",
+            "password": "Password123!",
+            "name": "필터테스터",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "record_filter@example.com", "password": "Password123!"},
+            )
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            await client.post(
+                "/api/v1/records",
+                data={"record_type": "prescription"},
+                files={"file": ("test.txt", BytesIO(b"test"), "text/plain")},
+                headers=headers,
+            )
+
+            response = await client.get(
+                "/api/v1/records?record_type=prescription",
+                headers=headers,
+            )
+
+            assert response.status_code == status.HTTP_200_OK
+
+    async def test_get_record_not_found(self):
+        """존재하지 않는 record_id 조회 (services/medical_records.py 52)"""
+        signup_data = {
+            "email": "record_notfound@example.com",
+            "password": "Password123!",
+            "name": "404테스터",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "record_notfound@example.com", "password": "Password123!"},
+            )
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            response = await client.get("/api/v1/records/99999", headers=headers)
+
+            assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_get_ocr_result_not_found(self):
+        """존재하지 않는 record_id로 OCR 조회 (services/medical_records.py 74)"""
+        signup_data = {
+            "email": "ocr_notfound@example.com",
+            "password": "Password123!",
+            "name": "OCR404테스터",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "ocr_notfound@example.com", "password": "Password123!"},
+            )
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            response = await client.get("/api/v1/records/99999/ocr", headers=headers)
+
+            assert response.status_code == status.HTTP_404_NOT_FOUND
