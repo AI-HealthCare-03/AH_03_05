@@ -106,7 +106,6 @@ class TestHealthProfileAPI(TestCase):
         # Then
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-
     async def test_upsert_health_profile_update_existing(self):
         """이미 프로필이 있을 때 PUT으로 업데이트하는 분기 검증 (services/health_profiles.py 18-20)"""
         signup_data = {
