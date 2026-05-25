@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
+import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
 import { colors, spacing, typography } from "../../theme";
 import { recordsApi, extractApiError } from "../../api";
@@ -9,9 +10,9 @@ import type { RecordSummary } from "../../api";
 import { RECORD_LABEL, FILTER_TO_TYPE, iconFor, formatDate, getRecordColor, s } from "./_recordsShared";
 
 const devRecords: RecordSummary[] = [
-  { record_id: 1, record_type: "prescription", status: "ocr_completed", uploaded_at: "2026-05-11T10:00:00" },
-  { record_id: 2, record_type: "medicine_bag", status: "ocr_completed", uploaded_at: "2026-04-22T14:00:00" },
-  { record_id: 3, record_type: "medical_record", status: "uploaded", uploaded_at: "2026-04-15T09:00:00" },
+  { record_id: 1, record_type: "prescription",   status: "ocr_completed", uploaded_at: "2026-05-11T10:00:00", hospital_name: "서울 내과 의원",  medication_count: 3 },
+  { record_id: 2, record_type: "medicine_bag",    status: "ocr_completed", uploaded_at: "2026-04-22T14:00:00", hospital_name: "한양 약국",        medication_count: 2 },
+  { record_id: 3, record_type: "medical_record",  status: "uploaded",      uploaded_at: "2026-04-15T09:00:00", hospital_name: "서울대학교 병원",  medication_count: 0 },
 ];
 
 export function RecordListScreen({ navigation }: any) {
@@ -107,8 +108,8 @@ export function RecordListScreen({ navigation }: any) {
         </View>
       ) : (
         records.map((r) => (
-          <TouchableOpacity key={r.record_id} style={s.recordCard} onPress={() => navigation.navigate("RecordDetail", { recordId: r.record_id })}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+          <Card key={r.record_id} shadow noPadding onPress={() => navigation.navigate("RecordDetail", { recordId: r.record_id })}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: spacing.s20 }}>
               <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: getRecordColor(r.record_id) + "22", alignItems: "center", justifyContent: "center" }}>
                 <Icon name={iconFor(r.record_type)} size={18} color={getRecordColor(r.record_id)} />
               </View>
@@ -119,12 +120,16 @@ export function RecordListScreen({ navigation }: any) {
                   </View>
                   <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(r.uploaded_at)}</Text>
                 </View>
-                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>{RECORD_LABEL[r.record_type]}</Text>
-                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>{r.status.replace(/_/g, " ")}</Text>
+                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>
+                  {r.hospital_name ?? "병원 정보 없음"}
+                </Text>
+                {r.medication_count != null ? (
+                  <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>약품 {r.medication_count}개</Text>
+                ) : null}
               </View>
               <Icon name="chevron-right" size={16} color={colors.muted2} />
             </View>
-          </TouchableOpacity>
+          </Card>
         ))
       )}
     </ScreenLayout>

@@ -8,6 +8,7 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
 
 // ─── ForgotPasswordScreen ─────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
   const [sent, setSent] = useState(false);
   const [emailError, setEmailError] = useState('');
   const { isTabletOrAbove } = useBreakpoint();
+  const { top: safeTop } = useSafeAreaInsets();
 
   const formContent = sent ? (
     <>
@@ -95,7 +97,7 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.authContainer} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.authContainer, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop) }]} keyboardShouldPersistTaps="handled">
         <View style={styles.brandRow}>
           <View style={styles.brandLogo}><Icon name="robot" size={18} color={colors.white} /></View>
           <Text style={styles.brandName}>MediPT</Text>

@@ -121,6 +121,8 @@ export interface RecordSummary {
   record_type: RecordType;
   status: RecordStatus;
   uploaded_at: string;
+  hospital_name?: string;
+  medication_count?: number;
 }
 
 export interface RecordListResponse {
@@ -136,10 +138,18 @@ export interface RecordDetail {
   status: RecordStatus;
   ocr_confidence?: number;
   uploaded_at?: string;
+  hospital_name?: string;
+  doctor_name?: string;
+  total_days?: number;
+  notes?: string;
+  file_name?: string;
+  file_size?: string;
+  file_url?: string;
 }
 
 export interface MedicationItem {
   medication_id: number;
+  drug_ref_id?: number;
   drug_name: string;
   dosage?: string;
   frequency?: string;
@@ -236,6 +246,7 @@ export interface DrugSearchResponse {
 export interface DrugDetail {
   drug_ref_id: number;
   drug_name: string;
+  ingredient_name?: string;
   manufacturer?: string;
   efficacy?: string;
   usage_method?: string;

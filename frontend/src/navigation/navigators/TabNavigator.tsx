@@ -13,6 +13,14 @@ import SettingsNavigator from "./SettingsNavigator";
 
 const Tab = createBottomTabNavigator();
 
+const TAB_ROOT_SCREENS: Record<string, string> = {
+  HomeTab: 'Home',
+  RecordsTab: 'RecordList',
+  GuideTab: 'GuideResult',
+  ChatTab: 'ChatList',
+  SettingsTab: 'Settings',
+};
+
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
   return (
     <View>
@@ -53,7 +61,7 @@ function TabNavigator() {
             const isFocused = navigation.isFocused();
             if (isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
         })}
       />
@@ -69,7 +77,7 @@ function TabNavigator() {
             const isFocused = navigation.isFocused();
             if (isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
         })}
       />
@@ -85,7 +93,7 @@ function TabNavigator() {
             const isFocused = navigation.isFocused();
             if (isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
         })}
       />
@@ -101,7 +109,7 @@ function TabNavigator() {
             const isFocused = navigation.isFocused();
             if (isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
         })}
       />
@@ -117,7 +125,7 @@ function TabNavigator() {
             const isFocused = navigation.isFocused();
             if (isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name }] });
+            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
         })}
       />

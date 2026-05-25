@@ -12,6 +12,15 @@ import { recordsApi, extractApiError } from '../../api';
 import type { MedicationCandidate } from '../../api';
 import { s } from './_ocrShared';
 
+function buildCandidateTime(c: MedicationCandidate): string {
+  if (!c.frequency && !c.timing) return '';
+  const parts: string[] = [];
+  if (c.frequency) parts.push(c.frequency);
+  if (c.timing) parts.push(c.timing);
+  parts.push('14일');
+  return `1일 ${parts.join(' · ')}`;
+}
+
 export function OCRResultScreen({ navigation, route }: any) {
   const recordId: number | undefined = route?.params?.recordId;
   const { ocrSession, setOcrSession, flash } = useApp();
@@ -31,7 +40,7 @@ export function OCRResultScreen({ navigation, route }: any) {
           drugs: (res.medication_candidates ?? []).map(c => ({
             name: c.drug_name,
             maker: '',
-            time: '',
+            time: buildCandidateTime(c),
             confidence: Math.round(c.confidence * 100),
             status: (!c.is_verified && c.confidence < 0.7) ? 'needsCheck' : 'ok',
           })),
@@ -48,7 +57,7 @@ export function OCRResultScreen({ navigation, route }: any) {
     ? candidates.map(c => ({
         name: c.drug_name,
         maker: '',
-        time: '',
+        time: buildCandidateTime(c),
         confidence: Math.round(c.confidence * 100),
         status: (!c.is_verified && c.confidence < 0.7) ? 'needsCheck' : 'ok' as 'ok' | 'needsCheck',
       }))
@@ -76,7 +85,7 @@ export function OCRResultScreen({ navigation, route }: any) {
       contentStyle={{ padding: spacing.s20 }}
     >
       {!imageRemoved ? (
-        <Card style={{ marginBottom: 14 }}>
+        <Card shadow style={{ marginBottom: 14 }}>
           <View style={s.docPreview}>
             <Icon name="doc" size={72} color="rgba(8,145,178,0.3)" />
             <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn}>
@@ -91,10 +100,10 @@ export function OCRResultScreen({ navigation, route }: any) {
           </View>
         </Card>
       ) : (
-        <Card style={{ marginBottom: 14, alignItems: 'center', paddingVertical: spacing.s24 }}>
+        <Card shadow style={{ marginBottom: 14, alignItems: 'center', paddingVertical: spacing.s24 }}>
           <Icon name="image" size={24} color={colors.muted2} />
           <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s8 }}>원본 이미지를 제거했어요</Text>
-          <TouchableOpacity onPress={() => setImageRemoved(false)} style={{ marginTop: 4 }}>
+          <TouchableOpacity onPress={() => { setImageRemoved(false); flash('이미지를 복원했습니다'); }} style={{ marginTop: 4 }}>
             <Text style={{ fontSize: typography.fz12, color: colors.accent }}>되돌리기</Text>
           </TouchableOpacity>
         </Card>
@@ -112,13 +121,13 @@ export function OCRResultScreen({ navigation, route }: any) {
         </View>
       )}
 
-      <Card>
+      <Card shadow>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Icon name="link" size={14} color={colors.ink2} />
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>인식된 약품 ({displayDrugs.length}종)</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('DrugSearch')}>
+          <TouchableOpacity onPress={() => navigation.navigate('DrugCandidate')}>
             <Text style={{ fontSize: typography.fz13, color: colors.accent }}>+ 직접 추가</Text>
           </TouchableOpacity>
         </View>
@@ -128,14 +137,17 @@ export function OCRResultScreen({ navigation, route }: any) {
           return (
             <TouchableOpacity key={i}
               style={[s.drugCard, { backgroundColor: warn ? colors.warning50 : colors.success50 }]}
-              onPress={() => navigation.navigate('DrugDosage')}
+              onPress={() => warn
+                ? navigation.navigate('DrugCandidate', { medicationName: d.name, drugIndex: i })
+                : navigation.navigate('DrugDosage', { drugIndex: i })
+              }
             >
               <View style={[s.drugDot, { backgroundColor: warn ? colors.warning : colors.success }]}>
                 {warn ? <Icon name="alert" size={14} color="#fff" /> : <Icon name="check" size={14} color="#fff" />}
               </View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}>{d.name}</Text>
+                  <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, flex: 1 }} numberOfLines={1}>{d.name}</Text>
                   {d.maker ? <Text style={{ fontSize: typography.fz12, color: colors.muted }}>({d.maker})</Text> : null}
                 </View>
                 <Text style={{ fontSize: typography.fz12, color: warn ? '#92400E' : '#065F46', marginTop: 2 }}>
