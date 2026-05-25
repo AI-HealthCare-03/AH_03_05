@@ -62,7 +62,6 @@ export const styles = StyleSheet.create({
   authContainer: {
     flexGrow: 1,
     padding: spacing.s24,
-    paddingTop: spacing.s56,
     backgroundColor: colors.canvas,
   },
   brandRow: {

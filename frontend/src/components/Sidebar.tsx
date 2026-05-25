@@ -5,6 +5,14 @@ import { useApp } from '../context/AppContext';
 import Icon from './Icon';
 import { colors, spacing, radii } from '../theme';
 
+const TAB_ROOT_SCREENS: Record<string, string> = {
+  HomeTab: 'Home',
+  RecordsTab: 'RecordList',
+  GuideTab: 'GuideResult',
+  ChatTab: 'ChatList',
+  SettingsTab: 'Settings',
+};
+
 const NAV_ITEMS = [
   {
     section: '메인',
@@ -48,11 +56,7 @@ export default function Sidebar() {
     item.tab === activeTab;
 
   const go = (tab: string, screen?: string) => {
-    if (screen) {
-      navigation.navigate(tab as never, { screen } as never);
-    } else {
-      navigation.navigate(tab as never);
-    }
+    navigation.navigate(tab as never, { screen: screen ?? TAB_ROOT_SCREENS[tab] } as never);
   };
 
   return (

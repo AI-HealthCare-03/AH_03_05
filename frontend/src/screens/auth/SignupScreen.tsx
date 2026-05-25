@@ -12,6 +12,7 @@ import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import axios from 'axios';
 import { authApi, extractApiError } from '../../api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
 
 // ─── SignupScreen internals ───────────────────────────────────────────────────
@@ -54,6 +55,7 @@ function AgreeRow({ checked, onPress, label, extra, onPressExtra }: {
 export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   const { user, setUser } = useApp();
   const { isTabletOrAbove } = useBreakpoint();
+  const { top: safeTop } = useSafeAreaInsets();
   const [form, setForm] = useState({ name: '', nickname: '', email: '', pw: '', pw2: '' });
   const [agreed, setAgreed] = useState({ all: false, tos: false, privacy: false, sensitive: false, ai: false, marketing: false });
   const [loading, setLoading] = useState(false);
@@ -386,7 +388,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={[styles.authContainer, { paddingBottom: spacing.s56 }]} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.authContainer, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: spacing.s56 }]} keyboardShouldPersistTaps="handled">
         <View style={styles.brandRow}>
           <View style={styles.brandLogo}><Icon name="robot" size={18} color={colors.white} /></View>
           <Text style={styles.brandName}>MediPT</Text>

@@ -12,7 +12,7 @@ export type HomeStackParams = {
   Home: undefined;
   OCRProcessing: { recordId?: number };
   OCRResult: { recordId?: number };
-  DrugSearch: { medicationName?: string };
+  DrugCandidate: { medicationName?: string; drugIndex?: number };
   DrugDosage: undefined;
   DrugDetail: { drugId: number };
   GuideLoading: { recordId?: number };

@@ -4,6 +4,7 @@
 //   - ChatListScreen에 스와이프 삭제 UI 구현 필요 (react-native-gesture-handler Swipeable 또는 커스텀)
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
@@ -35,6 +36,7 @@ const MOCK_SESSIONS: ChatSession[] = [
 ];
 
 export function ChatListScreen({ navigation }: any) {
+  const { top: safeTop } = useSafeAreaInsets();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -158,7 +160,7 @@ export function ChatListScreen({ navigation }: any) {
 
     return (
       <View style={ds.root}>
-        <View style={ds.sidebar}>
+        <View style={[ds.sidebar, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop) }]}>
           <View style={ds.sidebarHeader}>
             <Text style={ds.sidebarTitle}>건강 상담</Text>
             <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
@@ -174,7 +176,7 @@ export function ChatListScreen({ navigation }: any) {
         <View style={ds.pane}>
           {selectedId ? (
             <>
-              <View style={ds.paneHeader}>
+              <View style={[ds.paneHeader, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop) }]}>
                 <View style={{ flex: 1 }}>
                   <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
                 </View>
@@ -218,12 +220,12 @@ export function ChatListScreen({ navigation }: any) {
 
 const ds = StyleSheet.create({
   root: { flex: 1, flexDirection: 'row', backgroundColor: colors.canvas },
-  sidebar: { width: 300, borderRightWidth: 1, borderRightColor: colors.hairline, backgroundColor: colors.surface, paddingTop: spacing.safeTop },
+  sidebar: { width: 300, borderRightWidth: 1, borderRightColor: colors.hairline, backgroundColor: colors.surface },
   sidebarHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.s16, paddingBottom: spacing.s12 },
   sidebarTitle: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   chatItemSelected: { backgroundColor: colors.accent50, borderColor: colors.accent },
   pane: { flex: 1, backgroundColor: colors.canvas },
-  paneHeader: { flexDirection: 'row', alignItems: 'center', paddingTop: spacing.safeTop, paddingBottom: 14, paddingHorizontal: spacing.s20, borderBottomWidth: 0.5, borderBottomColor: colors.hairline, backgroundColor: colors.canvas },
+  paneHeader: { flexDirection: 'row', alignItems: 'center', paddingBottom: 14, paddingHorizontal: spacing.s20, borderBottomWidth: 0.5, borderBottomColor: colors.hairline, backgroundColor: colors.canvas },
   paneTitle: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface2, alignItems: 'center', justifyContent: 'center', marginLeft: spacing.s12 },
 });

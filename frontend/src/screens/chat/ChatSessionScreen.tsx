@@ -26,7 +26,7 @@ export function ChatSessionScreen({ navigation, route }: any) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={TAB_BAR_HEIGHT}
     >
-      <View style={[cs.header, { paddingTop: safeTop }]}>
+      <View style={[cs.header, { paddingTop: Math.max(safeTop, spacing.safeTop) }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={cs.iconBtn}>
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
