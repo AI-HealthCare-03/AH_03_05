@@ -1,16 +1,19 @@
 """
 통합 테스트용 fixture.
 
-OpenAI client를 mock으로 대체하여 실제 API 호출 없이 테스트를 실행한다.
+OpenAI client / 식약처 MFDS client를 mock으로 대체하여
+실제 외부 API 호출 없이 테스트를 실행한다.
 
 핵심 전략:
     - app.services.chatbot_service.client.chat.completions.create
     - app.services.llm_service.client.chat.completions.create
-    위 두 메서드를 mocker.patch로 대체한다.
+    - app.services.mfds_client.MFDSClient.search_drug / get_drug_detail
+    위 메서드들을 mocker.patch로 대체한다.
 
-    실제 호출이 발생하지 않으므로 OPENAI_API_KEY 없이도 테스트 통과 가능.
+    실제 호출이 발생하지 않으므로 OPENAI_API_KEY, MFDS_API_KEY 없이도 통과 가능.
 """
 
+import httpx
 import pytest
 
 from tests.integration.fixtures.llm_responses import (
@@ -27,10 +30,15 @@ from tests.integration.fixtures.llm_responses import (
     MED_PREGNANCY,
     make_openai_response,
 )
+from tests.integration.fixtures.mfds_responses import (
+    DETAIL_NONE,
+    DETAIL_TYLENOL,
+    SEARCH_EMPTY,
+    SEARCH_TYLENOL,
+)
 
 # llm_service.generate_guide() 용
 # generate_guide는 OpenAI를 2번 호출 (복약 -> 생활습관)
-# side_effect=[med_response, lifestyle_response] 로 순차 반환
 
 
 @pytest.fixture
@@ -82,7 +90,6 @@ def mock_generate_guide_over65(mocker):
 
 
 # chatbot_service.chat() 용
-# chat은 OpenAI를 1번 호출
 
 
 @pytest.fixture
@@ -114,7 +121,7 @@ def mock_chat_out_of_scope(mocker):
 
 @pytest.fixture
 def mock_chat_safety_true(mocker):
-    """LLM이 safety_flag=true로 판단한 응답 (2차 필터)"""
+    """LLM이 safety_flag=true로 판단한 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
         return_value=make_openai_response(CHAT_SAFETY_TRUE),
@@ -127,4 +134,70 @@ def mock_chat_history(mocker):
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
         return_value=make_openai_response(CHAT_HISTORY),
+    )
+
+
+# 식약처(MFDS) API용
+# MFDSClient의 메서드 자체를 patch하여 httpx 호출 자체를 우회
+
+
+@pytest.fixture
+def mock_mfds_search_success(mocker):
+    """정상 검색: 약품 2건 반환"""
+    return mocker.patch(
+        "app.services.mfds_client.MFDSClient.search_drug",
+        return_value=SEARCH_TYLENOL,
+    )
+
+
+@pytest.fixture
+def mock_mfds_search_empty(mocker):
+    """검색 결과 0건"""
+    return mocker.patch(
+        "app.services.mfds_client.MFDSClient.search_drug",
+        return_value=SEARCH_EMPTY,
+    )
+
+
+@pytest.fixture
+def mock_mfds_search_timeout(mocker):
+    """검색 중 timeout"""
+    return mocker.patch(
+        "app.services.mfds_client.MFDSClient.search_drug",
+        side_effect=httpx.TimeoutException("timed out"),
+    )
+
+
+@pytest.fixture
+def mock_mfds_detail_success(mocker):
+    """정상 상세 조회: 약품 1건 반환"""
+    return mocker.patch(
+        "app.services.mfds_client.MFDSClient.get_drug_detail",
+        return_value=DETAIL_TYLENOL,
+    )
+
+
+@pytest.fixture
+def mock_mfds_detail_not_found(mocker):
+    """상세 조회 결과 없음 (None 반환)"""
+    return mocker.patch(
+        "app.services.mfds_client.MFDSClient.get_drug_detail",
+        return_value=DETAIL_NONE,
+    )
+
+
+@pytest.fixture
+def mock_mfds_detail_rate_limit(mocker):
+    """429 rate limit"""
+    mock_response = httpx.Response(
+        status_code=429,
+        request=httpx.Request("GET", "http://test"),
+    )
+    return mocker.patch(
+        "app.services.mfds_client.MFDSClient.get_drug_detail",
+        side_effect=httpx.HTTPStatusError(
+            "Rate limit exceeded",
+            request=mock_response.request,
+            response=mock_response,
+        ),
     )
