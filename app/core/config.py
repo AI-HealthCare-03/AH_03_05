@@ -42,5 +42,8 @@ class Config(BaseSettings):
     # → 앱 시작 시점에 fail-fast (런타임 500 방지)
     MFDS_API_KEY: str
     OPENAI_API_KEY: str
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+
     OPENAI_CHAT_MODEL: str = "gpt-4o-mini"
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
