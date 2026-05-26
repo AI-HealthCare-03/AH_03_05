@@ -117,8 +117,8 @@ function TabNavigator() {
         name="SettingsTab"
         component={SettingsNavigator}
         options={{
-          title: "마이",
-          tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />,
+          title: "설정",
+          tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />,
         }}
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {

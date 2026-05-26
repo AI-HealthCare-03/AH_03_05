@@ -34,7 +34,7 @@ export function LegalDocScreen({ navigation, route }: any) {
   return (
     <ScreenLayout title={doc.title} back onBack={() => navigation.goBack()} scrollable>
       <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s16 }}>{doc.version}</Text>
-      <Card>
+      <Card shadow>
         {doc.sections.map((sec, i) => (
           <View key={i} style={{ marginBottom: 18 }}>
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, marginBottom: spacing.s8 }}>{sec.h}</Text>

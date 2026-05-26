@@ -7,7 +7,7 @@ import Button from '../../components/Button';
 import Card from '../../components/Card';
 import Input from '../../components/Input';
 import ScreenLayout from '../../components/ScreenLayout';
-import { Rule } from './_settingsShared';
+import { s, Rule } from './_settingsShared';
 import { usersApi, extractApiError } from '../../api';
 
 export function PasswordChangeScreen({ navigation }: any) {
@@ -39,15 +39,14 @@ export function PasswordChangeScreen({ navigation }: any) {
 
   return (
     <ScreenLayout title="비밀번호 변경" back onBack={() => navigation.goBack()} scrollable>
-      <Card>
+      <Card shadow>
         {[
           { label: '현재 비밀번호', val: cur, set: setCur },
           { label: '새 비밀번호',  val: pw,  set: setPw },
           { label: '새 비밀번호 확인', val: pw2, set: setPw2 },
         ].map(f => (
           <View key={f.label} style={{ marginBottom: 14 }}>
-            <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s8 }}>{f.label}</Text>
-            <Input value={f.val} onChangeText={f.set} secureTextEntry />
+            <Input label={f.label} value={f.val} onChangeText={f.set} secureTextEntry />
           </View>
         ))}
         <View style={{ marginBottom: 14 }}>
@@ -61,13 +60,14 @@ export function PasswordChangeScreen({ navigation }: any) {
         <Button
           variant="primary"
           size="lg"
-          style={{ borderRadius: radii.md, opacity: canSubmit ? 1 : 0.4 }}
+          borderRadius={radii.pill}
+          disabled={!canSubmit}
           onPress={submit}
           loading={loading}
           fullWidth
         >변경하기</Button>
       </Card>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', backgroundColor: colors.accent50, borderRadius: radii.md, padding: 14, marginTop: 14 }}>
+      <View style={[s.banner, { backgroundColor: colors.accent50, marginTop: 14 }]}>
         <Icon name="shield" size={16} color={colors.accent700} />
         <Text style={{ fontSize: typography.fz13, color: colors.accent700, flex: 1, marginLeft: spacing.s8 }}>변경 후 다른 기기에서는 다시 로그인해야 해요.</Text>
       </View>

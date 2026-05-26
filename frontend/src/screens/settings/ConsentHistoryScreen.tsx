@@ -90,7 +90,7 @@ export function ConsentHistoryScreen({ navigation }: any) {
           <ActivityIndicator color={colors.accent} />
         </View>
       ) : (
-        <Card noPadding style={{ overflow: 'hidden' }}>
+        <Card shadow noPadding style={{ overflow: 'hidden' }}>
           {consents.map((c, i) => (
             <View key={c.type} style={[{ paddingHorizontal: spacing.s16, paddingVertical: 14 }, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, marginBottom: 6 }}>
@@ -133,12 +133,12 @@ export function ConsentHistoryScreen({ navigation }: any) {
 
       {withdrawModal && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}>
-          <Card style={{ margin: spacing.s20, width: '85%' }}>
+          <Card shadow style={{ margin: spacing.s20, width: '85%' }}>
             <Text style={{ fontSize: 16, fontWeight: typography.fw7, marginBottom: 10, color: colors.danger }}>필수 약관 철회 안내</Text>
             <Text style={{ fontSize: typography.fz14, color: colors.ink2, lineHeight: 22, marginBottom: spacing.s20 }}>
               이 약관 철회는 회원탈퇴로 이어집니다.{'\n'}탈퇴를 원하시면 설정 &gt; 회원 탈퇴를 이용해주세요.
             </Text>
-            <Button variant="primary" size="lg" style={{ borderRadius: radii.md }} onPress={() => setWithdrawModal(false)} fullWidth>확인</Button>
+            <Button variant="primary" size="lg" borderRadius={radii.pill} onPress={() => setWithdrawModal(false)} fullWidth>확인</Button>
           </Card>
         </View>
       )}
