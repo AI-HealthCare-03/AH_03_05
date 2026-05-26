@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Switch, ActivityIndicator } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
-import { colors, radii, spacing, typography } from '../../theme';
-import Button from '../../components/Button';
+import { colors, spacing, typography } from '../../theme';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -41,19 +40,16 @@ export function ConsentHistoryScreen({ navigation }: any) {
   const [consents, setConsents] = useState<ConsentRow[]>(STATIC_CONSENTS);
   const [loadingConsents, setLoadingConsents] = useState(true);
   const [togglingType, setTogglingType] = useState<ConsentType | null>(null);
-  const [withdrawModal, setWithdrawModal] = useState(false);
 
   useEffect(() => {
     usersApi.getConsents()
       .then(res => {
-        const rows: ConsentRow[] = res.consents.map(c => ({
-          type: c.type,
-          name: c.label,
-          required: c.required,
-          agreed: c.agreed,
-          agreedAt: c.agreedAt ?? null,
+        const beMap = new Map(res.consents.map(c => [c.type, c]));
+        setConsents(STATIC_CONSENTS.map(s => {
+          const be = beMap.get(s.type);
+          if (!be) return s;
+          return { type: be.type, name: be.label, required: be.required, agreed: be.agreed, agreedAt: be.agreedAt ?? null };
         }));
-        setConsents(rows);
       })
       .catch(() => { /* silent — keep static fallback */ })
       .finally(() => setLoadingConsents(false));
@@ -92,11 +88,11 @@ export function ConsentHistoryScreen({ navigation }: any) {
       ) : (
         <Card shadow noPadding style={{ overflow: 'hidden' }}>
           {consents.map((c, i) => (
-            <View key={c.type} style={[{ paddingHorizontal: spacing.s16, paddingVertical: 14 }, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
+            <View key={c.type} style={[{ paddingHorizontal: spacing.s20, paddingVertical: 14 }, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, marginBottom: 6 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink, flex: 1 }}>{c.name}</Text>
-                <Badge variant={c.required ? 'danger' : 'default'}>
-                  {c.required ? '필수' : '선택'}
+                <Badge variant={c.required ? 'danger' : (c.type === 'marketing' && marketingConsent?.agreed) ? 'success' : 'default'}>
+                  {c.required ? '필수' : (c.type === 'marketing' && marketingConsent?.agreed) ? '동의함' : '선택'}
                 </Badge>
                 {c.type === 'marketing' ? (
                   <Switch
@@ -119,11 +115,6 @@ export function ConsentHistoryScreen({ navigation }: any) {
                   <TouchableOpacity onPress={() => navigation.navigate('LegalDoc', { docKey: DOC_KEY[c.type] })}>
                     <Text style={{ fontSize: typography.fz12, color: colors.accent }}>전문 보기</Text>
                   </TouchableOpacity>
-                  {c.required && (
-                    <TouchableOpacity onPress={() => setWithdrawModal(true)}>
-                      <Text style={{ fontSize: typography.fz12, color: colors.muted }}>철회 안내</Text>
-                    </TouchableOpacity>
-                  )}
                 </View>
               </View>
             </View>
@@ -131,17 +122,6 @@ export function ConsentHistoryScreen({ navigation }: any) {
         </Card>
       )}
 
-      {withdrawModal && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}>
-          <Card shadow style={{ margin: spacing.s20, width: '85%' }}>
-            <Text style={{ fontSize: 16, fontWeight: typography.fw7, marginBottom: 10, color: colors.danger }}>필수 약관 철회 안내</Text>
-            <Text style={{ fontSize: typography.fz14, color: colors.ink2, lineHeight: 22, marginBottom: spacing.s20 }}>
-              이 약관 철회는 회원탈퇴로 이어집니다.{'\n'}탈퇴를 원하시면 설정 &gt; 회원 탈퇴를 이용해주세요.
-            </Text>
-            <Button variant="primary" size="lg" borderRadius={radii.pill} onPress={() => setWithdrawModal(false)} fullWidth>확인</Button>
-          </Card>
-        </View>
-      )}
     </ScreenLayout>
   );
 }

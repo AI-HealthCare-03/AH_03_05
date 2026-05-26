@@ -117,15 +117,16 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
     }
   };
 
-  const pwLengthOk  = form.pw.length >= 8;
+  const pwLengthOk  = form.pw.length >= 8 && form.pw.length <= 20;
   const pwUpperOk   = /[A-Z]/.test(form.pw);
+  const pwLowerOk   = /[a-z]/.test(form.pw);
   const pwNumberOk  = /[0-9]/.test(form.pw);
   const pwSpecialOk = /[^A-Za-z0-9]/.test(form.pw);
   const pwNotSameOk = form.pw.length === 0 || (
     (form.name.length === 0  || !form.pw.toLowerCase().includes(form.name.toLowerCase())) &&
     (form.email.length === 0 || !form.pw.toLowerCase().includes(form.email.toLowerCase()))
   );
-  const pwAllOk = pwLengthOk && pwUpperOk && pwNumberOk && pwSpecialOk && pwNotSameOk;
+  const pwAllOk = pwLengthOk && pwUpperOk && pwLowerOk && pwNumberOk && pwSpecialOk && pwNotSameOk;
 
   const requiredOk = agreed.tos && agreed.privacy && agreed.sensitive && agreed.ai;
   const canSubmit = form.name && form.name.length >= 2 && form.email && emailVerified && pwAllOk && form.pw === form.pw2 && requiredOk;
@@ -175,8 +176,9 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   // 비밀번호 미충족 항목 텍스트
   const pwUnmet = passwordTouched && !pwAllOk ? (() => {
     const items: string[] = [];
-    if (!pwLengthOk)  items.push('8자 이상');
+    if (!pwLengthOk)  items.push('8자 이상 20자 이하');
     if (!pwUpperOk)   items.push('대문자 포함');
+    if (!pwLowerOk)   items.push('소문자 포함');
     if (!pwNumberOk)  items.push('숫자 포함');
     if (!pwSpecialOk) items.push('특수문자 포함');
     return items.length > 0 ? `${items.join(', ')} 필요` : '';

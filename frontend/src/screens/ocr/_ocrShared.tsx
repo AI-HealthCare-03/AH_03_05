@@ -10,7 +10,7 @@ export const s = StyleSheet.create({
   removeBtn: { position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: radii.pill, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' },
   drugCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.s12, padding: 14, borderRadius: radii.md, marginBottom: spacing.s8 },
   drugDot: { width: 28, height: 28, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center' },
-  chip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong },
+  chip: { paddingHorizontal: spacing.s10, paddingVertical: 5, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong },
   chipActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
   spinnerWrap: { width: 84, height: 84, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s16 },
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s12, paddingVertical: spacing.s8, alignSelf: 'stretch' },

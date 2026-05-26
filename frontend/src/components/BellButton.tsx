@@ -45,8 +45,8 @@ const styles = {
   },
   bellBadge: {
     position: 'absolute' as const,
-    top: 5,
-    right: 5,
+    top: 4,
+    right: 4,
     minWidth: 14,
     height: 14,
     borderRadius: 7,

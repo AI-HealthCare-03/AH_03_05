@@ -106,7 +106,7 @@ export function ChatSessionPane({ sessionId, onFirstMessage }: Props) {
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: spacing.s20, paddingBottom: spacing.s20 }}
+        contentContainerStyle={{ padding: spacing.s16, paddingBottom: spacing.s16 }}
       >
         {messages.map((msg, i) => <Bubble key={msg.message_id ?? i} msg={msg} />)}
         {sending && (

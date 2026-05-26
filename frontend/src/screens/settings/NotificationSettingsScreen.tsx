@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Switch, TextInput } from 'react-native';
+import { View, Text, Switch, TouchableOpacity, Platform, Modal, StyleSheet } from 'react-native';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { scheduleMedicationNotifications } from '../../utils/notifications';
 import { useApp } from '../../context/AppContext';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
@@ -8,27 +10,65 @@ import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
 
 type MealState = { on: boolean; time: string };
+type MealKey = 'morning' | 'lunch' | 'dinner';
+
+function timeStrToDate(time: string): Date {
+  const [h, m] = time.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+function dateToTimeStr(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
 
 type MealRowProps = {
   label: string;
   val: MealState;
   setVal: React.Dispatch<React.SetStateAction<MealState>>;
   master: boolean;
+  onTimePress: () => void;
 };
 
-function MealRow({ label, val, setVal, master }: MealRowProps) {
+function MealRow({ label, val, setVal, master, onTimePress }: MealRowProps) {
+  const active = master && val.on;
   return (
     <View style={[s.rowItem, { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-      <Switch value={val.on && master} onValueChange={v => setVal(p => ({ ...p, on: v }))} disabled={!master} trackColor={{ true: colors.accent }} />
-      <View style={{ flex: 1, marginLeft: 10 }}>
-        <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: master ? colors.ink : colors.muted }}>{label}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: master ? colors.ink : colors.muted }}>
+          {label}
+        </Text>
         <Text style={{ fontSize: typography.fz12, color: colors.muted }}>알림 시간 {val.time}</Text>
       </View>
-      <TextInput
-        style={[s.timeInput, !master && { opacity: 0.4 }]}
-        value={val.time}
-        onChangeText={v => setVal(p => ({ ...p, time: v }))}
-        editable={master && val.on}
+
+      {Platform.OS === 'web' ? (
+        // @ts-ignore — web only HTML element
+        <input
+          type="time"
+          value={val.time}
+          disabled={!active}
+          onChange={(e: any) => setVal(p => ({ ...p, time: e.target.value }))}
+          style={webTimeInput(active)}
+        />
+      ) : (
+        <TouchableOpacity
+          style={[s.timeInput, !active && { opacity: 0.4 }]}
+          onPress={onTimePress}
+          disabled={!active}
+          activeOpacity={0.7}
+        >
+          <Text style={{ fontSize: typography.fz13, color: active ? colors.ink : colors.muted, textAlign: 'center' }}>
+            {val.time}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      <Switch
+        value={val.on && master}
+        onValueChange={v => setVal(p => ({ ...p, on: v }))}
+        disabled={!master}
+        trackColor={{ true: colors.accent }}
       />
     </View>
   );
@@ -54,14 +94,39 @@ function ToggleRow({ label, sub, val, onChange }: ToggleRowProps) {
 }
 
 export function NotificationSettingsScreen({ navigation }: any) {
-  const { flash } = useApp();
-  const [master, setMaster] = useState(true);
-  const [morning, setMorning] = useState<MealState>({ on: true, time: '08:30' });
-  const [lunch,   setLunch]   = useState<MealState>({ on: false, time: '12:30' });
-  const [dinner,  setDinner]  = useState<MealState>({ on: true,  time: '19:00' });
-  const [newGuide, setNewGuide] = useState(true);
-  const [chatReply, setChatReply] = useState(true);
-  const [marketing, setMarketing] = useState(false);
+  const { flash, notifSettings, setNotifSettings } = useApp();
+  const [master, setMaster]   = useState(notifSettings.master);
+  const [morning, setMorning] = useState<MealState>(notifSettings.morning);
+  const [lunch,   setLunch]   = useState<MealState>(notifSettings.lunch);
+  const [dinner,  setDinner]  = useState<MealState>(notifSettings.dinner);
+  const [newGuide,   setNewGuide]   = useState(notifSettings.newGuide);
+  const [chatReply,  setChatReply]  = useState(notifSettings.chatReply);
+  const [marketing,  setMarketing]  = useState(notifSettings.marketing);
+  const [pickerOpen, setPickerOpen] = useState<MealKey | null>(null);
+
+  const getMealState = (key: MealKey): MealState =>
+    key === 'morning' ? morning : key === 'lunch' ? lunch : dinner;
+
+  const setMealTime = (key: MealKey, time: string) => {
+    if (key === 'morning') setMorning(p => ({ ...p, time }));
+    else if (key === 'lunch') setLunch(p => ({ ...p, time }));
+    else setDinner(p => ({ ...p, time }));
+  };
+
+  const handlePickerChange = (_: DateTimePickerEvent, date?: Date) => {
+    if (Platform.OS === 'android') setPickerOpen(null);
+    if (date && pickerOpen !== null) setMealTime(pickerOpen, dateToTimeStr(date));
+  };
+
+  const save = async () => {
+    const next = { master, morning, lunch, dinner, newGuide, chatReply, marketing };
+    setNotifSettings(next);
+    await scheduleMedicationNotifications(next).catch(() => {});
+    flash('저장했어요');
+    navigation.goBack();
+  };
+
+  const pickerDate = pickerOpen ? timeStrToDate(getMealState(pickerOpen).time) : new Date();
 
   return (
     <ScreenLayout title="알림 설정" back onBack={() => navigation.goBack()} scrollable>
@@ -73,20 +138,87 @@ export function NotificationSettingsScreen({ navigation }: any) {
           </View>
           <Switch value={master} onValueChange={setMaster} trackColor={{ true: colors.accent }} />
         </View>
-        <MealRow label="아침 복약" val={morning} setVal={setMorning} master={master} />
-        <MealRow label="점심 복약" val={lunch}   setVal={setLunch}  master={master} />
-        <MealRow label="저녁 복약" val={dinner}  setVal={setDinner} master={master} />
+        <MealRow label="아침 복약" val={morning} setVal={setMorning} master={master} onTimePress={() => setPickerOpen('morning')} />
+        <MealRow label="점심 복약" val={lunch}   setVal={setLunch}   master={master} onTimePress={() => setPickerOpen('lunch')} />
+        <MealRow label="저녁 복약" val={dinner}  setVal={setDinner}  master={master} onTimePress={() => setPickerOpen('dinner')} />
       </Card>
 
       <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 14 }}>
-        <ToggleRow label="새 가이드 생성 알림" sub="처방전 분석이 완료되었을 때" val={newGuide} onChange={setNewGuide} />
-        <ToggleRow label="상담 답변 알림" sub="AI 상담 응답이 도착했을 때" val={chatReply} onChange={setChatReply} />
-        <ToggleRow label="마케팅 정보 수신" val={marketing} onChange={setMarketing} />
+        <ToggleRow label="새 가이드 생성 알림" sub="처방전 분석이 완료되었을 때" val={newGuide}  onChange={setNewGuide} />
+        <ToggleRow label="상담 답변 알림"       sub="AI 상담 응답이 도착했을 때"   val={chatReply} onChange={setChatReply} />
+        <ToggleRow label="마케팅 정보 수신"                                         val={marketing} onChange={setMarketing} />
       </Card>
 
-      <Button variant="primary" size="lg" borderRadius={radii.pill} onPress={() => { flash('저장했어요'); navigation.goBack(); }} fullWidth>저장하기</Button>
+      <Button variant="primary" size="lg" borderRadius={radii.pill} onPress={save} fullWidth>저장하기</Button>
+
+      {/* Android: system time dialog (렌더링되면 즉시 다이얼로그 표시) */}
+      {Platform.OS === 'android' && pickerOpen !== null && (
+        <DateTimePicker
+          value={pickerDate}
+          mode="time"
+          display="default"
+          onChange={handlePickerChange}
+        />
+      )}
+
+      {/* iOS: 하단 모달 spinner */}
+      {Platform.OS === 'ios' && (
+        <Modal visible={pickerOpen !== null} transparent animationType="fade">
+          <TouchableOpacity style={ps.backdrop} onPress={() => setPickerOpen(null)} activeOpacity={1}>
+            <View style={ps.sheet}>
+              <DateTimePicker
+                value={pickerDate}
+                mode="time"
+                display="spinner"
+                onChange={handlePickerChange}
+                textColor={colors.ink}
+                style={{ width: '100%' }}
+              />
+              <Button
+                variant="primary"
+                size="lg"
+                borderRadius={radii.pill}
+                onPress={() => setPickerOpen(null)}
+                fullWidth
+              >확인</Button>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </ScreenLayout>
   );
 }
 
 export default NotificationSettingsScreen;
+
+function webTimeInput(active: boolean): object {
+  return {
+    border: `1px solid ${colors.hairlineStrong}`,
+    borderRadius: radii.md,
+    paddingLeft: spacing.s8,
+    paddingRight: spacing.s8,
+    height: 36,
+    width: 80,
+    fontSize: typography.fz13,
+    color: active ? colors.ink : colors.muted,
+    background: 'transparent',
+    textAlign: 'center',
+    opacity: active ? 1 : 0.4,
+    cursor: active ? 'pointer' : 'not-allowed',
+  };
+}
+
+const ps = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
+    padding: spacing.s20,
+    paddingBottom: spacing.s32,
+  },
+});
