@@ -15,23 +15,43 @@ const TYPE_MAP: Record<string, RecordType> = {
   '진료기록': 'medical_record',
 };
 
+const TYPES = [
+  { id: '처방전', icon: 'doc' },
+  { id: '약봉투', icon: 'pill' },
+  { id: '진료기록', icon: 'list' },
+];
+
+const SOURCES = [
+  { id: 'camera', label: '사진촬영', icon: 'camera' },
+  { id: 'gallery', label: '갤러리에서 선택', icon: 'image' },
+  { id: 'pdf', label: 'PDF 업로드', icon: 'file' },
+  { id: 'manual', label: '직접입력', icon: 'keyboard' },
+];
+
+type SourceCardProps = {
+  src: { id: string; label: string; icon: string };
+  onPress: (id: string) => void;
+};
+
+function SourceCard({ src, onPress }: SourceCardProps) {
+  return (
+    <TouchableOpacity
+      style={[s.srcCard, { flex: 1 }]}
+      onPress={() => onPress(src.id)}
+    >
+      <View style={s.srcIcon}>
+        <Icon name={src.icon} size={14} color={colors.accent700} />
+      </View>
+      <Text style={{ fontSize: typography.fz12, fontWeight: typography.fw6 }}>{src.label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 export default function UploadModalScreen({ navigation }: any) {
   const [type, setType] = useState('처방전');
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
   const [uploadError, setUploadError] = useState('');
-
-  const types = [
-    { id: '처방전', icon: 'doc' },
-    { id: '약봉투', icon: 'pill' },
-    { id: '진료기록', icon: 'list' },
-  ];
-  const sources = [
-    { id: 'camera', label: '사진촬영', icon: 'camera' },
-    { id: 'gallery', label: '갤러리에서 선택', icon: 'image' },
-    { id: 'pdf', label: 'PDF 업로드', icon: 'file' },
-    { id: 'manual', label: '직접입력', icon: 'keyboard' },
-  ];
 
   const { isTabletOrAbove } = useBreakpoint();
   const { width } = useWindowDimensions();
@@ -152,7 +172,7 @@ export default function UploadModalScreen({ navigation }: any) {
       ) : (
         <>
           <View style={{ flexDirection: 'row', gap: spacing.s8, marginBottom: 14 }}>
-            {types.map((t) => (
+            {TYPES.map((t) => (
               <TouchableOpacity key={t.id} style={[s.typeCard, type === t.id && s.typeCardActive]} onPress={() => setType(t.id)}>
                 <View style={[s.typeIcon, { backgroundColor: type === t.id ? colors.accent100 : colors.surface2 }]}>
                   <Icon name={t.icon} size={14} color={type === t.id ? colors.accent700 : colors.muted} />
@@ -163,19 +183,10 @@ export default function UploadModalScreen({ navigation }: any) {
           </View>
 
           <View style={{ gap: spacing.s8, marginBottom: 14 }}>
-            {[sources.slice(0, 2), sources.slice(2, 4)].map((row, ri) => (
+            {[SOURCES.slice(0, 2), SOURCES.slice(2, 4)].map((row, ri) => (
               <View key={ri} style={{ flexDirection: 'row', gap: spacing.s8 }}>
                 {row.map((src) => (
-                  <TouchableOpacity
-                    key={src.id}
-                    style={[s.srcCard, { flex: 1 }]}
-                    onPress={() => handleSourcePress(src.id)}
-                  >
-                    <View style={s.srcIcon}>
-                      <Icon name={src.icon} size={14} color={colors.accent700} />
-                    </View>
-                    <Text style={{ fontSize: typography.fz12, fontWeight: typography.fw6 }}>{src.label}</Text>
-                  </TouchableOpacity>
+                  <SourceCard key={src.id} src={src} onPress={handleSourcePress} />
                 ))}
               </View>
             ))}

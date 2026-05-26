@@ -15,6 +15,11 @@ import { BrandPanel, styles, type AuthNavProp } from './_authShared';
 
 const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
 
+const BRAND_PANEL_FEATURES = [
+  { icon: 'shield', title: '안전한 본인 인증', sub: '이메일을 통한 2단계 확인' },
+  { icon: 'lock', title: '재설정 후 자동 로그아웃', sub: '다른 기기에서 다시 로그인 필요' },
+];
+
 export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }) {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -79,10 +84,7 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
         <BrandPanel
           tagline={"비밀번호를 잊으셨나요?\n이메일로 재설정 링크를\n보내드릴게요."}
           desc="가입 시 사용한 이메일을 입력해주세요. 안내 메일 발송 후 24시간 안에 비밀번호를 재설정해주세요."
-          features={[
-            { icon: 'shield', title: '안전한 본인 인증', sub: '이메일을 통한 2단계 확인' },
-            { icon: 'lock', title: '재설정 후 자동 로그아웃', sub: '다른 기기에서 다시 로그인 필요' },
-          ]}
+          features={BRAND_PANEL_FEATURES}
         />
         <ScrollView style={{ flex: 1, backgroundColor: colors.canvas }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 48 }} keyboardShouldPersistTaps="handled">
           <View style={{ maxWidth: 420, width: '100%', alignSelf: 'center' }}>

@@ -88,11 +88,11 @@ export function DrugDetailScreen({ navigation, route }: any) {
 
   if (!drug) return null;
 
-  const sections: { label: string; value?: string }[] = [
-    { label: '효능·효과', value: drug.efficacy },
-    { label: '용법·용량', value: drug.usage_method },
-    { label: '주의사항', value: drug.caution },
-    { label: '부작용', value: drug.side_effect },
+  const sections: { label: string; icon: string; iconColor: string; value?: string }[] = [
+    { label: '효능·효과', icon: 'heart',        iconColor: colors.success,  value: drug.efficacy },
+    { label: '용법·용량', icon: 'clock',         iconColor: colors.accent,   value: drug.usage_method },
+    { label: '주의사항', icon: 'alert',          iconColor: colors.warning,  value: drug.caution },
+    { label: '부작용',   icon: 'alert-circle',   iconColor: colors.danger,   value: drug.side_effect },
   ].filter(sec => !!sec.value);
 
   return (
@@ -127,8 +127,8 @@ export function DrugDetailScreen({ navigation, route }: any) {
         {sections.map((sec, i) => (
           <View key={sec.label} style={[{ paddingTop: spacing.s16 }, i === 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.s8 }}>
-              <Icon name="link" size={13} color={colors.ink2} />
-              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>{sec.label}</Text>
+              <Icon name={sec.icon} size={13} color={sec.iconColor} />
+              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>{sec.label}</Text>
             </View>
             <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20, marginBottom: spacing.s16 }}>{sec.value}</Text>
           </View>

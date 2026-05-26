@@ -14,11 +14,11 @@ import SettingsNavigator from "./SettingsNavigator";
 const Tab = createBottomTabNavigator();
 
 const TAB_ROOT_SCREENS: Record<string, string> = {
-  HomeTab: 'Home',
-  RecordsTab: 'RecordList',
-  GuideTab: 'GuideResult',
-  ChatTab: 'ChatList',
-  SettingsTab: 'Settings',
+  HomeTab: "Home",
+  RecordsTab: "RecordList",
+  GuideTab: "GuideResult",
+  ChatTab: "ChatList",
+  SettingsTab: "Settings",
 };
 
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
@@ -59,7 +59,7 @@ function TabNavigator() {
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {
             const isFocused = navigation.isFocused();
-            if (isFocused) return;
+            if (!isFocused) return;
             e.preventDefault();
             navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
@@ -75,7 +75,7 @@ function TabNavigator() {
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {
             const isFocused = navigation.isFocused();
-            if (isFocused) return;
+            if (!isFocused) return;
             e.preventDefault();
             navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
@@ -91,7 +91,7 @@ function TabNavigator() {
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {
             const isFocused = navigation.isFocused();
-            if (isFocused) return;
+            if (!isFocused) return;
             e.preventDefault();
             navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
@@ -101,13 +101,13 @@ function TabNavigator() {
         name="ChatTab"
         component={ChatNavigator}
         options={{
-          title: "챗봇",
+          title: "건강상담",
           tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />,
         }}
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {
             const isFocused = navigation.isFocused();
-            if (isFocused) return;
+            if (!isFocused) return;
             e.preventDefault();
             navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },
@@ -123,7 +123,7 @@ function TabNavigator() {
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {
             const isFocused = navigation.isFocused();
-            if (isFocused) return;
+            if (!isFocused) return;
             e.preventDefault();
             navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
           },

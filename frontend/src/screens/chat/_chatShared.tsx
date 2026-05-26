@@ -3,7 +3,6 @@ import { colors, radii, spacing, typography } from '../../theme';
 
 export const s = StyleSheet.create({
   searchBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.hairlineStrong, borderRadius: radii.md, paddingHorizontal: spacing.s12, backgroundColor: colors.surface, alignSelf: 'stretch' },
-  chatItem: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: radii.md, marginBottom: spacing.s4, backgroundColor: colors.surface, borderWidth: 0.5, borderColor: colors.hairline },
   inputBar: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.s8, padding: spacing.s16, backgroundColor: colors.surface, borderTopWidth: 0.5, borderTopColor: colors.hairline },
   chatInput: { flex: 1, borderWidth: 1, borderColor: colors.hairlineStrong, borderRadius: radii.md, paddingHorizontal: spacing.s12, paddingVertical: 10, fontSize: typography.fz14, color: colors.ink, maxHeight: 100, backgroundColor: colors.surface },
   bubbleRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.s8, marginBottom: 14 },

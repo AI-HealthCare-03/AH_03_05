@@ -15,6 +15,33 @@ const devRecords: RecordSummary[] = [
   { record_id: 3, record_type: "medical_record",  status: "uploaded",      uploaded_at: "2026-04-15T09:00:00", hospital_name: "서울대학교 병원",  medication_count: 0 },
 ];
 
+function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
+  return (
+    <Card shadow noPadding onPress={onPress}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: spacing.s20 }}>
+        <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: getRecordColor(r.record_id) + "22", alignItems: "center", justifyContent: "center" }}>
+          <Icon name={iconFor(r.record_type)} size={18} color={getRecordColor(r.record_id)} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, marginBottom: spacing.s4 }}>
+            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 999, borderWidth: 0.5, borderColor: colors.hairline }}>
+              <Text style={{ fontSize: typography.fz11, color: colors.ink2 }}>{RECORD_LABEL[r.record_type]}</Text>
+            </View>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(r.uploaded_at)}</Text>
+          </View>
+          <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>
+            {r.hospital_name ?? "병원 정보 없음"}
+          </Text>
+          {r.medication_count != null ? (
+            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>약품 {r.medication_count}개</Text>
+          ) : null}
+        </View>
+        <Icon name="chevron-right" size={16} color={colors.muted2} />
+      </View>
+    </Card>
+  );
+}
+
 export function RecordListScreen({ navigation }: any) {
   const [filter, setFilter] = useState("전체");
   const [records, setRecords] = useState<RecordSummary[]>([]);
@@ -60,40 +87,45 @@ export function RecordListScreen({ navigation }: any) {
     fetchRecords();
   }, [fetchRecords]);
 
-  return (
-    <ScreenLayout
-      title="진료기록"
-      subtitle="업로드한 의료 문서와 분석 결과를 확인할 수 있어요."
-      right={
-        <Button
-          variant="primary"
-          size="sm"
-          leftIcon="camera"
-          onPress={() => navigation.navigate("UploadModal")}
-        >
-          업로드
-        </Button>
-      }
-      headerExtra={
-        <View style={{ flexDirection: "row", gap: 6 }}>
-          {tabs.map((t) => (
-            <TouchableOpacity key={t} style={[s.chip, filter === t && s.chipActive]} onPress={() => setFilter(t)}>
-              <Text style={[{ fontSize: typography.fz12 }, filter === t && { color: colors.accent700, fontWeight: typography.fw6 }]}>{t}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      }
-      scrollable={!loading && !error}
-      scrollPadding={false}
-      contentStyle={!loading && !error ? { padding: spacing.s16, gap: spacing.s12 } : undefined}
-      refreshing={refreshing}
-      onRefresh={() => fetchRecords(true)}
-    >
-      {loading ? (
+  const headerProps = {
+    title: "진료기록",
+    subtitle: "업로드한 의료 문서와 분석 결과를 확인할 수 있어요.",
+    right: (
+      <Button
+        variant="primary"
+        size="sm"
+        leftIcon="camera"
+        onPress={() => navigation.navigate("UploadModal")}
+      >
+        업로드
+      </Button>
+    ),
+    headerExtra: (
+      <View style={{ flexDirection: "row", gap: 6 }}>
+        {tabs.map((t) => (
+          <TouchableOpacity key={t} style={[s.chip, filter === t && s.chipActive]} onPress={() => setFilter(t)}>
+            <Text style={[{ fontSize: typography.fz12 }, filter === t && { color: colors.accent700, fontWeight: typography.fw6 }]}>{t}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    ),
+    refreshing,
+    onRefresh: () => fetchRecords(true),
+  } as const;
+
+  if (loading) {
+    return (
+      <ScreenLayout {...headerProps} scrollable={false}>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator color={colors.accent} size="large" />
         </View>
-      ) : error ? (
+      </ScreenLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenLayout {...headerProps} scrollable={false}>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.s20 }}>
           <Icon name="alert" size={32} color={colors.muted2} />
           <Text style={{ fontSize: typography.fz14, color: colors.muted, marginTop: spacing.s12, textAlign: "center" }}>{error}</Text>
@@ -101,37 +133,35 @@ export function RecordListScreen({ navigation }: any) {
             다시 시도
           </Button>
         </View>
-      ) : records.length === 0 ? (
+      </ScreenLayout>
+    );
+  }
+
+  if (records.length === 0) {
+    return (
+      <ScreenLayout {...headerProps} scrollable={false}>
         <View style={{ alignItems: "center", paddingTop: 60 }}>
           <Icon name="doc" size={40} color={colors.muted2} />
           <Text style={{ fontSize: typography.fz14, color: colors.muted, marginTop: spacing.s12 }}>아직 업로드된 기록이 없어요.</Text>
         </View>
-      ) : (
-        records.map((r) => (
-          <Card key={r.record_id} shadow noPadding onPress={() => navigation.navigate("RecordDetail", { recordId: r.record_id })}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: spacing.s20 }}>
-              <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: getRecordColor(r.record_id) + "22", alignItems: "center", justifyContent: "center" }}>
-                <Icon name={iconFor(r.record_type)} size={18} color={getRecordColor(r.record_id)} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, marginBottom: spacing.s4 }}>
-                  <View style={{ paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 999, borderWidth: 0.5, borderColor: colors.hairline }}>
-                    <Text style={{ fontSize: typography.fz11, color: colors.ink2 }}>{RECORD_LABEL[r.record_type]}</Text>
-                  </View>
-                  <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(r.uploaded_at)}</Text>
-                </View>
-                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>
-                  {r.hospital_name ?? "병원 정보 없음"}
-                </Text>
-                {r.medication_count != null ? (
-                  <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>약품 {r.medication_count}개</Text>
-                ) : null}
-              </View>
-              <Icon name="chevron-right" size={16} color={colors.muted2} />
-            </View>
-          </Card>
-        ))
-      )}
+      </ScreenLayout>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      {...headerProps}
+      scrollable
+      scrollPadding={false}
+      contentStyle={{ padding: spacing.s16, gap: spacing.s12 }}
+    >
+      {records.map((r) => (
+        <RecordRow
+          key={r.record_id}
+          r={r}
+          onPress={() => navigation.navigate("RecordDetail", { recordId: r.record_id })}
+        />
+      ))}
     </ScreenLayout>
   );
 }

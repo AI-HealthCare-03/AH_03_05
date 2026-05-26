@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, typography } from '../../theme';
+import { colors, radii, spacing, typography } from '../../theme';
 import Icon from '../../components/Icon';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ScreenLayout from '../../components/ScreenLayout';
 import { guidesApi, jobsApi, extractApiError } from '../../api';
 import type { AsyncJobStatus } from '../../api';
-import { s } from './_guideShared';
+
+// ─── 모듈 레벨 상수 ────────────────────────────────────────────────────────────
 
 const BACKOFF_DELAYS = [1000, 2000, 4000];
 const TIMEOUT_MS = 90_000;
@@ -18,56 +19,69 @@ const STATUS_TEXT: Partial<Record<AsyncJobStatus, string>> = {
   running: '복약 정보 분석 중...',
 };
 
+const DEV_STATUS_TEXTS = ['가이드 생성 준비 중...', '복약 정보 분석 중...', '가이드 정리 중...'];
+
+// ─── GuideLoadingScreen ────────────────────────────────────────────────────────
+
 export function GuideLoadingScreen({ navigation, route }: any) {
   const { top: safeTop } = useSafeAreaInsets();
   const recordId: number | undefined = route?.params?.recordId;
+  // TODO: [임시] devError 파라미터 — 테스트 완료 후 제거
+  const devError: boolean = route?.params?.devError ?? false;
+
   const [phase, setPhase] = useState<'loading' | 'failed' | 'timeout'>('loading');
   const [statusText, setStatusText] = useState('가이드 생성 준비 중...');
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef(false);
+  const devTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // TODO: [임시] DEV 로딩 시뮬레이션 — 테스트 완료 후 제거
+  const startDevLoading = () => {
+    if (devTimerRef.current) clearInterval(devTimerRef.current);
+    let i = 0;
+    const deadline = Date.now() + TIMEOUT_MS;
+    devTimerRef.current = setInterval(() => {
+      if (Date.now() > deadline) {
+        clearInterval(devTimerRef.current!);
+        devTimerRef.current = null;
+        setPhase('timeout');
+        return;
+      }
+      i = (i + 1) % DEV_STATUS_TEXTS.length;
+      setStatusText(DEV_STATUS_TEXTS[i]);
+    }, 2000);
+  };
 
   const startGuide = () => {
     abortRef.current = false;
     setPhase('loading');
     setErrorMsg('');
     setStatusText('가이드 생성 준비 중...');
+    // TODO: [임시] DEV 분기 — 테스트 완료 후 제거
+    if (!recordId) { startDevLoading(); return; }
     run();
   };
 
   const run = async () => {
     const deadline = Date.now() + TIMEOUT_MS;
-
     try {
       const created = await guidesApi.createGuide({ record_id: recordId });
       if (abortRef.current) return;
 
       const guideId = created.guide_id;
-      const jobId = created.job_id;
+      const jobId   = created.job_id;
+      let attempt   = 0;
 
-      let attempt = 0;
       while (true) {
         if (abortRef.current) return;
-        if (Date.now() > deadline) {
-          setPhase('timeout');
-          return;
-        }
+        if (Date.now() > deadline) { setPhase('timeout'); return; }
 
         const job = await jobsApi.getProcessingJob(jobId);
         if (abortRef.current) return;
 
-        if (job.status === 'completed') {
-          navigation.replace('GuideResult', { guideId });
-          return;
-        }
-        if (job.status === 'failed') {
-          setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.');
-          setPhase('failed');
-          return;
-        }
-        if (job.status === 'timeout') {
-          setPhase('timeout');
-          return;
-        }
+        if (job.status === 'completed') { navigation.replace('GuideResult', { guideId }); return; }
+        if (job.status === 'failed')    { setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.'); setPhase('failed'); return; }
+        if (job.status === 'timeout')   { setPhase('timeout'); return; }
 
         setStatusText(STATUS_TEXT[job.status] ?? '분석 중...');
         const delay = BACKOFF_DELAYS[Math.min(attempt, BACKOFF_DELAYS.length - 1)];
@@ -83,14 +97,26 @@ export function GuideLoadingScreen({ navigation, route }: any) {
   };
 
   useEffect(() => {
+    // TODO: [임시] DEV 분기 — 테스트 완료 후 제거
+    if (devError) {
+      setPhase('failed');
+      setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.');
+      return;
+    }
+    if (!recordId) {
+      startDevLoading();
+      return () => { if (devTimerRef.current) { clearInterval(devTimerRef.current); devTimerRef.current = null; } };
+    }
     startGuide();
     return () => { abortRef.current = true; };
   }, []);
 
+  const centerStyle = { paddingTop: Math.max(safeTop + spacing.s16, spacing.safeTop) };
+
   if (phase === 'failed' || phase === 'timeout') {
     const msg = phase === 'timeout' ? '가이드 생성 시간이 초과됐어요. 다시 시도해주세요.' : errorMsg;
     return (
-      <ScreenLayout noHeader contentStyle={{ justifyContent: 'center', alignItems: 'center', paddingTop: Math.max(safeTop + spacing.s16, spacing.safeTop) }}>
+      <ScreenLayout noHeader contentStyle={[s.loadingCenter, centerStyle]}>
         <Card shadow style={{ width: '90%', alignItems: 'center' }}>
           <View style={[s.spinner, { backgroundColor: colors.danger50 }]}>
             <Icon name="alert-circle" size={36} color={colors.danger} />
@@ -102,7 +128,13 @@ export function GuideLoadingScreen({ navigation, route }: any) {
             {msg}
           </Text>
           <View style={{ flexDirection: 'row', gap: spacing.s12 }}>
-            <Button variant="ghost" size="sm" onPress={() => navigation.goBack()}>뒤로가기</Button>
+            <Button variant="ghost" size="sm" onPress={() => {
+              if (recordId) {
+                navigation.getParent()?.navigate('RecordsTab', { screen: 'RecordDetail', params: { recordId } });
+              } else {
+                navigation.navigate('Home');
+              }
+            }}>뒤로가기</Button>
             <Button variant="primary" size="sm" onPress={startGuide}>다시 시도</Button>
           </View>
         </Card>
@@ -111,7 +143,7 @@ export function GuideLoadingScreen({ navigation, route }: any) {
   }
 
   return (
-    <ScreenLayout noHeader contentStyle={{ justifyContent: 'center', alignItems: 'center', paddingTop: Math.max(safeTop + spacing.s16, spacing.safeTop) }}>
+    <ScreenLayout noHeader contentStyle={[s.loadingCenter, centerStyle]}>
       <Card shadow style={{ width: '90%', alignItems: 'center' }}>
         <View style={s.spinner}>
           <ActivityIndicator color={colors.accent700} size="large" />
@@ -122,11 +154,9 @@ export function GuideLoadingScreen({ navigation, route }: any) {
         <Text style={{ fontSize: typography.fz13, color: colors.muted, marginBottom: spacing.s20 }}>
           {statusText}
         </Text>
-
         <View style={[s.progressBg, { alignSelf: 'stretch', marginBottom: spacing.s20 }]}>
           <View style={[s.progressFill, { width: statusText.includes('분석') ? '60%' : '20%' }]} />
         </View>
-
         <Text style={{ fontSize: typography.fz12, color: colors.muted2 }}>최대 90초가 소요될 수 있어요</Text>
       </Card>
     </ScreenLayout>
@@ -134,3 +164,12 @@ export function GuideLoadingScreen({ navigation, route }: any) {
 }
 
 export default GuideLoadingScreen;
+
+// ─── StyleSheet ────────────────────────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  spinner:       { width: 84, height: 84, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  progressBg:    { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: 'hidden' },
+  progressFill:  { height: '100%', backgroundColor: colors.accent, borderRadius: 3 },
+});
