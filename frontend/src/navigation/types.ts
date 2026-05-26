@@ -38,9 +38,8 @@ export type ChatStackParams = {
 
 export type SettingsStackParams = {
   Settings: undefined;
-  MyPage: undefined;
   NotificationSettings: undefined;
-  ProfileEdit: undefined;
+  HealthProfileEdit: undefined;
   Notifications: undefined;
   PasswordChange: undefined;
   DeviceManagement: undefined;

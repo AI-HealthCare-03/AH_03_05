@@ -58,20 +58,17 @@ export function DeviceManagementScreen({ navigation }: any) {
 
   return (
     <ScreenLayout title="로그인 기기 관리" back onBack={() => navigation.goBack()} scrollable>
-      <Card noPadding style={{ overflow: 'hidden', marginBottom: 18 }}>
+      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 18 }}>
         {devices.map((d, i) => (
           <DeviceRow key={d.id} device={d} isFirst={i === 0} onRevoke={revoke} />
         ))}
       </Card>
       <Button
-        variant="ghost"
-        size="sm"
+        variant="danger"
+        size="md"
         onPress={() => { setDevices(prev => prev.filter(d => d.current)); flash('다른 기기는 모두 로그아웃 했어요'); }}
         fullWidth
-        style={{ paddingVertical: spacing.s12 }}
-      >
-        <Text style={{ color: colors.danger, fontSize: typography.fz14 }}>다른 모든 기기 로그아웃</Text>
-      </Button>
+      >다른 모든 기기 로그아웃</Button>
     </ScreenLayout>
   );
 }

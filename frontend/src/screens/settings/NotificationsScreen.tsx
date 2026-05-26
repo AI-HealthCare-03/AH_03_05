@@ -62,7 +62,7 @@ export function NotificationsScreen({ navigation }: any) {
   if (notifications.length === 0) {
     return (
       <ScreenLayout title="알림" back onBack={() => navigation.goBack()} right={right} scrollable>
-        <Card style={{ alignItems: 'center', paddingVertical: spacing.s56 }}>
+        <Card shadow style={{ alignItems: 'center', paddingVertical: spacing.s56 }}>
           <Icon name="bell" size={36} color={colors.muted2} />
           <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, marginTop: 14 }}>알림이 없어요</Text>
         </Card>
@@ -76,7 +76,7 @@ export function NotificationsScreen({ navigation }: any) {
         g.items.length > 0 ? (
           <View key={g.label} style={{ marginBottom: 18 }}>
             <Text style={{ fontSize: typography.fz12, color: colors.muted, paddingHorizontal: spacing.s4, marginBottom: spacing.s8 }}>{g.label}</Text>
-            <Card noPadding style={{ overflow: 'hidden' }}>
+            <Card shadow noPadding style={{ overflow: 'hidden' }}>
               {g.items.map((n, i) => (
                 <NotificationRow key={n.id} item={n} isFirst={i === 0} />
               ))}
