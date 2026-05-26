@@ -111,3 +111,14 @@ async def update_ocr_text(
         status=record.status,
         updated_at=record.updated_at,
     )
+
+
+@records_router.delete("/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_medical_record(
+    record_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    medical_record_service: Annotated[MedicalRecordService, Depends(MedicalRecordService)],
+) -> None:
+    record = await medical_record_service.delete_record(user, record_id)
+    if record is None:
+        raise NotFoundException(detail="기록을 찾을 수 없습니다.")

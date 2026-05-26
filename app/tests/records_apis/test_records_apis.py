@@ -290,3 +290,56 @@ class TestMedicalRecordAPI(TestCase):
             response = await client.get("/api/v1/records/99999/ocr", headers=headers)
 
             assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_delete_record_success(self):
+        # Given
+        signup_data = {
+            "email": "record6@example.com",
+            "password": "Password123!",
+            "name": "기록테스터6",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "record6@example.com", "password": "Password123!"},
+            )
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+            upload_response = await client.post(
+                "/api/v1/records",
+                data={"record_type": "prescription"},
+                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                headers=headers,
+            )
+            record_id = upload_response.json()["record_id"]
+
+            # When
+            response = await client.delete(f"/api/v1/records/{record_id}", headers=headers)
+
+        # Then
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    async def test_delete_record_not_found(self):
+        # Given
+        signup_data = {
+            "email": "record7@example.com",
+            "password": "Password123!",
+            "name": "기록테스터7",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "record7@example.com", "password": "Password123!"},
+            )
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            # When
+            response = await client.delete("/api/v1/records/99999", headers=headers)
+
+        # Then
+        assert response.status_code == status.HTTP_404_NOT_FOUND
