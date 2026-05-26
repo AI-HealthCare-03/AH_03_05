@@ -22,3 +22,10 @@ app/core/db/migrations/models/1_20260520090032_update.py
 .coverage
 coverage.xml
 htmlcov/
+
+# Local env backups
+.env.backup
+.env.*.backup
+
+# Office temporary files (Excel/Word)
+~$*
