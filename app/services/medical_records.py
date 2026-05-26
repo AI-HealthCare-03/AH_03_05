@@ -90,3 +90,11 @@ class MedicalRecordService:
             ocr_edited_text=ocr_edited_text,
         )
         return record
+
+    async def delete_record(self, user: User, record_id: int) -> MedicalRecord | None:
+        record = await MedicalRecord.get_or_none(id=record_id, user=user, deleted_at=None)
+        if record is None:
+            return None
+        record.deleted_at = datetime.now(UTC)
+        await record.save()
+        return record
