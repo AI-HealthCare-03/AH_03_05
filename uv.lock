@@ -53,6 +53,7 @@ app = [
     { name = "orjson" },
     { name = "passlib", extra = ["bcrypt"] },
     { name = "pyjwt" },
+    { name = "redis" },
     { name = "tortoise-orm" },
     { name = "uvicorn" },
 ]
@@ -94,6 +95,7 @@ app = [
     { name = "orjson", specifier = ">=3.11.5" },
     { name = "passlib", extras = ["bcrypt"], specifier = ">=1.7.4" },
     { name = "pyjwt", specifier = ">=2.10.1" },
+    { name = "redis", specifier = ">=7.1.0" },
     { name = "tortoise-orm", specifier = ">=0.25.3" },
     { name = "uvicorn", specifier = ">=0.40.0" },
 ]
