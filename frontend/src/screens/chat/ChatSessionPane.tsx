@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
@@ -10,12 +10,18 @@ import { s } from './_chatShared';
 
 interface Props {
   sessionId: string;
+  onFirstMessage?: (text: string) => void;
 }
 
 const MOCK_AI_RESPONSE = '도움이 되도록 답변드릴게요. 다만 복약·치료 결정을 바꾸기 전에는 반드시 담당 의사·약사와 상담해주세요.';
+const GREETING: ChatMessageItem = {
+  message_id: -1,
+  sender_type: 'assistant',
+  content: '안녕하세요 👋 어떤 점이 궁금하신가요?',
+};
 
-export function ChatSessionPane({ sessionId }: Props) {
-  const [messages, setMessages] = useState<ChatMessageItem[]>([]);
+export function ChatSessionPane({ sessionId, onFirstMessage }: Props) {
+  const [messages, setMessages] = useState<ChatMessageItem[]>([GREETING]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
@@ -25,10 +31,10 @@ export function ChatSessionPane({ sessionId }: Props) {
     if (!sessionId) return;
     // TODO: [BE 대기] GET /chat/sessions/{session_id}/messages 미구현 — 구현 완료 후 mock 제거
     chatApi.getChatMessages(Number(sessionId), { limit: 50 })
-      .then(res => setMessages(res.messages))
+      .then(res => setMessages(res.messages.length > 0 ? res.messages : [GREETING]))
       .catch(err => {
-        console.error('[ChatPane] 메시지 로드 실패:', err);
-        if (__DEV__) setMessages([]);
+        console.warn('[ChatPane] 메시지 로드 실패:', err);
+        if (__DEV__) setMessages([GREETING]);
       });
   }, [sessionId]);
 
@@ -42,9 +48,11 @@ export function ChatSessionPane({ sessionId }: Props) {
     setInput('');
     setSendError('');
 
+    const isFirst = messages.length === 1 && messages[0].message_id === -1;
     const tempId = Date.now();
     const userMsg: ChatMessageItem = { message_id: tempId, sender_type: 'user', content: text };
     setMessages(prev => [...prev, userMsg]);
+    if (isFirst) onFirstMessage?.(text);
     setSending(true);
 
     try {
@@ -59,7 +67,7 @@ export function ChatSessionPane({ sessionId }: Props) {
       };
       setMessages(prev => [...prev, aiMsg]);
     } catch (err: any) {
-      console.error('[ChatPane] 메시지 전송 실패:', err);
+      console.warn('[ChatPane] 메시지 전송 실패:', err);
       const status = err?.response?.status;
       if (status === 429) {
         setSendError('잠시 후 다시 시도해주세요.');
@@ -82,7 +90,11 @@ export function ChatSessionPane({ sessionId }: Props) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.canvas }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
       {/* 의료 안내 배너 */}
       <View style={ps.noticeBanner}>
         <Icon name="alert-circle" size={13} color={colors.muted2} />
@@ -96,12 +108,6 @@ export function ChatSessionPane({ sessionId }: Props) {
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: spacing.s20, paddingBottom: spacing.s20 }}
       >
-        {messages.length === 0 && (
-          <View style={{ alignItems: 'center', padding: spacing.s40 }}>
-            <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>무엇이든 물어보세요</Text>
-            <Text style={{ fontSize: typography.fz13, color: colors.muted }}>예) "혈압약 먹는데 사우나 가도 되나요?"</Text>
-          </View>
-        )}
         {messages.map((msg, i) => <Bubble key={msg.message_id ?? i} msg={msg} />)}
         {sending && (
           <View style={[s.bubbleRow, { alignItems: 'center', gap: spacing.s8 }]}>
@@ -121,15 +127,19 @@ export function ChatSessionPane({ sessionId }: Props) {
         <TextInput
           style={s.chatInput}
           placeholder="궁금한 점을 입력해주세요"
+          placeholderTextColor={colors.muted2}
           value={input}
           onChangeText={setInput}
           onSubmitEditing={send}
+          onKeyPress={({ nativeEvent }: any) => {
+            if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) setTimeout(() => send(), 0);
+          }}
           returnKeyType="send"
           multiline
         />
         <Button variant="primary" size="sm" leftIcon="send" onPress={send} disabled={sending}>전송</Button>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -165,7 +175,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
           </View>
         )}
       </View>
-      {!isUser && (
+      {!isUser && msg.message_id !== -1 && (
         <View style={{ flexDirection: 'row', gap: spacing.s8, marginLeft: 36, marginTop: spacing.s4 }}>
           <TouchableOpacity
             style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'good' ? colors.accent : colors.hairline, backgroundColor: fb === 'good' ? colors.accent50 : 'transparent' }}

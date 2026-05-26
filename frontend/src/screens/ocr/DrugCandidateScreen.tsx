@@ -59,7 +59,7 @@ export function DrugCandidateScreen({ navigation, route }: any) {
         }}
       >
         <Icon name="search" size={16} color={focused ? colors.accent : colors.muted} />
-        <TextInput style={{ flex: 1, fontSize: typography.fz14, color: colors.ink, outlineStyle: "none" } as any} value={query} onChangeText={setQuery} onSubmitEditing={doSearch} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} returnKeyType="search" autoFocus />
+        <TextInput style={{ flex: 1, fontSize: typography.fz14, color: colors.ink, outlineStyle: "none" } as any} placeholderTextColor={colors.muted2} value={query} onChangeText={setQuery} onSubmitEditing={doSearch} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} returnKeyType="search" autoFocus />
         <Button variant="primary" onPress={doSearch} loading={loading} size="sm">
           검색
         </Button>

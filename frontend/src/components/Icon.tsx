@@ -59,6 +59,7 @@ const FEATHER_MAP: Record<string, FeatherName> = {
   menu: "menu",
   ban: "slash",
   keyboard: "type",
+  heart: "heart",
   download: "download",
   pdf: "file-text",
   pill: "activity", // closest available in Feather

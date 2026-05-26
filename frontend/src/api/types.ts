@@ -306,6 +306,7 @@ export interface ChatSession {
   title: string;
   status: 'active' | 'closed';
   updated_at?: string;
+  last_message?: string;
 }
 
 export interface ChatSessionListResponse {

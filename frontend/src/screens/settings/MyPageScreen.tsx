@@ -25,6 +25,27 @@ const MENU_SECTIONS = [
   ],
 ];
 
+type MenuRowProps = {
+  icon: string;
+  label: string;
+  danger?: boolean;
+  isFirst: boolean;
+  onPress: () => void;
+};
+
+function MenuRow({ icon, label, danger, isFirst, onPress }: MenuRowProps) {
+  return (
+    <TouchableOpacity
+      style={[s.rowItem, !isFirst && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}
+      onPress={onPress}
+    >
+      <Icon name={icon} size={16} color={danger ? colors.danger : colors.accent700} />
+      <Text style={[s.rowLabel, danger && { color: colors.danger }]}>{label}</Text>
+      <Icon name="chevron-right" size={14} color={colors.muted2} />
+    </TouchableOpacity>
+  );
+}
+
 export function MyPageScreen({ navigation }: any) {
   const { user, setUser, flash } = useApp();
   const [loading, setLoading] = useState(true);
@@ -36,7 +57,7 @@ export function MyPageScreen({ navigation }: any) {
         setUser({
           ...user,
           name: info.name,
-          nickname: info.nickname ?? user.nickname,
+          nickname: info.nickname ?? info.name,
           email: info.email,
         });
       } catch (err: any) {
@@ -92,25 +113,26 @@ export function MyPageScreen({ navigation }: any) {
 
       {MENU_SECTIONS.map((sec, si) => (
         <Card key={si} noPadding style={{ overflow: 'hidden', marginBottom: 14 }}>
-          {sec.map((it: any, ji) => (
-            <TouchableOpacity
+          {sec.map((it, ji) => (
+            <MenuRow
               key={it.label}
-              style={[s.rowItem, ji > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}
+              icon={it.icon}
+              label={it.label}
+              danger={it.danger}
+              isFirst={ji === 0}
               onPress={() => navigation.navigate(it.to)}
-            >
-              <Icon name={it.icon} size={16} color={it.danger ? colors.danger : colors.accent700} />
-              <Text style={[s.rowLabel, it.danger && { color: colors.danger }]}>{it.label}</Text>
-              <Icon name="chevron-right" size={14} color={colors.muted2} />
-            </TouchableOpacity>
+            />
           ))}
         </Card>
       ))}
 
       <Card noPadding style={{ overflow: 'hidden', marginBottom: 22 }}>
-        <TouchableOpacity style={s.rowItem} onPress={handleLogout}>
-          <Icon name="logout" size={16} color={colors.ink2} />
-          <Text style={s.rowLabel}>로그아웃</Text>
-        </TouchableOpacity>
+        <MenuRow
+          icon="logout"
+          label="로그아웃"
+          isFirst
+          onPress={handleLogout}
+        />
       </Card>
     </ScreenLayout>
   );

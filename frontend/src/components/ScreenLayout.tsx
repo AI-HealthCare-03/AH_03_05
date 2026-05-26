@@ -37,7 +37,7 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
       )}
-      <View style={[s.titleBlock, back && { marginLeft: spacing.s8 }]}>
+      <View style={[headerExtra ? { alignSelf: 'stretch' } : s.titleBlock, back && { marginLeft: spacing.s8 }]}>
         {title && (
           <Text style={[s.title, subtitle && { marginBottom: 2 }]} numberOfLines={back ? 1 : undefined}>
             {title}

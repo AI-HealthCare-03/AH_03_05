@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity,
   ScrollView, KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
-import { useApp } from '../../context/AppContext';
+import { useApp, defaultUser } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -150,7 +150,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
         ],
       });
       await authApi.login({ email: form.email, password: form.pw });
-      setUser({ ...user, name: form.name, nickname: resolvedNickname, email: form.email, loggedIn: true, profileComplete: false });
+      setUser({ ...defaultUser, name: form.name, nickname: resolvedNickname, email: form.email, loggedIn: true, profileComplete: false });
       (navigation as any).reset({ index: 0, routes: [{ name: 'Onboarding' as never }] });
     } catch (e) {
       console.error('[Signup] submit error:', e);
