@@ -50,7 +50,7 @@ export function DeleteAccountScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const allChecked = checked.data && checked.irreversible && checked.alt;
-  const confirmOk  = confirm === '회원 탈퇴';
+  const confirmOk  = confirm.trim().length > 0;
 
   const proceed = async () => {
     if (step === 1 && allChecked) { setStep(2); return; }
@@ -58,13 +58,22 @@ export function DeleteAccountScreen({ navigation }: any) {
       setLoading(true);
       setError('');
       try {
-        await usersApi.deleteAccount();
+        await usersApi.deleteAccount(confirm);
         await tokenStore.clear();
         flash('탈퇴 처리가 완료됐어요. 안녕히 가세요 👋');
         (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)
           ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
-      } catch (e) {
-        setError(extractApiError(e));
+      // TODO: [BE 대기] POST /api/v1/auth/refresh 미구현으로 인해
+      // access token 만료 시 토큰 갱신 실패 → DELETE 401 발생
+      // auth/refresh 구현 완료 후 정상 동작 확인 필요
+      } catch (e: any) {
+        const status = e?.response?.status;
+        const detail = e?.response?.data?.detail;
+        if (status === 401) {
+          setError(typeof detail === 'string' ? detail : '비밀번호가 일치하지 않습니다.');
+        } else {
+          setError(extractApiError(e));
+        }
       } finally {
         setLoading(false);
       }
@@ -97,18 +106,14 @@ export function DeleteAccountScreen({ navigation }: any) {
           <>
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, marginBottom: spacing.s8 }}>최종 확인</Text>
             <Text style={{ fontSize: typography.fz13, color: colors.ink2, marginBottom: 14 }}>
-              정말로 탈퇴하시려면 아래 입력란에{' '}
-              <Text style={{ fontWeight: typography.fw7, color: colors.danger }}>"회원 탈퇴"</Text>를 입력해주세요.
+              정말로 탈퇴하시려면 현재 비밀번호를 입력해주세요.
             </Text>
-            <Input placeholder="회원 탈퇴" value={confirm} onChangeText={setConfirm} />
+            <Input placeholder="비밀번호" value={confirm} onChangeText={v => { setConfirm(v); setError(''); }} secureTextEntry error={error || undefined} />
             <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 10 }}>{user.email || '이 계정'}이 삭제됩니다.</Text>
           </>
         )}
       </Card>
 
-      {!!error && (
-        <Text style={{ fontSize: typography.fz13, color: colors.danger, textAlign: 'center', marginTop: spacing.s12 }}>{error}</Text>
-      )}
       <View style={{ flexDirection: 'row', gap: spacing.s12, marginTop: spacing.s16 }}>
         <Button
           variant="ghost"

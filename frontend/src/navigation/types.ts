@@ -32,7 +32,7 @@ export type GuideStackParams = {
 };
 
 export type ChatStackParams = {
-  ChatList: undefined;
+  ChatList: { sessionId?: string } | undefined;
   ChatSession: { sessionId: string; guideId?: string };
 };
 
@@ -53,4 +53,5 @@ export type RootStackParams = {
   Onboarding: undefined;
   Main: undefined;
   UploadModal: undefined;
+  MedicationAlarm: { meal?: 'morning' | 'lunch' | 'dinner' };
 };

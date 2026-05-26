@@ -321,5 +321,5 @@ const s = StyleSheet.create({
   emergencyBody: { fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 },
 
   // 피드백 버튼
-  feedbackBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 18, paddingVertical: 10, borderRadius: radii.pill, borderWidth: 1 },
+  feedbackBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: spacing.s20, paddingVertical: spacing.s10, borderRadius: radii.pill, borderWidth: 1 },
 });

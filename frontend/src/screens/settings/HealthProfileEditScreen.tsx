@@ -103,7 +103,7 @@ export function HealthProfileEditScreen({ navigation }: any) {
         <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s8 }}>
           의사 소견 <Text style={{ color: colors.muted, fontWeight: typography.fw4 }}>(선택)</Text>
         </Text>
-        <TextInput style={[{ borderWidth: 1, borderColor: colors.hairlineStrong, borderRadius: radii.md, paddingHorizontal: spacing.s12, height: 80, fontSize: typography.fz14, color: colors.ink, backgroundColor: colors.surface }, { textAlignVertical: "top" }]} multiline value={form.notes} onChangeText={(v) => set("notes", v)} />
+        <TextInput style={[{ borderWidth: 1, borderColor: colors.hairlineStrong, borderRadius: radii.md, paddingHorizontal: spacing.s12, paddingTop: spacing.s8, height: 80, fontSize: typography.fz14, color: colors.ink, backgroundColor: colors.surface }, { textAlignVertical: "top" }]} multiline value={form.notes} onChangeText={(v) => set("notes", v)} />
 
         <Button variant="primary" size="lg" style={{ marginTop: spacing.s20 }} borderRadius={radii.pill} onPress={save} fullWidth>
           저장하기

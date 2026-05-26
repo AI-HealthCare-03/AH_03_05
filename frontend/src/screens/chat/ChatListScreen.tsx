@@ -32,13 +32,13 @@ const MOCK_SESSIONS: ChatSession[] = [
   { session_id: 3, title: '고지혈증 식단',        last_message: '어떤 음식이 좋을까요?',             status: 'active', updated_at: new Date(Date.now() - 25 * 24 * 60 * 60000).toISOString() },
 ];
 
-export function ChatListScreen({ navigation }: any) {
+export function ChatListScreen({ navigation, route }: any) {
   const { top: safeTop } = useSafeAreaInsets();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(route?.params?.sessionId ?? null);
   const [searchFocused, setSearchFocused] = useState(false);
   const { isDesktop } = useBreakpoint();
 
