@@ -18,3 +18,7 @@ tests/mock_data/images/
 .junie/
 /.claude
 app/core/db/migrations/models/1_20260520090032_update.py
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
