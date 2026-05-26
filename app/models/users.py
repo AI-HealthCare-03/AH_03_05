@@ -19,6 +19,8 @@ class User(models.Model):
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
     withdrawn_at = fields.DatetimeField(null=True)
+    nickname_updated_at = fields.DatetimeField(null=True)
+    password_changed_at = fields.DatetimeField(null=True)
 
     class Meta:
         table = "users"
