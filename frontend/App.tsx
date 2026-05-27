@@ -1,11 +1,16 @@
 import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Appearance } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider } from './src/context/AppContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
 import Toast from './src/components/Toast';
+
+// 앱이 라이트 모드 전용 — 웹은 index.html meta color-scheme으로 처리
+if (Platform.OS !== 'web') {
+  Appearance.setColorScheme('light');
+}
 
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({

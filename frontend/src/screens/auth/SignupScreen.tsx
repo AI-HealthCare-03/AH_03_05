@@ -14,6 +14,7 @@ import axios from 'axios';
 import { authApi, extractApiError } from '../../api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
+import MediPTLogo from '../../components/MediPTLogo';
 
 // ─── SignupScreen internals ───────────────────────────────────────────────────
 
@@ -389,8 +390,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={[styles.authContainer, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: spacing.s56 }]} keyboardShouldPersistTaps="handled">
         <View style={styles.brandRow}>
-          <View style={styles.brandLogo}><Icon name="robot" size={18} color={colors.white} /></View>
-          <Text style={styles.brandName}>MediPT</Text>
+          <MediPTLogo width={130} />
         </View>
         <Text style={styles.authTitle}>계정 만들기</Text>
         <Text style={styles.authSub}>이메일과 비밀번호로 1분이면 가입할 수 있어요.</Text>

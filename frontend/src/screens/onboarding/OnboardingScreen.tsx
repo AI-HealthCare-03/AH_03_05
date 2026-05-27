@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
+import MediPTLogo from '../../components/MediPTLogo';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { colors, radii, spacing, typography } from '../../theme';
@@ -89,10 +90,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
       <View style={[{ width: '100%' }, isTabletOrAbove && { maxWidth: 520 }]}>
         {/* Brand */}
         <View style={styles.brandRow}>
-          <View style={styles.brandLogo}>
-            <Icon name="robot" size={18} color={colors.white} />
-          </View>
-          <Text style={styles.brandName}>MediPT</Text>
+          <MediPTLogo width={130} />
         </View>
 
         {/* Progress bar */}
@@ -185,9 +183,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.canvas },
   container: { padding: spacing.s24, alignItems: 'center' },
   containerDesktop: { padding: 48, paddingVertical: spacing.s40, alignItems: 'center' },
-  brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.s20 },
-  brandLogo: { width: 32, height: 32, borderRadius: 9, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginRight: spacing.s8 },
-  brandName: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
+  brandRow: { marginBottom: spacing.s20 },
   progressRow: { flexDirection: 'row', gap: 6, marginBottom: spacing.s20, width: '100%' },
   progressBar: { height: 4, borderRadius: 2 },
   card: { width: '100%', backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s24, borderWidth: 0.5, borderColor: colors.hairline },

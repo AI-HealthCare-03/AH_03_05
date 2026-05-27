@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { useApp } from '../context/AppContext';
 import Icon from './Icon';
 import { colors, spacing } from '../theme';
@@ -37,10 +37,9 @@ const styles = {
     borderColor: colors.hairline,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    ...(Platform.OS !== 'web'
+      ? { shadowColor: '#0f172a', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }
+      : { boxShadow: '0px 2px 8px rgba(15,23,42,0.05)' } as any),
     elevation: 2,
   },
   bellBadge: {
