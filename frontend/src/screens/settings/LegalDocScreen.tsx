@@ -32,7 +32,7 @@ export function LegalDocScreen({ navigation, route }: any) {
   const docKey: string = route?.params?.docKey || 'tos';
   const doc = LEGAL_DOCS[docKey] || LEGAL_DOCS.tos;
   return (
-    <ScreenLayout title={doc.title} back onBack={() => navigation.goBack()} scrollable>
+    <ScreenLayout title={doc.title} back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
       <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s16 }}>{doc.version}</Text>
       <Card shadow>
         {doc.sections.map((sec, i) => (

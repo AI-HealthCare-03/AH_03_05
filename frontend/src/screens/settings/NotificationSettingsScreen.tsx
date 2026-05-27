@@ -129,7 +129,7 @@ export function NotificationSettingsScreen({ navigation }: any) {
   const pickerDate = pickerOpen ? timeStrToDate(getMealState(pickerOpen).time) : new Date();
 
   return (
-    <ScreenLayout title="알림 설정" back onBack={() => navigation.goBack()} scrollable>
+    <ScreenLayout title="알림 설정" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
       <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 14 }}>
         <View style={s.rowItem}>
           <View style={{ flex: 1 }}>

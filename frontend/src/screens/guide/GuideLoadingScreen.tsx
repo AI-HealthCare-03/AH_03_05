@@ -19,46 +19,22 @@ const STATUS_TEXT: Partial<Record<AsyncJobStatus, string>> = {
   running: '복약 정보 분석 중...',
 };
 
-const DEV_STATUS_TEXTS = ['가이드 생성 준비 중...', '복약 정보 분석 중...', '가이드 정리 중...'];
-
 // ─── GuideLoadingScreen ────────────────────────────────────────────────────────
 
 export function GuideLoadingScreen({ navigation, route }: any) {
   const { top: safeTop } = useSafeAreaInsets();
   const recordId: number | undefined = route?.params?.recordId;
-  // TODO: [임시] devError 파라미터 — 테스트 완료 후 제거
-  const devError: boolean = route?.params?.devError ?? false;
 
   const [phase, setPhase] = useState<'loading' | 'failed' | 'timeout'>('loading');
   const [statusText, setStatusText] = useState('가이드 생성 준비 중...');
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef(false);
-  const devTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // TODO: [임시] DEV 로딩 시뮬레이션 — 테스트 완료 후 제거
-  const startDevLoading = () => {
-    if (devTimerRef.current) clearInterval(devTimerRef.current);
-    let i = 0;
-    const deadline = Date.now() + TIMEOUT_MS;
-    devTimerRef.current = setInterval(() => {
-      if (Date.now() > deadline) {
-        clearInterval(devTimerRef.current!);
-        devTimerRef.current = null;
-        setPhase('timeout');
-        return;
-      }
-      i = (i + 1) % DEV_STATUS_TEXTS.length;
-      setStatusText(DEV_STATUS_TEXTS[i]);
-    }, 2000);
-  };
 
   const startGuide = () => {
     abortRef.current = false;
     setPhase('loading');
     setErrorMsg('');
     setStatusText('가이드 생성 준비 중...');
-    // TODO: [임시] DEV 분기 — 테스트 완료 후 제거
-    if (!recordId) { startDevLoading(); return; }
     run();
   };
 
@@ -97,16 +73,6 @@ export function GuideLoadingScreen({ navigation, route }: any) {
   };
 
   useEffect(() => {
-    // TODO: [임시] DEV 분기 — 테스트 완료 후 제거
-    if (devError) {
-      setPhase('failed');
-      setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.');
-      return;
-    }
-    if (!recordId) {
-      startDevLoading();
-      return () => { if (devTimerRef.current) { clearInterval(devTimerRef.current); devTimerRef.current = null; } };
-    }
     startGuide();
     return () => { abortRef.current = true; };
   }, []);
