@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { tokenStore } from "../api/tokenStore";
+import React, {
+  createContext, useContext, useState, useEffect,
+  useCallback, useMemo, useRef,
+} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { tokenStore } from '../api/tokenStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -67,7 +70,7 @@ export interface Notification {
   date: string;
   body: string;
   unread: boolean;
-  type: "medication" | "record" | "chat" | "info";
+  type: 'medication' | 'record' | 'guide' | 'chat' | 'info';
   target_id?: string;
 }
 
@@ -85,7 +88,18 @@ export interface OcrSession {
   drugs: OcrDrug[];
 }
 
+export interface NotifSettings {
+  master: boolean;
+  morning: { on: boolean; time: string };
+  lunch: { on: boolean; time: string };
+  dinner: { on: boolean; time: string };
+  newGuide: boolean;
+  chatReply: boolean;
+  marketing: boolean;
+}
+
 interface AppState {
+  isReady: boolean;
   user: User;
   setUser: (u: User) => void;
   drugs: Drug[];
@@ -102,37 +116,54 @@ interface AppState {
   streak: number;
   ocrSession: OcrSession;
   setOcrSession: (s: OcrSession) => void;
+  notifSettings: NotifSettings;
+  setNotifSettings: (s: NotifSettings) => void;
   flash: (msg: string) => void;
   toast: string | null;
   notifDrawerOpen: boolean;
   setNotifDrawerOpen: (v: boolean) => void;
   markNotificationRead: (id: string) => void;
   unreadCount: number;
+  setUnreadCount: (n: number) => void;
 }
 
-// ─── Seed data (same as shared.jsx) ──────────────────────────────────────────
+// ─── Seed data ────────────────────────────────────────────────────────────────
 
-const defaultUser: User = {
-  name: "",
-  email: "",
+export const defaultNotifSettings: NotifSettings = {
+  master: true,
+  morning: { on: true, time: '08:30' },
+  lunch: { on: false, time: '12:30' },
+  dinner: { on: true, time: '19:00' },
+  newGuide: true,
+  chatReply: true,
+  marketing: false,
+};
+
+export const defaultUser: User = {
+  name: '',
+  nickname: '',
+  email: '',
   loggedIn: false,
-  age: "",
+  age: '',
   ageNum: 0,
-  sex: "",
-  conditions: "",
-  allergies: "",
-  otherMeds: "",
-  history: "",
-  notes: "",
-  pregnant: "",
-  smoking: "",
+  sex: '',
+  conditions: '',
+  allergies: '',
+  otherMeds: '',
+  history: '',
+  notes: '',
+  pregnant: '',
+  smoking: '',
   profileComplete: false,
 };
 
 const seedDrugs: Drug[] = [
-  { id: "d1", name: "암로디핀정 5mg", maker: "한미약품", ingredient: "Amlodipine besylate 5mg", freq: "1일 1회", time: "아침 식후 30분", color: "#0EA5E9", status: "완료" },
-  { id: "d2", name: "로수바스타틴 10mg", maker: "유한양행", ingredient: "Rosuvastatin 10mg", freq: "1일 1회", time: "저녁 식후", color: "#8B5CF6", status: "저녁 8시" },
-  { id: "d3", name: "메트포르민 500mg", maker: "A제약", ingredient: "Metformin 500mg", freq: "1일 2회", time: "식후", color: "#10B981", status: "점심 · 저녁" },
+  { id: 'd1', name: '암로디핀정 5mg', maker: '한미약품', ingredient: 'Amlodipine besylate 5mg',
+    freq: '1일 1회', time: '아침 식후 30분', color: '#0EA5E9', status: '완료', defaultStatus: '아침 식후 30분' },
+  { id: 'd2', name: '로수바스타틴 10mg', maker: '유한양행', ingredient: 'Rosuvastatin 10mg',
+    freq: '1일 1회', time: '저녁 식후', color: '#8B5CF6', status: '저녁 8시', defaultStatus: '저녁 8시' },
+  { id: 'd3', name: '메트포르민 500mg', maker: 'A제약', ingredient: 'Metformin 500mg',
+    freq: '1일 2회', time: '식후', color: '#10B981', status: '점심 · 저녁', defaultStatus: '점심 · 저녁' },
 ];
 
 const seedRecords: Record[] = [
@@ -160,54 +191,79 @@ const seedChats: Chat[] = [
   { id: "c3", title: "고지혈증 식단", preview: "어떤 음식이 좋을까요?", time: "5월 1일", messages: [] },
 ];
 
-const seedNotifications: Notification[] = [
-  { id: "n1", icon: "pill", title: "메트포르민 500mg 복약 시간이에요", time: "12:30", body: "점심 식후 30분 — 잊지 말고 복용해주세요.", unread: true, target: "Home" },
-  { id: "n2", icon: "wand", title: "새 복약 가이드가 도착했어요", time: "오늘 09:14", body: "처방전 분석이 완료되어 가이드를 업데이트했어요.", unread: true, target: "GuideResult" },
-  { id: "n3", icon: "chat", title: "상담 답변이 도착했어요", time: "어제 18:02", body: "혈압약 부작용 문의에 대한 답변을 확인해보세요.", unread: false, target: "ChatSession" },
-  { id: "n4", icon: "info", title: "내 정보 업데이트를 권장해요", time: "5월 10일", body: "마지막 업데이트가 30일 전이에요. 정보가 바뀌었다면 수정해주세요.", unread: false, target: "ProfileEdit" },
-];
+const seedNotifications: Notification[] = (() => {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const yesterdayStr = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10);
+  return [
+    // medication → HomeTab
+    { id: 'n1', icon: 'pill', title: '메트포르민 500mg 복약 시간이에요', time: '12:30',
+      date: `${todayStr}T12:30:00`, body: '점심 식후 30분 — 잊지 말고 복용해주세요.', unread: false, type: 'medication' },
+    // guide → HomeTab > GuideResult (target_id: guideId)
+    { id: 'n2', icon: 'wand', title: '새 복약 가이드가 도착했어요', time: '오늘 09:14',
+      date: `${todayStr}T09:14:00`, body: '처방전 분석이 완료되어 가이드를 업데이트했어요.', unread: false, type: 'guide', target_id: '1' },
+    // chat → ChatTab > ChatSession (target_id: chatId)
+    { id: 'n3', icon: 'chat', title: '상담 답변이 도착했어요', time: '어제 18:02',
+      date: `${yesterdayStr}T18:02:00`, body: '혈압약 부작용 문의에 대한 답변을 확인해보세요.', unread: false, type: 'chat', target_id: 'c1' },
+    // info → 라우팅 없음 (드로워 닫기만)
+    { id: 'n4', icon: 'info', title: '내 정보 업데이트를 권장해요', time: '5월 10일',
+      date: '2026-05-10T00:00:00', body: '마지막 업데이트가 30일 전이에요. 정보가 바뀌었다면 수정해주세요.', unread: false, type: 'info' },
+    // record → RecordsTab > RecordDetail (target_id: recordId)
+    { id: 'n5', icon: 'doc', title: '진료기록 분석이 완료됐어요', time: '어제 10:05',
+      date: `${yesterdayStr}T10:05:00`, body: '서울 내과 의원 처방전 OCR 결과를 확인해보세요.', unread: false, type: 'record', target_id: '1' },
+  ];
+})();
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 const AppCtx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUserState] = useState<User>(demoUser);
+  const [user, setUserState] = useState<User>(defaultUser);
   const [drugs, setDrugs] = useState<Drug[]>(seedDrugs);
   const [records, setRecords] = useState<Record[]>(seedRecords);
   const [chats, setChats] = useState<Chat[]>(seedChats);
-  const [notifications, setNotifications] = useState<Notification[]>(seedNotifications);
-  const [activeChat, setActiveChat] = useState("c1");
-  const [pendingUpload, setPendingUpload] = useState(false);
+  const [notifications, setNotificationsState] = useState<Notification[]>(seedNotifications);
+  const [unreadCountState, setUnreadCountState] = useState(() => seedNotifications.filter(n => n.unread).length);
+  const [activeChat, setActiveChat] = useState('c1');
+  const [notifSettings, setNotifSettingsState] = useState<NotifSettings>(defaultNotifSettings);
   const [ocrSession, setOcrSession] = useState<OcrSession>({
     fileName: "처방전.jpg",
     fileSize: "1.8MB",
     drugs: [
-      { name: "암로디핀정 5mg", maker: "한미약품", time: "1일 1회 · 아침 식후 30분", confidence: 95, status: "ok" },
-      { name: "로수바스타틴 10mg", maker: "유한양행", time: "1일 1회 · 저녁 식후", confidence: 92, status: "ok" },
+      { name: "암로디핀정 5mg", maker: "한미약품", time: "1일 1회 · 아침 식후 30분 · 30일", confidence: 95, status: "ok" },
+      { name: "로수바스타틴 10mg", maker: "유한양행", time: "1일 1회 · 저녁 식후 · 30일", confidence: 92, status: "ok" },
       { name: "메트포르?정 500mg", maker: "제조사 미확인", time: "—", confidence: 52, status: "needsCheck" },
     ],
   });
+  const [isReady, setIsReady] = useState(false);
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
   const [streak, setStreak] = useState(0);
   const streakCountedRef = useRef(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // guard: don't persist until the initial AsyncStorage load is complete,
-  // otherwise the first render (defaultUser) overwrites the stored value
-  // before getItem can read it (AsyncStorage processes ops as a FIFO queue)
+  // guard: don't persist until the initial AsyncStorage load is complete
   const isLoaded = useRef(false);
 
   // Persist user to AsyncStorage — skipped on the very first render
   useEffect(() => {
     if (!isLoaded.current) return;
-    AsyncStorage.setItem("medipt_user", JSON.stringify(user)).catch(() => {});
+    AsyncStorage.setItem('medipt_user', JSON.stringify(user)).catch(() => {});
   }, [user]);
+
+  useEffect(() => {
+    if (!isLoaded.current) return;
+    AsyncStorage.setItem('medipt_notif_settings', JSON.stringify(notifSettings)).catch(() => {});
+  }, [notifSettings]);
 
   // Load tokens + user on mount
   useEffect(() => {
     (async () => {
-      const [stored] = await Promise.all([AsyncStorage.getItem("medipt_user"), tokenStore.load()]);
+      const [stored, storedNotif] = await Promise.all([
+        AsyncStorage.getItem('medipt_user'),
+        AsyncStorage.getItem('medipt_notif_settings'),
+        tokenStore.load(),
+      ]);
       const hasToken = !!tokenStore.accessToken;
       if (stored) {
         try {
@@ -215,11 +271,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setUserState({ ...parsed, loggedIn: hasToken });
         } catch {}
       } else {
-        setUserState((prev) => ({ ...prev, loggedIn: hasToken }));
+        setUserState(prev => ({ ...prev, loggedIn: hasToken }));
       }
-      // mark loaded AFTER setUserState so the next persist-effect render
-      // sees isLoaded.current = true and actually writes to AsyncStorage
+      if (storedNotif) {
+        try {
+          setNotifSettingsState({ ...defaultNotifSettings, ...JSON.parse(storedNotif) });
+        } catch {}
+      }
       isLoaded.current = true;
+      setIsReady(true);
     })();
 
     tokenStore.registerUnauthorizedHandler(() => {
@@ -230,16 +290,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (drugs.length === 0) return;
-    const allDone = drugs.every((d) => d.status === "완료");
+    const allDone = drugs.every(d => d.status === '완료');
     if (allDone && !streakCountedRef.current) {
       streakCountedRef.current = true;
-      setStreak((s) => s + 1);
+      setStreak(s => s + 1);
     } else if (!allDone) {
       streakCountedRef.current = false;
     }
   }, [drugs]);
 
   const setUser = useCallback((u: User) => setUserState(u), []);
+  const setNotifSettings = useCallback((s: NotifSettings) => setNotifSettingsState(s), []);
 
   const flash = useCallback((msg: string) => {
     setToast(msg);
@@ -247,31 +308,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toastTimer.current = setTimeout(() => setToast(null), 2200);
   }, []);
 
-  const value = useMemo<AppState>(
-    () => ({
-      user,
-      setUser,
-      drugs,
-      setDrugs,
-      records,
-      setRecords,
-      chats,
-      setChats,
-      activeChat,
-      setActiveChat,
-      notifications,
-      setNotifications,
-      pendingUpload,
-      setPendingUpload,
-      adherence: 76,
-      streak: 12,
-      ocrSession,
-      setOcrSession,
-      flash,
-      toast,
-    }),
-    [user, drugs, records, chats, activeChat, notifications, pendingUpload, ocrSession, toast],
-  );
+  const setNotifications = useCallback((n: Notification[]) => {
+    setNotificationsState(n);
+    setUnreadCountState(n.filter(x => x.unread).length);
+  }, []);
+
+  const setUnreadCount = useCallback((n: number) => {
+    setUnreadCountState(n);
+  }, []);
+
+  const markNotificationRead = useCallback((id: string) => {
+    setNotificationsState(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+    setUnreadCountState(prev => Math.max(0, prev - 1));
+  }, []);
+
+  const value = useMemo<AppState>(() => ({
+    isReady,
+    user, setUser,
+    drugs, setDrugs,
+    records, setRecords,
+    chats, setChats,
+    activeChat, setActiveChat,
+    notifications, setNotifications,
+    adherence: drugs.length > 0
+      ? Math.round((drugs.filter(d => d.status === '완료').length / drugs.length) * 100)
+      : 0,
+    streak,
+    ocrSession, setOcrSession,
+    notifSettings, setNotifSettings,
+    flash, toast,
+    notifDrawerOpen, setNotifDrawerOpen,
+    markNotificationRead,
+    unreadCount: unreadCountState,
+    setUnreadCount,
+  }), [isReady, user, drugs, records, chats, activeChat, notifications, unreadCountState, streak, ocrSession, notifSettings, toast, notifDrawerOpen, markNotificationRead, setNotifSettings, setNotifications, setUnreadCount]);
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Animated } from "react-native";
+import { View, Text, Animated, LayoutChangeEvent } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
@@ -8,18 +9,52 @@ import { colors, spacing, typography } from "../../theme";
 import { ocrApi, jobsApi, extractApiError } from "../../api";
 import { s } from "./_ocrShared";
 
+const STEPS = [
+  { label: "이미지 보정", icon: "image" },
+  { label: "텍스트 인식", icon: "scan" },
+  { label: "약품 매칭", icon: "pill" },
+  { label: "복약 정보 정리", icon: "check-circle" },
+];
+
+type StepItemProps = {
+  st: { label: string; icon: string };
+  index: number;
+  step: number;
+};
+
+function StepItem({ st, index: i, step }: StepItemProps) {
+  return (
+    <View style={[s.stepRow, { opacity: i > step ? 0.4 : 1 }]}>
+      <View
+        style={[
+          s.stepDot,
+          { backgroundColor: i < step ? colors.success : i === step ? colors.accent : colors.hairline },
+        ]}
+      >
+        {i < step
+          ? <Icon name="check" size={12} color="#fff" />
+          : <Icon name={st.icon} size={11} color={i === step ? "#fff" : colors.muted} />}
+      </View>
+      <Text style={{ fontSize: typography.fz14, flex: 1 }}>{st.label}</Text>
+      {i < step && <Text style={{ fontSize: typography.fz13, color: colors.muted }}>완료</Text>}
+      {i === step && <Text style={{ fontSize: typography.fz13, color: colors.accent }}>처리 중...</Text>}
+    </View>
+  );
+}
+
 export function OCRProcessingScreen({ navigation, route }: any) {
+  const { top: safeTop } = useSafeAreaInsets();
   const recordId: number | undefined = route?.params?.recordId;
+  // TODO: [임시] devError 파라미터 — 테스트 완료 후 제거
+  const devError: boolean = route?.params?.devError ?? false;
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const spinAnim = useRef(new Animated.Value(0)).current;
-
-  const steps = [
-    { label: "이미지 보정", icon: "image" },
-    { label: "텍스트 인식", icon: "scan" },
-    { label: "약품 매칭", icon: "pill" },
-    { label: "복약 정보 정리", icon: "check-circle" },
-  ];
+  // RN Web에서 % / alignSelf:stretch 가 Card padding을 무시하고 border-box 기준으로 계산되는
+  // 버그를 우회하기 위해 onLayout으로 실측 너비를 캡처해 픽셀 값으로 직접 지정한다.
+  const [trackWidth, setTrackWidth] = useState(0);
+  const onTrackLayout = (e: LayoutChangeEvent) =>
+    setTrackWidth(e.nativeEvent.layout.width);
 
   useEffect(() => {
     const anim = Animated.loop(Animated.timing(spinAnim, { toValue: 1, duration: 1200, useNativeDriver: true }));
@@ -27,15 +62,25 @@ export function OCRProcessingScreen({ navigation, route }: any) {
     return () => anim.stop();
   }, []);
 
+  // TODO: [임시] devError 데모 분기 — 테스트 완료 후 제거
+  // 의존성에 step 포함: !recordId 모드에서 step 변경마다 재실행해야 다음 타이머가 등록됨
   useEffect(() => {
-    if (!recordId) {
-      if (step >= steps.length) {
-        const t = setTimeout(() => navigation.replace("OCRResult"), 400);
-        return () => clearTimeout(t);
-      }
-      const t = setTimeout(() => setStep((s) => s + 1), 700);
+    if (devError) {
+      setError("처리 시간이 초과됐어요. 다시 시도해주세요.");
+      return;
+    }
+    if (recordId) return;
+
+    if (step >= STEPS.length) {
+      const t = setTimeout(() => navigation.replace("OCRResult"), 400);
       return () => clearTimeout(t);
     }
+    const t = setTimeout(() => setStep((s) => s + 1), 700);
+    return () => clearTimeout(t);
+  }, [step, recordId, devError]);
+
+  useEffect(() => {
+    if (!recordId) return;
 
     let pollTimer: ReturnType<typeof setInterval>;
     let pollCount = 0;
@@ -56,13 +101,13 @@ export function OCRProcessingScreen({ navigation, route }: any) {
             const status = await jobsApi.getProcessingJob(job.job_id);
             if (status.status === "completed") {
               clearInterval(pollTimer);
-              setStep(steps.length);
+              setStep(STEPS.length);
               setTimeout(() => navigation.replace("OCRResult", { recordId }), 400);
             } else if (status.status === "failed" || status.status === "timeout") {
               clearInterval(pollTimer);
               setError("OCR 처리에 실패했어요. 다시 시도해주세요.");
             } else {
-              setStep((s) => Math.min(s + 1, steps.length - 1));
+              setStep((s) => Math.min(s + 1, STEPS.length - 1));
             }
           } catch {
             /* silent */
@@ -74,42 +119,69 @@ export function OCRProcessingScreen({ navigation, route }: any) {
     return () => clearInterval(pollTimer);
   }, [recordId]);
 
-  const progress = Math.min(100, (step / steps.length) * 100);
-  const fileName = ocrSession?.fileName || "파일 처리 중";
-  const fileSize = ocrSession?.fileSize || "";
+  const progress = Math.min(100, (step / STEPS.length) * 100);
+  const fillWidth = trackWidth > 0 ? trackWidth * progress / 100 : 0;
+  const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
 
   return (
     <ScreenLayout noHeader contentStyle={{ justifyContent: "flex-start" }}>
-      <View style={{ paddingHorizontal: spacing.s20, paddingTop: spacing.safeTop, paddingBottom: spacing.s20 }}>
+      <View style={{ paddingHorizontal: spacing.s20, paddingTop: Math.max(safeTop + spacing.s16, spacing.safeTop), paddingBottom: spacing.s20 }}>
         <Text style={{ fontSize: typography.fz24, fontWeight: typography.fw7, color: colors.ink, marginBottom: 6 }}>처방전 분석 중</Text>
         <Text style={{ fontSize: typography.fz14, color: colors.muted }}>잠시만 기다려 주세요...</Text>
       </View>
 
       <View style={{ paddingHorizontal: spacing.s20 }}>
-        <Card style={{ width: "100%", maxWidth: 680, alignSelf: "center", alignItems: "center" }}>
-          <View style={{ width: 84, height: 84, alignItems: "center", justifyContent: "center", marginBottom: spacing.s16 }}>
-            <View style={s.spinnerWrap}>
-              <Icon name="scan" size={36} color={colors.accent700} />
+        {/* overflow:hidden — RN Web border-box 오버플로 방어 */}
+        <Card shadow style={{ width: "100%", maxWidth: 680, alignSelf: "center", overflow: "hidden" }}>
+
+          {/* 스피너 + 제목 */}
+          <View style={{ alignItems: "center", marginBottom: spacing.s20 }}>
+            {/* 84×84 컨테이너: 두 레이어 모두 absolute top:0 left:0 으로 기준점 통일 */}
+            <View style={{ width: 84, height: 84, marginBottom: spacing.s16 }}>
+              <View style={{
+                position: "absolute", top: 0, left: 0,
+                width: 84, height: 84, borderRadius: 42,
+                backgroundColor: colors.accent50,
+                alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon name="scan" size={36} color={colors.accent700} />
+              </View>
+              <Animated.View
+                style={{
+                  position: "absolute",
+                  top: 0, left: 0,
+                  width: 84,
+                  height: 84,
+                  borderRadius: 42,
+                  borderWidth: 3,
+                  borderColor: colors.accent,
+                  borderTopColor: "transparent",
+                  transform: [{ rotate: spin }],
+                }}
+              />
             </View>
-            <Animated.View
-              style={{
-                position: "absolute",
-                width: 84,
-                height: 84,
-                borderRadius: 42,
-                borderWidth: 3,
-                borderColor: colors.accent,
-                borderTopColor: "transparent",
-                transform: [{ rotate: spin }],
-              }}
-            />
+            <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s4 }}>
+              {recordId ? `기록 #${recordId}` : "처방전.jpg"}
+            </Text>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>OCR 처리 중</Text>
           </View>
 
-          <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s4 }}>{recordId ? `기록 #${recordId}` : "처방전.jpg"}</Text>
-          <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s20 }}>OCR 처리 중</Text>
-
-          <View style={[s.progressBg, { marginBottom: spacing.s24, alignSelf: "stretch" }]}>
-            <View style={[s.progressFill, { width: `${progress}%` as any }]} />
+          {/* 진행 바 — onLayout으로 실측 너비 캡처 후 픽셀 값 사용 */}
+          <View
+            onLayout={onTrackLayout}
+            style={{ height: 6, borderRadius: 3, backgroundColor: colors.hairline, overflow: "hidden", marginBottom: spacing.s24 }}
+          >
+            {fillWidth > 0 && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0, left: 0, bottom: 0,
+                  width: fillWidth,
+                  backgroundColor: colors.accent,
+                  borderRadius: 3,
+                }}
+              />
+            )}
           </View>
 
           {error ? (
@@ -120,22 +192,8 @@ export function OCRProcessingScreen({ navigation, route }: any) {
               </Button>
             </View>
           ) : (
-            steps.map((st, i) => (
-              <View key={st.label} style={[s.stepRow, { opacity: i > step ? 0.4 : 1 }]}>
-                <View
-                  style={[
-                    s.stepDot,
-                    {
-                      backgroundColor: i < step ? colors.success : i === step ? colors.accent : colors.hairline,
-                    },
-                  ]}
-                >
-                  {i < step ? <Icon name="check" size={12} color="#fff" /> : <Icon name={st.icon} size={11} color={i === step ? "#fff" : colors.muted} />}
-                </View>
-                <Text style={{ fontSize: typography.fz14, flex: 1 }}>{st.label}</Text>
-                {i < step && <Text style={{ fontSize: typography.fz13, color: colors.muted }}>완료</Text>}
-                {i === step && <Text style={{ fontSize: typography.fz13, color: colors.accent }}>처리 중...</Text>}
-              </View>
+            STEPS.map((st, i) => (
+              <StepItem key={st.label} st={st} index={i} step={step} />
             ))
           )}
         </Card>
