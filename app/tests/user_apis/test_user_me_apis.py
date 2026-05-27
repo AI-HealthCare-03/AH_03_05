@@ -179,3 +179,94 @@ class TestUserMeApis(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_update_nickname_success(self):
+        # Given
+        email = "nickname1@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "닉네임테스터1",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            # When
+            response = await client.patch(
+                "/api/v1/users/me",
+                headers=headers,
+                json={"nickname": "새닉네임"},
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["nickname"] == "새닉네임"
+
+    async def test_update_nickname_within_30_days(self):
+        # Given
+        email = "nickname2@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "닉네임테스터2",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+            await client.patch("/api/v1/users/me", headers=headers, json={"nickname": "첫번째닉네임"})
+
+            # When
+            response = await client.patch(
+                "/api/v1/users/me",
+                headers=headers,
+                json={"nickname": "두번째닉네임"},
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_update_nickname_after_30_days(self):
+        # Given
+        from datetime import UTC, datetime, timedelta
+        from unittest.mock import patch
+
+        email = "nickname3@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "닉네임테스터3",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+            await client.patch("/api/v1/users/me", headers=headers, json={"nickname": "첫번째닉네임"})
+            future_time = datetime.now(UTC) + timedelta(days=31)
+            with patch("app.services.users.datetime") as mock_dt:
+                mock_dt.now.return_value = future_time
+
+                # When
+                response = await client.patch(
+                    "/api/v1/users/me",
+                    headers=headers,
+                    json={"nickname": "두번째닉네임"},
+                )
+
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["nickname"] == "두번째닉네임"
