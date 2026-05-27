@@ -19,6 +19,10 @@ export async function getUnreadCount(): Promise<UnreadCountResponse> {
   return res.data;
 }
 
+export async function markAllNotificationsRead(): Promise<void> {
+  await apiClient.patch('/notifications/read-all');
+}
+
 // ⚠ Backend TODO: PATCH /notifications/{notification_id}/read
 export async function markNotificationRead(
   notificationId: number,

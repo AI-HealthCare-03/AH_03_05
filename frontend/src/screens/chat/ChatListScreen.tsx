@@ -1,217 +1,282 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
-import { useApp, Chat } from '../../context/AppContext';
+// TODO: 채팅 삭제 기능 미구현
+//   - 백엔드 엔드포인트 확인 필요: DELETE /chat/sessions/{id}
+//   - chat.ts에 deleteChatSession() 함수 추가 필요
+//   - ChatListScreen에 스와이프 삭제 UI 구현 필요 (react-native-gesture-handler Swipeable 또는 커스텀)
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
+import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { ChatSessionPane } from './ChatSessionPane';
-import { s } from './_chatShared';
+import { chatApi } from '../../api';
+import type { ChatSession } from '../../api';
+function formatTime(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString())
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const yest = new Date(now);
+  yest.setDate(now.getDate() - 1);
+  if (d.toDateString() === yest.toDateString()) return '어제';
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
 
-export function ChatListScreen({ navigation }: any) {
-  // TODO: [BE 대기] GET /chat/sessions 백엔드 미구현 — 구현 완료 후 AppContext 목업 대신 API 응답으로 교체 필요
-  const { chats, setChats } = useApp();
+const MOCK_SESSIONS: ChatSession[] = [
+  { session_id: 1, title: '혈압약 부작용 문의',  last_message: '혈압약 먹는데 사우나 가도 되나요?', status: 'active', updated_at: new Date(Date.now() - 2 * 60 * 60000).toISOString() },
+  { session_id: 2, title: '메트포르민과 음주',   last_message: '와인 한 잔 정도는 괜찮을까요?',     status: 'active', updated_at: new Date(Date.now() - 26 * 60 * 60000).toISOString() },
+  { session_id: 3, title: '고지혈증 식단',        last_message: '어떤 음식이 좋을까요?',             status: 'active', updated_at: new Date(Date.now() - 25 * 24 * 60 * 60000).toISOString() },
+];
+
+export function ChatListScreen({ navigation, route }: any) {
+  const { top: safeTop } = useSafeAreaInsets();
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(route?.params?.sessionId ?? null);
+  const [searchFocused, setSearchFocused] = useState(false);
   const { isDesktop } = useBreakpoint();
 
-  const filtered = chats.filter(c => !query || c.title.includes(query) || c.preview.includes(query));
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await chatApi.getChatSessions({ page: 1, size: 20 });
+        setSessions(res.items);
+      } catch (err: any) {
+        console.warn('[ChatList] 세션 로드 실패:', err);
+        if (__DEV__) {
+          // TODO: [BE 대기] GET /chat/sessions 미구현 — 구현 완료 후 mock 제거
+          setSessions(MOCK_SESSIONS);
+        } else {
+          setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
-  const startNew = () => {
-    // TODO: [BE 대기] POST /chat/sessions 백엔드 미구현 — 구현 완료 후 연결 필요
-    const newId = 'c' + Date.now();
-    const newChat: Chat = { id: newId, title: '새 상담', preview: '', time: '방금', messages: [] };
-    setChats([newChat, ...chats]);
-    if (isDesktop) {
-      setSelectedChatId(newId);
-    } else {
-      navigation.navigate('ChatSession', { chatId: newId });
+  const startNew = async () => {
+    try {
+      // TODO: [BE 대기] POST /chat/sessions 미구현 — 구현 완료 후 연결 필요
+      const newId = String(Date.now());
+      const tempSession: ChatSession = { session_id: Number(newId), title: '새 상담', status: 'active' };
+      setSessions(prev => [tempSession, ...prev]);
+      setSelectedId(newId);
+    } catch (err: any) {
+      console.warn('[ChatList] 세션 생성 실패:', err);
     }
   };
 
-  const openSession = (chatId: string) => {
-    if (isDesktop) {
-      setSelectedChatId(chatId);
-    } else {
-      navigation.navigate('ChatSession', { chatId });
-    }
+  const openSession = (c: ChatSession) => {
+    setSelectedId(String(c.session_id));
   };
+
+  const handleFirstMessage = (text: string) => {
+    const title = text.slice(0, 15);
+    setSessions(prev => prev.map(s =>
+      String(s.session_id) === selectedId
+        ? { ...s, title, updated_at: new Date().toISOString() }
+        : s
+    ));
+  };
+
+  const filtered = sessions.filter(c =>
+    !query || c.title.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const selectedSession = sessions.find(c => String(c.session_id) === selectedId);
 
   const searchBar = (
-    <View style={s.searchBox}>
-      <Icon name="search" size={14} color={colors.muted} />
+    <Card
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.s8,
+        borderColor: searchFocused ? colors.accent : colors.hairline,
+        borderWidth: searchFocused ? 1.5 : 0.5,
+        height: 44,
+        paddingVertical: 0,
+        paddingHorizontal: spacing.s12,
+      }}
+    >
+      <Icon name="search" size={16} color={searchFocused ? colors.accent : colors.muted} />
       <TextInput
-        style={{ flex: 1, fontSize: typography.fz14, color: colors.ink, marginLeft: spacing.s8, height: 36 }}
+        style={{ flex: 1, fontSize: typography.fz14, color: colors.ink, outlineStyle: 'none' } as any}
         placeholder="검색"
+        placeholderTextColor={colors.muted2}
         value={query}
         onChangeText={setQuery}
+        onFocus={() => setSearchFocused(true)}
+        onBlur={() => setSearchFocused(false)}
+        onKeyPress={({ nativeEvent }: any) => {
+          if (nativeEvent.key === 'Enter') setSearchFocused(false);
+        }}
       />
-    </View>
+    </Card>
   );
 
   const sessionList = (
     <>
-      {chats.length === 0 ? (
+      {loading ? (
+        <View style={{ alignItems: 'center', padding: 48 }}>
+          <ActivityIndicator color={colors.accent} size="large" />
+        </View>
+      ) : error ? (
+        <View style={{ alignItems: 'center', padding: 48 }}>
+          <Text style={{ fontSize: typography.fz14, color: colors.muted, textAlign: 'center', marginBottom: spacing.s16 }}>{error}</Text>
+          <Button variant="ghost" size="sm" onPress={() => {
+            setLoading(true);
+            setError('');
+            chatApi.getChatSessions({ page: 1, size: 20 })
+              .then(res => setSessions(res.items))
+              .catch(() => setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.'))
+              .finally(() => setLoading(false));
+          }}>다시 시도</Button>
+        </View>
+      ) : sessions.length === 0 ? (
         <View style={{ alignItems: 'center', padding: 48 }}>
           <Icon name="chat" size={36} color={colors.muted2} />
           <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink, marginTop: 14, marginBottom: 6 }}>아직 상담 내역이 없어요</Text>
           <Text style={{ fontSize: typography.fz13, color: colors.muted, marginBottom: spacing.s20, textAlign: 'center' }}>복약·생활습관 관련 궁금한 점을 물어보세요.</Text>
-          <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>+ 새 상담 시작하기</Button>
+          <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>
         </View>
       ) : filtered.length === 0 ? (
         <Text style={{ fontSize: typography.fz13, color: colors.muted, textAlign: 'center', padding: spacing.s24 }}>검색 결과가 없어요</Text>
       ) : (
-        filtered.map(c => (
-          <TouchableOpacity
-            key={c.id}
-            style={[s.chatItem, isDesktop && selectedChatId === c.id && ds.chatItemSelected]}
-            onPress={() => openSession(c.id)}
-          >
-            <View style={{ flex: 1 }}>
+        filtered.map(c => {
+          const sid = String(c.session_id);
+          const selected = selectedId === sid;
+          return (
+            <TouchableOpacity
+              key={sid}
+              style={[ds.sessionRow, selected && { backgroundColor: colors.accent50 }]}
+              onPress={() => openSession(c)}
+              activeOpacity={0.7}
+            >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }} numberOfLines={1}>{c.title}</Text>
-                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s8 }}>{c.time}</Text>
+                <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, flex: 1 }} numberOfLines={1}>{c.title}</Text>
+                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s8 }}>{formatTime(c.updated_at)}</Text>
               </View>
-              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }} numberOfLines={1}>{c.preview}</Text>
-            </View>
-          </TouchableOpacity>
-        ))
+              {c.last_message ? (
+                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: 2 }} numberOfLines={1}>{c.last_message}</Text>
+              ) : null}
+            </TouchableOpacity>
+          );
+        })
       )}
     </>
   );
 
   // ── Desktop: split layout ──────────────────────────────────────────────────
   if (isDesktop) {
-    const selectedChat = chats.find(c => c.id === selectedChatId);
-
     return (
-      <View style={ds.root}>
-        {/* Left: session list */}
-        <View style={ds.sidebar}>
-          <View style={ds.sidebarHeader}>
-            <Text style={ds.sidebarTitle}>건강 상담</Text>
-            <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
-          </View>
-          <View style={{ paddingHorizontal: spacing.s8, marginBottom: spacing.s8 }}>
-            {searchBar}
-          </View>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: spacing.s8 }}>
-            {sessionList}
-          </ScrollView>
-        </View>
-
-        {/* Right: chat pane or empty state */}
-        <View style={ds.pane}>
-          {selectedChatId ? (
-            <>
-              <View style={ds.paneHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={ds.paneTitle} numberOfLines={1}>{selectedChat?.title ?? '상담'}</Text>
-                  {!!selectedChat?.preview && (
-                    <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedChat.preview}</Text>
-                  )}
-                </View>
-                <TouchableOpacity onPress={() => setSelectedChatId(null)} style={ds.closeBtn}>
-                  <Icon name="x" size={14} color={colors.ink2} />
-                </TouchableOpacity>
-              </View>
-              <ChatSessionPane chatId={selectedChatId} />
-            </>
-          ) : (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.s12 }}>
-              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name="chat" size={28} color={colors.accent700} />
-              </View>
-              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>상담을 선택해주세요</Text>
-              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>왼쪽에서 상담을 선택하거나 새 상담을 시작하세요.</Text>
-              <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>
+      <View style={{ flex: 1, backgroundColor: colors.canvas, alignItems: 'center' }}>
+        <View style={[ds.root, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: Math.max(safeTop + spacing.s8, spacing.safeTop) }]}>
+          <Card shadow style={ds.sidebar}>
+            <View style={ds.sidebarHeader}>
+              <Text style={ds.sidebarTitle}>상담 목록</Text>
+              <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
             </View>
-          )}
+            <View style={{ paddingHorizontal: spacing.s12, marginBottom: spacing.s8 }}>
+              {searchBar}
+            </View>
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>
+              {sessionList}
+            </ScrollView>
+          </Card>
+
+          <Card shadow style={ds.pane}>
+            {selectedId ? (
+              <>
+                <View style={ds.paneHeader}>
+                  <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
+                    <Icon name="arrow-left" size={16} color={colors.ink2} />
+                  </TouchableOpacity>
+                  <View style={{ flex: 1, marginLeft: spacing.s8 }}>
+                    <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
+                    {selectedSession?.last_message ? (
+                      <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
+                    ) : null}
+                  </View>
+                </View>
+                <ChatSessionPane sessionId={selectedId} onFirstMessage={handleFirstMessage} />
+              </>
+            ) : (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.s12 }}>
+                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name="chat" size={28} color={colors.accent700} />
+                </View>
+                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>상담을 선택해주세요</Text>
+                <Text style={{ fontSize: typography.fz13, color: colors.muted }}>왼쪽에서 상담을 선택하거나 새 상담을 시작하세요.</Text>
+                <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>
+              </View>
+            )}
+          </Card>
         </View>
       </View>
     );
   }
 
-  // ── Mobile / Tablet: existing stack navigation ─────────────────────────────
+  // ── Mobile: chat pane ──────────────────────────────────────────────────────
+  if (selectedId) {
+    return (
+      <ScreenLayout noHeader scrollable={false} contentStyle={{ paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }}>
+        <Card shadow style={{ flex: 1 }}>
+          <View style={ds.paneHeader}>
+            <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
+              <Icon name="arrow-left" size={16} color={colors.ink2} />
+            </TouchableOpacity>
+            <View style={{ flex: 1, marginLeft: spacing.s8 }}>
+              <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
+              {selectedSession?.last_message ? (
+                <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
+              ) : null}
+            </View>
+          </View>
+          <ChatSessionPane sessionId={selectedId} onFirstMessage={handleFirstMessage} />
+        </Card>
+      </ScreenLayout>
+    );
+  }
+
+  // ── Mobile: session list ───────────────────────────────────────────────────
   return (
-    <ScreenLayout
-      title="상담 목록"
-      right={
-        <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
-      }
-      headerExtra={searchBar}
-      scrollable
-      scrollPadding={false}
-      contentStyle={{ padding: spacing.s8 }}
-    >
-      {sessionList}
+    <ScreenLayout noHeader scrollable={false} contentStyle={{ paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }}>
+      <Card shadow style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.s12, paddingTop: spacing.s12, paddingBottom: spacing.s8 }}>
+          <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink }}>상담 목록</Text>
+          <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
+        </View>
+        <View style={{ paddingHorizontal: spacing.s12, marginBottom: spacing.s8 }}>
+          {searchBar}
+        </View>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>
+          {sessionList}
+        </ScrollView>
+      </Card>
     </ScreenLayout>
   );
 }
 
 const ds = StyleSheet.create({
-  root: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: colors.canvas,
-  },
-  sidebar: {
-    width: 300,
-    borderRightWidth: 1,
-    borderRightColor: colors.hairline,
-    backgroundColor: colors.surface,
-    paddingTop: spacing.safeTop,
-  },
-  sidebarHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.s16,
-    paddingBottom: spacing.s12,
-  },
-  sidebarTitle: {
-    fontSize: typography.fz17,
-    fontWeight: typography.fw7,
-    color: colors.ink,
-  },
-  chatItemSelected: {
-    backgroundColor: colors.accent50,
-    borderColor: colors.accent,
-  },
-  pane: {
-    flex: 1,
-    backgroundColor: colors.canvas,
-  },
-  paneHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: spacing.safeTop,
-    paddingBottom: 14,
-    paddingHorizontal: spacing.s20,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.hairline,
-    backgroundColor: colors.canvas,
-  },
-  paneTitle: {
-    fontSize: typography.fz17,
-    fontWeight: typography.fw7,
-    color: colors.ink,
-  },
-  paneSubtitle: {
-    fontSize: typography.fz13,
-    color: colors.muted,
-    marginTop: 1,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.surface2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: spacing.s12,
-  },
+  root:          { flex: 1, flexDirection: 'row', width: '100%', maxWidth: 900, padding: spacing.s16, gap: spacing.s16 },
+  sidebar:       { width: 300 },
+  sidebarHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.s16, paddingTop: spacing.s12, paddingBottom: spacing.s12 },
+  sidebarTitle:  { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
+  pane:          { flex: 1 },
+  paneHeader:    { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: spacing.s16, borderBottomWidth: 0.5, borderBottomColor: colors.hairline },
+  paneTitle:     { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
+  paneSubtitle:  { fontSize: typography.fz12, color: colors.muted, marginTop: 2 },
+  iconBtn:       { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  sessionRow:    { paddingVertical: spacing.s12, paddingHorizontal: spacing.s16, borderBottomWidth: 0.5, borderBottomColor: colors.hairline },
 });
 
 export default ChatListScreen;

@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { SettingsStackParams } from '../types';
 import SettingsScreen from '../../screens/settings/SettingsScreen';
 import { NotificationSettingsScreen } from '../../screens/settings/NotificationSettingsScreen';
-import { ProfileEditScreen } from '../../screens/settings/ProfileEditScreen';
+import { HealthProfileEditScreen } from '../../screens/settings/HealthProfileEditScreen';
 import { NotificationsScreen } from '../../screens/settings/NotificationsScreen';
 import { PasswordChangeScreen } from '../../screens/settings/PasswordChangeScreen';
 import { DeviceManagementScreen } from '../../screens/settings/DeviceManagementScreen';
@@ -19,7 +19,7 @@ export default function SettingsNavigator() {
     <SettingsStack.Navigator screenOptions={noHeader}>
       <SettingsStack.Screen name="Settings" component={SettingsScreen} />
       <SettingsStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
-      <SettingsStack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+      <SettingsStack.Screen name="HealthProfileEdit" component={HealthProfileEditScreen} />
       <SettingsStack.Screen name="Notifications" component={NotificationsScreen} />
       <SettingsStack.Screen name="PasswordChange" component={PasswordChangeScreen} />
       <SettingsStack.Screen name="DeviceManagement" component={DeviceManagementScreen} />

@@ -1,4 +1,4 @@
 export { default as OCRProcessingScreen } from './OCRProcessingScreen';
 export { OCRResultScreen } from './OCRResultScreen';
-export { DrugSearchScreen } from './DrugSearchScreen';
+export { DrugCandidateScreen } from './DrugCandidateScreen';
 export { DrugDosageScreen } from './DrugDosageScreen';

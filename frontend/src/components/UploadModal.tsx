@@ -167,8 +167,8 @@ const s = StyleSheet.create({
   scrimCenter: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
 
   // 컨테이너
-  sheet:      { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: spacing.s5 },
-  dialogCard: { backgroundColor: colors.surface, borderRadius: 20, padding: spacing.s5 },
+  sheet:      { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: spacing.s16 },
+  dialogCard: { backgroundColor: colors.surface, borderRadius: 20, padding: spacing.s16 },
 
   // 내부 요소
   handle:   { width: 36, height: 4, backgroundColor: colors.hairlineStrong, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },

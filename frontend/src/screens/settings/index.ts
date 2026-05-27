@@ -1,6 +1,6 @@
 export { default as SettingsScreen } from './SettingsScreen';
 export { NotificationSettingsScreen } from './NotificationSettingsScreen';
-export { ProfileEditScreen } from './ProfileEditScreen';
+export { HealthProfileEditScreen } from './HealthProfileEditScreen';
 export { NotificationsScreen } from './NotificationsScreen';
 export { PasswordChangeScreen } from './PasswordChangeScreen';
 export { DeviceManagementScreen } from './DeviceManagementScreen';
