@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Animated, Modal, TouchableOpacity, View, Text, ScrollView, StyleSheet,
+  Animated, Modal, Platform, TouchableOpacity, View, Text, ScrollView, StyleSheet,
 } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useNavigation } from '@react-navigation/native';
 import { useApp, type Notification } from '../context/AppContext';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -202,45 +203,65 @@ export default function NotificationDrawer() {
                   <View key={g.label}>
                     <Text style={s.groupLabel}>{g.label}</Text>
                     <Card noPadding style={{ overflow: 'hidden' }}>
-                      {g.items.map((n, i) => (
-                        <View
-                          key={n.id}
-                          style={[
-                            s.notifRow,
-                            i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline },
-                            n.unread && { backgroundColor: colors.accent50 },
-                          ]}
-                        >
-                          <TouchableOpacity
-                            activeOpacity={0.7}
-                            onPress={() => handlePress(n)}
-                            style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s12 }}
-                          >
-                            <View style={s.notifIcon}>
-                              <Icon name={n.icon} size={14} color={colors.accent700} />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.s8 }}>
-                                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, flex: 1 }} numberOfLines={1}>
+                      {g.items.map((n, i) => {
+                        const rowStyle = [
+                          s.notifRow,
+                          i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline },
+                          n.unread && { backgroundColor: colors.accent50 },
+                        ];
+                        const rowContent = (
+                          <View style={rowStyle}>
+                            <TouchableOpacity
+                              activeOpacity={0.7}
+                              onPress={() => handlePress(n)}
+                              style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s12 }}
+                            >
+                              <View style={s.notifIcon}>
+                                <Icon name={n.icon} size={14} color={colors.accent700} />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }} numberOfLines={1}>
                                   {n.title}
                                 </Text>
-                                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{n.time}</Text>
+                                <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s4 }}>
+                                  {n.body}
+                                </Text>
                               </View>
-                              <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s4 }}>
-                                {n.body}
-                              </Text>
+                              {n.unread && <View style={s.unreadDot} />}
+                            </TouchableOpacity>
+                            <View style={s.notifRight}>
+                              <Text style={s.notifTime}>{n.time}</Text>
+                              {Platform.OS === 'web' && (
+                                <TouchableOpacity
+                                  onPress={() => handleDelete(n.id)}
+                                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                  style={s.deleteBtn}
+                                >
+                                  <Icon name="x" size={12} color={colors.muted2} />
+                                </TouchableOpacity>
+                              )}
                             </View>
-                            {n.unread && <View style={s.unreadDot} />}
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => handleDelete(n.id)}
-                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                            style={s.deleteBtn}
-                          >
-                            <Icon name="x" size={12} color={colors.muted2} />
-                          </TouchableOpacity>
-                        </View>
-                      ))}
+                          </View>
+                        );
+
+                        if (Platform.OS !== 'web') {
+                          return (
+                            <Swipeable
+                              key={n.id}
+                              friction={2}
+                              leftThreshold={60}
+                              renderLeftActions={() => (
+                                <TouchableOpacity style={s.swipeDelete} onPress={() => handleDelete(n.id)}>
+                                  <Text style={s.swipeDeleteText}>삭제</Text>
+                                </TouchableOpacity>
+                              )}
+                            >
+                              {rowContent}
+                            </Swipeable>
+                          );
+                        }
+                        return React.cloneElement(rowContent, { key: n.id });
+                      })}
                     </Card>
                   </View>
                 ) : null
@@ -313,7 +334,7 @@ const s = StyleSheet.create({
   },
   notifRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
     padding: spacing.s16,
     gap: spacing.s12,
   },
@@ -333,8 +354,28 @@ const s = StyleSheet.create({
     marginTop: spacing.s4,
     marginLeft: 6,
   },
+  notifRight: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingVertical: 2,
+  },
+  notifTime: {
+    fontSize: typography.fz12,
+    color: colors.muted,
+  },
   deleteBtn: {
-    paddingLeft: spacing.s8,
-    alignSelf: 'center',
+    marginTop: spacing.s4,
+  },
+  swipeDelete: {
+    backgroundColor: colors.danger,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.s20,
+  },
+  swipeDeleteText: {
+    color: '#fff',
+    fontSize: typography.fz13,
+    fontWeight: typography.fw6,
   },
 });
