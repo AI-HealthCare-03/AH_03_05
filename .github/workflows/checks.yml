@@ -5,14 +5,14 @@ on:
     branches:
       - main
       - develop
-      - "release/*"
-      - "hotfix/*"
+      - 'release/*'
+      - 'hotfix/*'
   pull_request:
     branches:
       - main
       - develop
-      - "release/*"
-      - "hotfix/*"
+      - 'release/*'
+      - 'hotfix/*'
 
 jobs:
   lint:
@@ -20,23 +20,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
-
+          python-version: '3.13'
       - name: Install dependencies
         run: uv sync --frozen
-
       - name: Run Ruff Check (Linting)
         run: uv run ruff check .
-
       - name: Run Ruff Format Check
         run: uv run ruff format . --check
 
@@ -52,11 +47,11 @@ jobs:
       OPENAI_API_KEY: ci-dummy-key-not-used-in-tests
     services:
       postgresql:
-        image: postgresql:16
+        image: postgres:16
         env:
-          postgresql_USER: ozcoding
-          postgresql_PASSWORD: pw1234
-          postgresql_DATABASE: ai_health
+          POSTGRES_USER: ozcoding
+          POSTGRES_PASSWORD: pw1234
+          POSTGRES_DB: ai_health
         ports:
           - 5432:5432
         options: >-
@@ -67,20 +62,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
-
+          python-version: '3.13'
       - name: Install dependencies
         run: uv sync --group app --frozen
-
       - name: Check if tests exist
         id: check_tests
         run: |
@@ -98,5 +89,14 @@ jobs:
         env:
           DATABASE_URL: postgres://ozcoding:pw1234@127.0.0.1:5432/ai_health
         run: |
-          uv run coverage run -m pytest app
+          uv run coverage run --source=app -m pytest app tests
           uv run coverage report -m
+          uv run coverage xml
+
+      - name: Upload coverage to Codecov
+        if: steps.check_tests.outputs.has_tests == 'true'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: backend
+          fail_ci_if_error: false
