@@ -63,17 +63,8 @@ export function DeleteAccountScreen({ navigation }: any) {
         flash('탈퇴 처리가 완료됐어요. 안녕히 가세요 👋');
         (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)
           ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
-      // TODO: [BE 대기] POST /api/v1/auth/refresh 미구현으로 인해
-      // access token 만료 시 토큰 갱신 실패 → DELETE 401 발생
-      // auth/refresh 구현 완료 후 정상 동작 확인 필요
       } catch (e: any) {
-        const status = e?.response?.status;
-        const detail = e?.response?.data?.detail;
-        if (status === 401) {
-          setError(typeof detail === 'string' ? detail : '비밀번호가 일치하지 않습니다.');
-        } else {
-          setError(extractApiError(e));
-        }
+        setError(extractApiError(e));
       } finally {
         setLoading(false);
       }

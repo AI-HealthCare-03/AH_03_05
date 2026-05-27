@@ -46,7 +46,6 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
       const res = await authApi.login({ email, password: pw });
       const rawFlags = await AsyncStorage.getItem('medipt_profile_flags').catch(() => null);
       const profileFlags: Record<string, boolean> = rawFlags ? JSON.parse(rawFlags) : {};
-      // TODO: 임시 처리 — BE LoginResponse에 nickname 추가되면 res.user.nickname으로 교체
       const updatedUser = { ...defaultUser, loggedIn: true, email, name: res.user.name, nickname: '', profileComplete: profileFlags[email] ?? false };
       setUser(updatedUser);
       const destination = updatedUser.profileComplete ? 'Main' : 'Onboarding';
