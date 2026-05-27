@@ -44,3 +44,55 @@ class TestLogoutAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_200_OK
+
+
+class TestRefreshAPI(TestCase):
+    async def test_refresh_success(self):
+        # Given
+        signup_data = {
+            "email": "refresh_test@example.com",
+            "password": "Password123!",
+            "name": "리프레시테스터",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "refresh_test@example.com", "password": "Password123!"},
+            )
+            refresh_token = login_response.json()["refresh_token"]
+            # When
+            response = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert "access_token" in response.json()
+
+    async def test_refresh_invalid_token(self):
+        # Given & When
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/api/v1/auth/refresh", json={"refresh_token": "invalid_token"})
+        # Then
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_refresh_revoked_token(self):
+        # Given
+        signup_data = {
+            "email": "refresh_revoked@example.com",
+            "password": "Password123!",
+            "name": "리프레시취소테스터",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "refresh_revoked@example.com", "password": "Password123!"},
+            )
+            refresh_token = login_response.json()["refresh_token"]
+            # 로그아웃으로 토큰 revoke
+            await client.post("/api/v1/auth/logout", json={"refresh_token": refresh_token})
+            # When
+            response = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+        # Then
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
