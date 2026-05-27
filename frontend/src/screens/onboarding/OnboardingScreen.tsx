@@ -154,7 +154,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
                 value={form.history}
                 onChangeText={v => set('history', v)}
                 multiline
-                style={{ height: 80, textAlignVertical: 'top' }}
+                style={{ height: 80, textAlignVertical: 'top', paddingTop: spacing.s8 }}
               />
             </>
           )}

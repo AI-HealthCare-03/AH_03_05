@@ -230,7 +230,6 @@ export default function NotificationDrawer() {
                               {n.unread && <View style={s.unreadDot} />}
                             </TouchableOpacity>
                             <View style={s.notifRight}>
-                              <Text style={s.notifTime}>{n.time}</Text>
                               {Platform.OS === 'web' && (
                                 <TouchableOpacity
                                   onPress={() => handleDelete(n.id)}
@@ -240,6 +239,7 @@ export default function NotificationDrawer() {
                                   <Icon name="x" size={12} color={colors.muted2} />
                                 </TouchableOpacity>
                               )}
+                              <Text style={s.notifTime}>{n.time}</Text>
                             </View>
                           </View>
                         );
@@ -249,8 +249,9 @@ export default function NotificationDrawer() {
                             <Swipeable
                               key={n.id}
                               friction={2}
-                              leftThreshold={60}
-                              renderLeftActions={() => (
+                              rightThreshold={60}
+                              overshootLeft={false}
+                              renderRightActions={() => (
                                 <TouchableOpacity style={s.swipeDelete} onPress={() => handleDelete(n.id)}>
                                   <Text style={s.swipeDeleteText}>삭제</Text>
                                 </TouchableOpacity>
@@ -359,14 +360,13 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     paddingVertical: 2,
+    gap: spacing.s12,
   },
   notifTime: {
     fontSize: typography.fz12,
     color: colors.muted,
   },
-  deleteBtn: {
-    marginTop: spacing.s4,
-  },
+  deleteBtn: {},
   swipeDelete: {
     backgroundColor: colors.danger,
     justifyContent: 'center',
