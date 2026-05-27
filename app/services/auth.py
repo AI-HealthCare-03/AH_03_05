@@ -77,7 +77,14 @@ class AuthService:
     async def login(self, user: User) -> dict[str, AccessToken | RefreshToken]:
         user.last_login_at = datetime.now(UTC)
         await user.save()
-        return self.jwt_service.issue_jwt_pair(user)
+        tokens = self.jwt_service.issue_jwt_pair(user)
+        rt = tokens["refresh_token"]
+        await AuthToken.create(
+            user=user,
+            refresh_token=str(rt),
+            expires_at=rt.current_time + rt.lifetime,
+        )
+        return tokens
 
     async def logout(self, refresh_token: str) -> None:
         token = await AuthToken.get_or_none(refresh_token=refresh_token)
