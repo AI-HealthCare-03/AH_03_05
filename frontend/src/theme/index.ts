@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export const colors = {
   // Accent (teal)
   accent: "#0891B2",
@@ -100,17 +102,15 @@ export const typography = {
 
 export const shadows = {
   card: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    ...(Platform.OS !== 'web'
+      ? { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8 }
+      : { boxShadow: '0px 2px 8px rgba(0,0,0,0.06)' } as any),
     elevation: 2,
   },
   float: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    ...(Platform.OS !== 'web'
+      ? { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 }
+      : { boxShadow: '0px 2px 6px rgba(0,0,0,0.08)' } as any),
     elevation: 3,
   },
 };

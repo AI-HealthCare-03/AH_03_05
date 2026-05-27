@@ -145,6 +145,7 @@ export default function NotificationDrawer() {
         <Animated.View
           style={[
             s.panel,
+            panelShadow,
             isDesktopOrAbove ? s.panelDesktop : s.panelMobile,
             isDesktopOrAbove && { transform: [{ translateX: slideAnim }] },
           ]}
@@ -248,6 +249,10 @@ export default function NotificationDrawer() {
   );
 }
 
+const panelShadow = Platform.OS !== 'web'
+  ? { shadowColor: '#000', shadowOffset: { width: -4, height: 0 }, shadowOpacity: 0.12, shadowRadius: 20 }
+  : { boxShadow: '-4px 0px 20px rgba(0,0,0,0.12)' };
+
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -258,10 +263,6 @@ const s = StyleSheet.create({
   },
   panel: {
     backgroundColor: colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: -4, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
     elevation: 16,
   },
   panelDesktop: {
