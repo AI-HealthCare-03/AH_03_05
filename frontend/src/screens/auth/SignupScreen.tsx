@@ -154,9 +154,6 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       setUser({ ...defaultUser, name: form.name, nickname: resolvedNickname, email: form.email, loggedIn: true, profileComplete: false });
       (navigation as any).reset({ index: 0, routes: [{ name: 'Onboarding' as never }] });
     } catch (e) {
-      console.error('[Signup] submit error:', e);
-      // TODO: 디버깅 완료 후 제거
-      if (axios.isAxiosError(e)) console.log('[Signup] 422 detail:', JSON.stringify(e.response?.data));
       if (axios.isAxiosError(e) && e.response?.status === 409) {
         setFieldErrors(prev => ({ ...prev, email: '이미 사용 중인 이메일입니다.' }));
         setEmailVerified(false);

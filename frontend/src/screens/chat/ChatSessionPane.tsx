@@ -1,16 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import { StyleSheet } from 'react-native';
-import { chatApi } from '../../api';
+import { chatApi, feedbacksApi } from '../../api';
 import type { ChatMessageItem } from '../../api';
 import { s } from './_chatShared';
 
 interface Props {
   sessionId: string;
+  cachedMessages?: ChatMessageItem[];
+  onMessagesChange?: (msgs: ChatMessageItem[]) => void;
   onFirstMessage?: (text: string) => void;
+  onMessageSent?: (text: string) => void;
 }
 
 const MOCK_AI_RESPONSE = '도움이 되도록 답변드릴게요. 다만 복약·치료 결정을 바꾸기 전에는 반드시 담당 의사·약사와 상담해주세요.';
@@ -20,23 +23,48 @@ const GREETING: ChatMessageItem = {
   content: '안녕하세요 👋 어떤 점이 궁금하신가요?',
 };
 
-export function ChatSessionPane({ sessionId, onFirstMessage }: Props) {
-  const [messages, setMessages] = useState<ChatMessageItem[]>([GREETING]);
+export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, onFirstMessage, onMessageSent }: Props) {
+  const [messages, setMessages] = useState<ChatMessageItem[]>(cachedMessages ?? [GREETING]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+  const inputRef = useRef<any>(null);
+  const cachedRef = useRef(cachedMessages);
+  const onMessagesChangeRef = useRef(onMessagesChange);
+  useLayoutEffect(() => {
+    cachedRef.current = cachedMessages;
+    onMessagesChangeRef.current = onMessagesChange;
+  });
+
+  const updateMessages = (updater: (prev: ChatMessageItem[]) => ChatMessageItem[]) => {
+    setMessages(prev => {
+      const next = updater(prev);
+      onMessagesChangeRef.current?.(next);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!sessionId) return;
+    const cached = cachedRef.current;
+    if (cached && cached.length > 0) {
+      setMessages(cached);
+      return;
+    }
+    setMessages([GREETING]);
     // TODO: [BE 대기] GET /chat/sessions/{session_id}/messages 미구현 — 구현 완료 후 mock 제거
     chatApi.getChatMessages(Number(sessionId), { limit: 50 })
-      .then(res => setMessages(res.messages.length > 0 ? res.messages : [GREETING]))
+      .then(res => {
+        const msgs = res.messages.length > 0 ? res.messages : [GREETING];
+        setMessages(msgs);
+        onMessagesChangeRef.current?.(msgs);
+      })
       .catch(err => {
         console.warn('[ChatPane] 메시지 로드 실패:', err);
         if (__DEV__) setMessages([GREETING]);
       });
-  }, [sessionId]);
+  }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
@@ -46,13 +74,17 @@ export function ChatSessionPane({ sessionId, onFirstMessage }: Props) {
     const text = input.trim();
     if (!text || sending) return;
     setInput('');
+    inputRef.current?.clear?.();
+    // web: Enter keypress adds '\n' to textarea after this sync clear — catch it
+    requestAnimationFrame(() => { setInput(''); inputRef.current?.clear?.(); });
     setSendError('');
 
     const isFirst = messages.length === 1 && messages[0].message_id === -1;
     const tempId = Date.now();
     const userMsg: ChatMessageItem = { message_id: tempId, sender_type: 'user', content: text };
-    setMessages(prev => [...prev, userMsg]);
+    updateMessages(prev => [...prev, userMsg]);
     if (isFirst) onFirstMessage?.(text);
+    onMessageSent?.(text);
     setSending(true);
 
     try {
@@ -65,7 +97,8 @@ export function ChatSessionPane({ sessionId, onFirstMessage }: Props) {
         safety_flag: res.safety_flag,
         created_at: res.created_at,
       };
-      setMessages(prev => [...prev, aiMsg]);
+      updateMessages(prev => [...prev, aiMsg]);
+      onMessageSent?.(aiMsg.content);
     } catch (err: any) {
       console.warn('[ChatPane] 메시지 전송 실패:', err);
       const status = err?.response?.status;
@@ -74,13 +107,15 @@ export function ChatSessionPane({ sessionId, onFirstMessage }: Props) {
       } else if (__DEV__) {
         // TODO: [BE 대기] 목업 응답 — 구현 완료 후 제거
         await new Promise<void>(res => setTimeout(res, 1500));
+        const SAFETY_KEYWORDS = ['자살', '자해', '죽고싶', '극단적선택'];
         const mockMsg: ChatMessageItem = {
           message_id: Date.now(),
           sender_type: 'assistant',
           content: MOCK_AI_RESPONSE,
-          safety_flag: false,
+          safety_flag: SAFETY_KEYWORDS.some(k => text.includes(k)),
         };
-        setMessages(prev => [...prev, mockMsg]);
+        updateMessages(prev => [...prev, mockMsg]);
+        onMessageSent?.(mockMsg.content);
       } else {
         setSendError('메시지 전송에 실패했어요. 다시 시도해주세요.');
       }
@@ -125,14 +160,18 @@ export function ChatSessionPane({ sessionId, onFirstMessage }: Props) {
 
       <View style={s.inputBar}>
         <TextInput
+          ref={inputRef}
           style={s.chatInput}
           placeholder="궁금한 점을 입력해주세요"
           placeholderTextColor={colors.muted2}
           value={input}
           onChangeText={setInput}
-          onSubmitEditing={send}
-          onKeyPress={({ nativeEvent }: any) => {
-            if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) setTimeout(() => send(), 0);
+          onSubmitEditing={Platform.OS !== 'web' ? send : undefined}
+          onKeyPress={(e: any) => {
+            if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+              e.nativeEvent.preventDefault?.();
+              send();
+            }
           }}
           returnKeyType="send"
           multiline
@@ -147,6 +186,14 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
   const [fb, setFb] = useState<'good' | 'bad' | null>(null);
   const isUser = msg.sender_type === 'user';
   const isSafe = msg.safety_flag === true;
+
+  const submitFeedback = (rating: number, reportType?: string) => {
+    feedbacksApi.createFeedback({
+      chat_message_id: msg.message_id,
+      rating,
+      ...(reportType ? { report_type: reportType } : {}),
+    }).catch(() => {});
+  };
 
   return (
     <View style={{ marginBottom: 14 }}>
@@ -178,17 +225,26 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
       {!isUser && msg.message_id !== -1 && (
         <View style={{ flexDirection: 'row', gap: spacing.s8, marginLeft: 36, marginTop: spacing.s4 }}>
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'good' ? colors.accent : colors.hairline, backgroundColor: fb === 'good' ? colors.accent50 : 'transparent' }}
-            onPress={() => setFb('good')}>
+            disabled={!!fb}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'good' ? colors.accent : colors.hairline, backgroundColor: fb === 'good' ? colors.accent50 : 'transparent', opacity: fb && fb !== 'good' ? 0.4 : 1 }}
+            onPress={() => { if (fb) return; setFb('good'); submitFeedback(4); }}>
             <Text style={{ fontSize: typography.fz12 }}>👍</Text>
             <Text style={{ fontSize: typography.fz11, color: fb === 'good' ? colors.accent700 : colors.muted }}>도움됨</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'bad' ? colors.danger : colors.hairline, backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent' }}
-            onPress={() => setFb('bad')}>
+            disabled={!!fb}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'bad' ? colors.danger : colors.hairline, backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent', opacity: fb && fb !== 'bad' ? 0.4 : 1 }}
+            onPress={() => { if (fb) return; setFb('bad'); submitFeedback(2); }}>
             <Text style={{ fontSize: typography.fz12 }}>👎</Text>
             <Text style={{ fontSize: typography.fz11, color: fb === 'bad' ? colors.danger : colors.muted }}>별로</Text>
           </TouchableOpacity>
+          {isSafe && (
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: colors.danger, backgroundColor: 'transparent' }}
+              onPress={() => submitFeedback(2, 'chat_error')}>
+              <Text style={{ fontSize: typography.fz11, color: colors.danger }}>신고하기</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>

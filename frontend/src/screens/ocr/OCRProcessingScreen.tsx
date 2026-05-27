@@ -45,8 +45,6 @@ function StepItem({ st, index: i, step }: StepItemProps) {
 export function OCRProcessingScreen({ navigation, route }: any) {
   const { top: safeTop } = useSafeAreaInsets();
   const recordId: number | undefined = route?.params?.recordId;
-  // TODO: [임시] devError 파라미터 — 테스트 완료 후 제거
-  const devError: boolean = route?.params?.devError ?? false;
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -61,23 +59,6 @@ export function OCRProcessingScreen({ navigation, route }: any) {
     anim.start();
     return () => anim.stop();
   }, []);
-
-  // TODO: [임시] devError 데모 분기 — 테스트 완료 후 제거
-  // 의존성에 step 포함: !recordId 모드에서 step 변경마다 재실행해야 다음 타이머가 등록됨
-  useEffect(() => {
-    if (devError) {
-      setError("처리 시간이 초과됐어요. 다시 시도해주세요.");
-      return;
-    }
-    if (recordId) return;
-
-    if (step >= STEPS.length) {
-      const t = setTimeout(() => navigation.replace("OCRResult"), 400);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setStep((s) => s + 1), 700);
-    return () => clearTimeout(t);
-  }, [step, recordId, devError]);
 
   useEffect(() => {
     if (!recordId) return;

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Modal, TextInput } from "react-native";
 import { colors, radii, spacing, typography } from "../../theme";
 import { useApp } from "../../context/AppContext";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
-import { guidesApi } from "../../api";
+import { guidesApi, feedbacksApi, extractApiError } from "../../api";
 import type { GuideResponse } from "../../api";
 
 // ─── 모듈 레벨 상수 ────────────────────────────────────────────────────────────
@@ -113,6 +113,8 @@ function LifeCheckItem({ item, checked, onPress }: { item: (typeof LIFE_ITEMS)[n
 export function GuideResultScreen({ navigation, route }: any) {
   const [tab, setTab] = useState<"med" | "life">("med");
   const [feedback, setFeedback] = useState<"good" | "bad" | null>(null);
+  const [commentVisible, setCommentVisible] = useState(false);
+  const [commentText, setCommentText] = useState("");
   const [checks, setChecks] = useState<Record<string, boolean>>({});
   const { flash } = useApp();
 
@@ -243,33 +245,70 @@ export function GuideResultScreen({ navigation, route }: any) {
         <Text style={s.emergencyBody}>심한 흉통, 호흡곤란, 검은 변, 의식 변화, 심한 출혈이 발생하면 즉시 119에 연락하거나 응급실로 가세요.</Text>
       </View>
 
-      {/* 피드백 (REQ-FB-001) */}
-      <Card shadow style={{ alignItems: "center", gap: 10 }}>
+      {/* 피드백 (REQ-FB-001) — guideId 없을 때 숨김 */}
+      {guideId != null && <Card shadow style={{ alignItems: "center", gap: 10 }}>
         <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2 }}>이 가이드가 도움이 됐나요?</Text>
         <View style={{ flexDirection: "row", gap: spacing.s12 }}>
           <TouchableOpacity
-            style={[s.feedbackBtn, { borderColor: feedback === "good" ? colors.accent : colors.hairlineStrong, backgroundColor: feedback === "good" ? colors.accent50 : "transparent" }]}
-            // TODO: [BE 대기] POST /guides/{guide_id}/feedback 백엔드 미구현 — 구현 완료 후 연결 필요
-            onPress={() => {
+            disabled={!!feedback}
+            style={[s.feedbackBtn, { borderColor: feedback === "good" ? colors.accent : colors.hairlineStrong, backgroundColor: feedback === "good" ? colors.accent50 : "transparent", opacity: feedback && feedback !== "good" ? 0.4 : 1 }]}
+            onPress={async () => {
+              if (feedback) return;
               setFeedback("good");
-              flash("도움이 됐다고 알려주셨어요 😊");
+              try {
+                await feedbacksApi.createFeedback({ guide_id: guideId, rating: 4 });
+                flash("감사합니다. 의견이 등록되었습니다");
+              } catch (e) {
+                flash(extractApiError(e));
+                setFeedback(null);
+              }
             }}
           >
             <Text style={{ fontSize: 18 }}>👍</Text>
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: feedback === "good" ? colors.accent700 : colors.ink2 }}>도움됨</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[s.feedbackBtn, { borderColor: feedback === "bad" ? colors.danger : colors.hairlineStrong, backgroundColor: feedback === "bad" ? colors.danger50 : "transparent" }]}
-            onPress={() => {
-              setFeedback("bad");
-              flash("아쉬운 점을 알려주셔서 감사해요");
-            }}
+            disabled={!!feedback}
+            style={[s.feedbackBtn, { borderColor: feedback === "bad" ? colors.danger : colors.hairlineStrong, backgroundColor: feedback === "bad" ? colors.danger50 : "transparent", opacity: feedback && feedback !== "bad" ? 0.4 : 1 }]}
+            onPress={() => { if (!feedback) setCommentVisible(true); }}
           >
             <Text style={{ fontSize: 18 }}>👎</Text>
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: feedback === "bad" ? colors.danger : colors.ink2 }}>별로</Text>
           </TouchableOpacity>
         </View>
-      </Card>
+      </Card>}
+
+      {/* 👎 코멘트 모달 */}
+      <Modal transparent visible={commentVisible} animationType="fade" onRequestClose={() => { setCommentVisible(false); setCommentText(''); }}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "center", alignItems: "center", padding: spacing.s24 }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s20, width: "100%", maxWidth: 400, gap: spacing.s12 }}>
+            <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>아쉬웠던 점을 알려주세요</Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: colors.hairlineStrong, borderRadius: radii.md, padding: spacing.s12, paddingTop: spacing.s8, fontSize: typography.fz14, color: colors.ink, height: 80, textAlignVertical: "top" }}
+              multiline
+              placeholder="어떤 점이 아쉬웠나요? (선택)"
+              placeholderTextColor={colors.muted2}
+              value={commentText}
+              onChangeText={setCommentText}
+            />
+            <View style={{ flexDirection: "row", gap: spacing.s8, justifyContent: "flex-end" }}>
+              <Button variant="ghost" size="sm" onPress={() => { setCommentVisible(false); setCommentText(''); }}>취소</Button>
+              <Button variant="primary" size="sm" onPress={async () => {
+                setCommentVisible(false);
+                setCommentText('');
+                setFeedback("bad");
+                try {
+                  await feedbacksApi.createFeedback({ guide_id: guideId, rating: 2, comment: commentText || undefined });
+                  flash("감사합니다. 의견이 등록되었습니다");
+                } catch (e) {
+                  flash(extractApiError(e));
+                  setFeedback(null);
+                }
+              }}>등록</Button>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenLayout>
   );
 }

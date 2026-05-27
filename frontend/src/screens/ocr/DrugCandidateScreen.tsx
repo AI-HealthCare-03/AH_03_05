@@ -8,12 +8,6 @@ import { colors, radii, spacing, typography } from "../../theme";
 import { drugsApi } from "../../api";
 import type { DrugSearchResult } from "../../api";
 
-// TODO: [임시] 실API 연결 후 제거
-const DUMMY_RESULTS: DrugSearchResult[] = [
-  { drug_ref_id: 1, drug_name: "메트포르민정 500mg", ingredient_name: "Metformin", manufacturer: "A제약" },
-  { drug_ref_id: 2, drug_name: "암로디핀정 5mg", ingredient_name: "Amlodipine", manufacturer: "한미약품" },
-  { drug_ref_id: 3, drug_name: "로수바스타틴정 10mg", ingredient_name: "Rosuvastatin", manufacturer: "유한양행" },
-];
 
 export function DrugCandidateScreen({ navigation, route }: any) {
   const drugIndex: number | undefined = route?.params?.drugIndex;
@@ -28,12 +22,6 @@ export function DrugCandidateScreen({ navigation, route }: any) {
     setLoading(true);
     setSearched(true);
     try {
-      // TODO: [임시] 실API 연결 후 아래 DEV 분기 제거
-      if (__DEV__) {
-        await new Promise((r) => setTimeout(r, 400));
-        setResults(DUMMY_RESULTS);
-        return;
-      }
       const res = await drugsApi.searchDrugs({ keyword: query.trim(), limit: 10 });
       setResults(res.results);
     } catch {

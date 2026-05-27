@@ -11,6 +11,7 @@ export function ChatSessionScreen({ navigation, route }: any) {
   const { top: safeTop } = useSafeAreaInsets();
   const sessionId: string | undefined = route?.params?.sessionId;
   const sessionTitle: string = route?.params?.title ?? '상담';
+  const sessionSubtitle: string | undefined = route?.params?.subtitle;
 
   if (!sessionId) {
     return (
@@ -41,7 +42,9 @@ export function ChatSessionScreen({ navigation, route }: any) {
         </TouchableOpacity>
         <View style={{ flex: 1, marginLeft: spacing.s8 }}>
           <Text style={cs.sessionTitle} numberOfLines={1}>{sessionTitle}</Text>
-          <Text style={cs.sessionSubtitle}>복약 가이드와 내 정보를 참고해 답변해요</Text>
+          {sessionSubtitle ? (
+            <Text style={cs.sessionSubtitle} numberOfLines={1}>{sessionSubtitle}</Text>
+          ) : null}
         </View>
       </View>
 

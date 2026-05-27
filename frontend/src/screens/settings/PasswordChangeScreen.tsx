@@ -50,15 +50,15 @@ export function PasswordChangeScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenLayout title="비밀번호 변경" back onBack={() => navigation.goBack()} scrollable>
+    <ScreenLayout title="비밀번호 변경" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
       <Card shadow>
         {[
-          { label: '현재 비밀번호', val: cur, set: setCur },
-          { label: '새 비밀번호',  val: pw,  set: setPw },
-          { label: '새 비밀번호 확인', val: pw2, set: setPw2 },
+          { label: '현재 비밀번호',    val: cur,  set: setCur,  autoComplete: 'current-password' as const },
+          { label: '새 비밀번호',      val: pw,   set: setPw,   autoComplete: 'new-password'     as const },
+          { label: '새 비밀번호 확인', val: pw2,  set: setPw2,  autoComplete: 'new-password'     as const },
         ].map(f => (
           <View key={f.label} style={{ marginBottom: 14 }}>
-            <Input label={f.label} value={f.val} onChangeText={f.set} secureTextEntry />
+            <Input label={f.label} value={f.val} onChangeText={f.set} secureTextEntry autoComplete={f.autoComplete} />
           </View>
         ))}
         <View style={{ marginBottom: 14 }}>

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import type { RootStackParams } from '../../navigation/types';
 import { useApp, defaultUser } from '../../context/AppContext';
-import { authApi, usersApi } from '../../api';
+import { authApi, usersApi, extractApiError } from '../../api';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
@@ -53,6 +54,11 @@ export function SettingsScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [nicknameEdit, setNicknameEdit] = useState(false);
   const [nicknameValue, setNicknameValue] = useState('');
+  const [nicknameSaving, setNicknameSaving] = useState(false);
+
+  useFocusEffect(useCallback(() => {
+    return () => setNicknameEdit(false);
+  }, []));
 
   useEffect(() => {
     let mounted = true;
@@ -111,16 +117,27 @@ export function SettingsScreen({ navigation }: any) {
                     <Button
                       variant="primary"
                       size="sm"
+                      loading={nicknameSaving}
                       onPress={async () => {
                         if (!nicknameValue.trim()) { flash('닉네임을 입력해주세요'); return; }
+                        setNicknameSaving(true);
                         try {
-                          const updated = await usersApi.updateMe({ nickname: nicknameValue });
-                          setUser({ ...user, nickname: updated.nickname ?? nicknameValue });
-                          flash('닉네임을 저장했어요');
-                        } catch {
-                          flash('저장에 실패했어요');
+                          const updated = await usersApi.updateMe({ nickname: nicknameValue.trim() });
+                          setUser({ ...user, nickname: updated.nickname ?? nicknameValue.trim() });
+                          flash('닉네임이 변경되었습니다');
+                          setNicknameEdit(false);
+                        } catch (e: any) {
+                          const data = e?.response?.data;
+                          if (data?.error_code === 'NICKNAME_CHANGE_TOO_SOON') {
+                            flash('닉네임은 30일마다 변경할 수 있습니다');
+                          } else if (e?.response?.status === 400 && typeof data?.detail === 'string') {
+                            flash(data.detail);
+                          } else {
+                            flash(extractApiError(e));
+                          }
+                        } finally {
+                          setNicknameSaving(false);
                         }
-                        setNicknameEdit(false);
                       }}
                     >저장</Button>
                     <Button variant="ghost" size="sm" onPress={() => setNicknameEdit(false)}>취소</Button>
@@ -128,7 +145,7 @@ export function SettingsScreen({ navigation }: any) {
                 ) : (
                   <TouchableOpacity
                     onPress={() => { setNicknameValue(user.nickname || user.name); setNicknameEdit(true); }}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8 }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, alignSelf: 'flex-start' }}
                   >
                     <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7 }}>{user.nickname || user.name}</Text>
                     <Icon name="edit" size={14} color={colors.muted2} />
