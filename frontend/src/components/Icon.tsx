@@ -62,7 +62,7 @@ const FEATHER_MAP: Record<string, FeatherName> = {
   heart: "heart",
   download: "download",
   pdf: "file-text",
-  pill: "activity", // closest available in Feather
+  pill: "activity",
   running: "activity",
   robot: "cpu",
   fire: "zap",
@@ -80,8 +80,13 @@ const MCI_MAP: Record<string, MCIName> = {
 export default function Icon({ name, size = 18, color = "#0F172A" }: IconProps) {
   // Check MCI first for icons that map better there
   if (MCI_MAP[name]) {
-    return <MaterialCommunityIcons name={MCI_MAP[name]} size={size} color={color} />;
-    return <MaterialCommunityIcons name={MCI_MAP[name]} size={size} color={color} />;
+    return (
+      <MaterialCommunityIcons
+        name={MCI_MAP[name]}
+        size={size}
+        color={color}
+      />
+    );
   }
   const featherName = FEATHER_MAP[name];
   if (featherName) {

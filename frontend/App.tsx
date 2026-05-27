@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider } from './src/context/AppContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
@@ -35,9 +36,11 @@ export default function App() {
   }, []);
 
   return (
-    <AppProvider>
-      <AppNavigator />
-      <Toast />
-    </AppProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppProvider>
+        <AppNavigator />
+        <Toast />
+      </AppProvider>
+    </GestureHandlerRootView>
   );
 }
