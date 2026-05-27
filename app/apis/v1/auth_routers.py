@@ -9,6 +9,8 @@ from app.dtos.auth import (
     LogoutResponse,
     SignUpRequest,
     SignUpResponse,
+    TokenRefreshRequest,
+    TokenRefreshResponse,
     UserInfo,
 )
 from app.services.auth import AuthService
@@ -50,3 +52,14 @@ async def logout(
 ) -> LogoutResponse:
     await auth_service.logout(request.refresh_token)
     return LogoutResponse(detail="로그아웃되었습니다.")
+
+
+@auth_router.post("/refresh", response_model=TokenRefreshResponse, status_code=status.HTTP_200_OK)
+async def refresh_token(
+    request: TokenRefreshRequest,
+    auth_service: Annotated[AuthService, Depends(AuthService)],
+) -> TokenRefreshResponse:
+    tokens = await auth_service.refresh(request.refresh_token)
+    return TokenRefreshResponse(
+        access_token=str(tokens["access_token"]),
+    )
