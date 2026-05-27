@@ -62,7 +62,6 @@ export const styles = StyleSheet.create({
   authContainer: {
     flexGrow: 1,
     padding: spacing.s24,
-    paddingTop: spacing.s56,
     backgroundColor: colors.canvas,
   },
   brandRow: {
@@ -103,4 +102,25 @@ export const styles = StyleSheet.create({
   pwRule: { flexDirection: 'row', alignItems: 'center' },
   banner: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, borderRadius: radii.md },
   bannerSuccess: { backgroundColor: colors.success50 },
+  requiredBadge: {
+    fontSize: typography.fz10,
+    color: colors.danger,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    borderRadius: radii.xs,
+    paddingHorizontal: spacing.s4,
+    paddingVertical: spacing.s2,
+  },
+  fieldError: {
+    fontSize: typography.fz12,
+    color: colors.danger,
+    marginTop: spacing.s4,
+  },
+  formError: {
+    fontSize: typography.fz13,
+    color: colors.danger,
+    textAlign: 'center' as const,
+    marginTop: spacing.s8,
+  },
 });
+

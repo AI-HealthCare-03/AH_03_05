@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "./Icon";
 import { colors, radii, spacing, typography } from "../theme";
 import { useBreakpoint } from "../hooks/useBreakpoint";
@@ -26,6 +27,7 @@ interface ScreenLayoutProps {
 
 export default function ScreenLayout({ children, title, subtitle, back, onBack, right, headerExtra, header, noHeader, scrollable, scrollPadding = true, refreshing, onRefresh, contentStyle, scrollRef }: ScreenLayoutProps) {
   const { isDesktopOrAbove } = useBreakpoint();
+  const insets = useSafeAreaInsets();
   const hasHeader = !noHeader && (header !== undefined || title !== undefined || back || subtitle || headerExtra);
 
   const headerContent = header ?? (
@@ -35,7 +37,7 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
       )}
-      <View style={[s.titleBlock, back && { marginLeft: spacing.s8 }]}>
+      <View style={[headerExtra ? { alignSelf: 'stretch' } : s.titleBlock, back && { marginLeft: spacing.s8 }]}>
         {title && (
           <Text style={[s.title, subtitle && { marginBottom: 2 }]} numberOfLines={back ? 1 : undefined}>
             {title}
@@ -51,7 +53,7 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
     <View style={s.root}>
       {hasHeader && (
         <View style={s.topBar}>
-          <View style={[s.topBarInner, headerExtra ? s.topBarInnerColumn : undefined, isDesktopOrAbove && s.topBarInnerDesktop]}>
+          <View style={[s.topBarInner, { paddingTop: Math.max(insets.top + spacing.s8, spacing.safeTop) }, headerExtra ? s.topBarInnerColumn : undefined, isDesktopOrAbove && s.topBarInnerDesktop]}>
             {headerContent}
             {headerExtra && (
               <View style={s.headerExtraRow}>
@@ -98,7 +100,6 @@ const s = StyleSheet.create({
   topBarInner: {
     width: "100%",
     paddingHorizontal: spacing.s16,
-    paddingTop: spacing.safeTop,
     paddingBottom: 14,
     flexDirection: "row",
     alignItems: "center",

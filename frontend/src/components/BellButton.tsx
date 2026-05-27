@@ -1,39 +1,33 @@
-// src/components/BellButton.tsx
-import React, { useState } from 'react';
+import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useApp } from '../context/AppContext';
 import Icon from './Icon';
-import NotificationDrawer from './NotificationDrawer';
-import { colors } from '../theme';
+import { colors, spacing } from '../theme';
 
 export default function BellButton() {
-  const { notifications } = useApp();
-  const [open, setOpen] = useState(false);
-  const unread = notifications?.some((n: any) => n.unread);
-  const unreadCount = notifications?.filter((n: any) => n.unread).length || 0;
+  const { unreadCount, setNotifDrawerOpen } = useApp();
+  const insets = useSafeAreaInsets();
 
   return (
-    <>
-      <NotificationDrawer visible={open} onClose={() => setOpen(false)} />
-      <TouchableOpacity style={styles.bellBtn} onPress={() => setOpen(true)}>
-        <Icon name="bell" size={18} color={colors.ink2} />
-        {unread && (
-          <View style={styles.bellBadge}>
-            <Text style={{ fontSize: 8, color: '#fff', fontWeight: '700', lineHeight: 12 }}>
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    </>
+    <TouchableOpacity style={[styles.bellBtn, { top: insets.top + spacing.s8 }]} onPress={() => setNotifDrawerOpen(true)}>
+      <Icon name="bell" size={18} color={colors.ink2} />
+      {unreadCount > 0 && (
+        <View style={styles.bellBadge}>
+          <Text style={{ fontSize: 8, color: '#fff', fontWeight: '700', lineHeight: 12 }}>
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }
 
 const styles = {
   bellBtn: {
-    position: 'absolute' as any,
-    top: 16,
-    right: 16,
+    position: 'absolute' as const,
+    top: spacing.s16,
+    right: spacing.s16,
     zIndex: 10,
     width: 38,
     height: 38,
@@ -41,24 +35,24 @@ const styles = {
     backgroundColor: colors.surface,
     borderWidth: 0.5,
     borderColor: colors.hairline,
-    alignItems: 'center' as any,
-    justifyContent: 'center' as any,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     shadowColor: '#0f172a',
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   bellBadge: {
-    position: 'absolute' as any,
-    top: 5,
-    right: 5,
+    position: 'absolute' as const,
+    top: 4,
+    right: 4,
     minWidth: 14,
     height: 14,
     borderRadius: 7,
     backgroundColor: colors.danger,
-    alignItems: 'center' as any,
-    justifyContent: 'center' as any,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     paddingHorizontal: 2,
   },
 };

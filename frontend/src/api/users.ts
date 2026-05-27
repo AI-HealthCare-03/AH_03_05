@@ -20,9 +20,8 @@ export async function changePassword(data: ChangePasswordRequest): Promise<{ mes
   return res.data;
 }
 
-// ⚠ Backend TODO: DELETE /users/me
-export async function deleteAccount(): Promise<{ detail: string }> {
-  const res = await apiClient.delete<{ detail: string }>('/users/me');
+export async function deleteAccount(password: string): Promise<{ detail: string }> {
+  const res = await apiClient.delete<{ detail: string }>('/users/me', { data: { password } });
   return res.data;
 }
 

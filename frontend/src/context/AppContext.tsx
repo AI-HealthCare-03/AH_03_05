@@ -223,6 +223,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })();
 
     tokenStore.registerUnauthorizedHandler(() => {
+      AsyncStorage.removeItem('medipt_user').catch(() => {});
       setUserState({ ...defaultUser, loggedIn: false });
     });
   }, []);

@@ -3,14 +3,16 @@ import {
   View, Text, TextInput, TouchableOpacity,
   ScrollView, KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
-import { useApp } from '../../context/AppContext';
+import { useApp, defaultUser } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
+import axios from 'axios';
 import { authApi, extractApiError } from '../../api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
 
 // ─── SignupScreen internals ───────────────────────────────────────────────────
@@ -22,15 +24,6 @@ const TERMS_CONTENT: Record<string, { title: string; body: string }> = {
   ai:        { title: 'AI 분석 활용 동의', body: '귀하의 건강 프로필 및 처방 정보는 AI 복약 가이드 생성에 활용됩니다.\n\nAI가 생성한 정보는 참고용이며, 실제 의료 판단을 대체하지 않습니다.\n\n분석 결과는 외부 AI 모델(LLM API)에 전달될 수 있으며, 개인 식별 정보는 제외됩니다.' },
   marketing: { title: '마케팅 정보 수신 동의', body: '이메일, 앱 푸시 알림을 통해 서비스 업데이트, 건강 정보, 이벤트 안내를 받으실 수 있습니다.\n\n동의하지 않으셔도 서비스 이용에 불이익이 없습니다.\n\n언제든지 설정 > 알림에서 수신 거부가 가능합니다.' },
 };
-
-function PwRule({ ok, children }: { ok: boolean; children: string }) {
-  return (
-    <View style={styles.pwRule}>
-      <Icon name={ok ? 'check-circle' : 'x'} size={13} color={ok ? colors.success : colors.muted} />
-      <Text style={{ fontSize: typography.fz12, color: ok ? colors.success : colors.muted, marginLeft: spacing.s4 }}>{children}</Text>
-    </View>
-  );
-}
 
 function AgreeRow({ checked, onPress, label, extra, onPressExtra }: {
   checked: boolean; onPress: () => void; label: React.ReactNode;
@@ -62,10 +55,11 @@ function AgreeRow({ checked, onPress, label, extra, onPressExtra }: {
 export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   const { user, setUser } = useApp();
   const { isTabletOrAbove } = useBreakpoint();
-  const [form, setForm] = useState({ name: '', email: '', pw: '', pw2: '' });
-  const [agreed, setAgreed] = useState({ all: false, tos: true, privacy: false, sensitive: false, ai: false, marketing: false });
+  const { top: safeTop } = useSafeAreaInsets();
+  const [form, setForm] = useState({ name: '', nickname: '', email: '', pw: '', pw2: '' });
+  const [agreed, setAgreed] = useState({ all: false, tos: false, privacy: false, sensitive: false, ai: false, marketing: false });
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({ email: '', password: '', confirm: '', form: '' });
   const [termsModal, setTermsModal] = useState<keyof typeof TERMS_CONTENT | null>(null);
 
   // 이메일 인증 상태
@@ -74,6 +68,11 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   const [emailVerified, setEmailVerified] = useState(false);
   const [codeError, setCodeError] = useState('');
   const [emailFocused, setEmailFocused] = useState(false);
+
+  // 비밀번호/확인 touched 상태
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirmTouched, setConfirmTouched] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
 
   const set = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }));
 
@@ -90,8 +89,18 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
     }
   };
 
+  const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+
+  // TODO: [다음 브랜치] POST /auth/email/send-code 연결 시 409 → fieldErrors.email = '이미 사용 중인 이메일입니다' 후 return 처리 필요
   const sendCode = () => {
     if (!form.email) return;
+    if (!EMAIL_RE.test(form.email)) {
+      setFieldErrors(prev => ({ ...prev, email: '올바른 이메일 형식이 아닙니다' }));
+      return;
+    }
+    setFieldErrors(prev => ({ ...prev, email: '' }));
+    // TODO: [BE 대기] POST /auth/email-verify/send 연결 필요 — 현재 데모 목업
+    // 실제 연결 시: 409 응답 → setFieldErrors(prev => ({ ...prev, email: '이미 사용 중인 이메일입니다' })) 후 return
     setCodeSent(true);
     setEmailVerified(false);
     setCode('');
@@ -99,7 +108,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   };
 
   const verifyCode = () => {
-    // 데모: 임의 코드 "123456" 통과
+    // TODO: [BE 대기] POST /auth/email-verify/confirm 연결 필요 — 현재 데모 목업
     if (code === '123456') {
       setEmailVerified(true);
       setCodeError('');
@@ -108,50 +117,93 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
     }
   };
 
-  const pwLengthOk = form.pw.length >= 8 && form.pw.length <= 20;
-  const pwTypesOk = [/[A-Z]/, /[a-z]/, /[0-9]/, /[^A-Za-z0-9]/].filter(r => r.test(form.pw)).length >= 3;
+  const pwLengthOk  = form.pw.length >= 8 && form.pw.length <= 20;
+  const pwUpperOk   = /[A-Z]/.test(form.pw);
+  const pwLowerOk   = /[a-z]/.test(form.pw);
+  const pwNumberOk  = /[0-9]/.test(form.pw);
+  const pwSpecialOk = /[^A-Za-z0-9]/.test(form.pw);
   const pwNotSameOk = form.pw.length === 0 || (
-    (form.name.length === 0 || !form.pw.toLowerCase().includes(form.name.toLowerCase())) &&
+    (form.name.length === 0  || !form.pw.toLowerCase().includes(form.name.toLowerCase())) &&
     (form.email.length === 0 || !form.pw.toLowerCase().includes(form.email.toLowerCase()))
   );
+  const pwAllOk = pwLengthOk && pwUpperOk && pwLowerOk && pwNumberOk && pwSpecialOk && pwNotSameOk;
+
   const requiredOk = agreed.tos && agreed.privacy && agreed.sensitive && agreed.ai;
-  const canSubmit = form.name && form.email && emailVerified && pwLengthOk && pwTypesOk && pwNotSameOk && form.pw === form.pw2 && requiredOk;
+  const canSubmit = form.name && form.name.length >= 2 && form.email && emailVerified && pwAllOk && form.pw === form.pw2 && requiredOk;
 
   const submit = async () => {
     if (!canSubmit) return;
     setLoading(true);
-    setApiError('');
+    setFieldErrors({ email: '', password: '', confirm: '', form: '' });
     try {
+      const resolvedNickname = form.nickname.trim() || form.name;
       await authApi.signup({
         email: form.email,
         password: form.pw,
         name: form.name,
-        nickname: form.name,
+        nickname: resolvedNickname,
         consents: [
-          { consent_type: 'terms', is_agreed: agreed.tos },
-          { consent_type: 'privacy', is_agreed: agreed.privacy },
+          { consent_type: 'terms',            is_agreed: agreed.tos },
+          { consent_type: 'privacy',          is_agreed: agreed.privacy },
           { consent_type: 'sensitive_health', is_agreed: agreed.sensitive },
-          { consent_type: 'ai_analysis', is_agreed: agreed.ai },
-          { consent_type: 'marketing', is_agreed: agreed.marketing },
+          { consent_type: 'ai_analysis',      is_agreed: agreed.ai },
+          { consent_type: 'marketing',        is_agreed: agreed.marketing },
         ],
       });
       await authApi.login({ email: form.email, password: form.pw });
-      setUser({ ...user, name: form.name, email: form.email, loggedIn: true, profileComplete: false });
+      setUser({ ...defaultUser, name: form.name, nickname: resolvedNickname, email: form.email, loggedIn: true, profileComplete: false });
       (navigation as any).reset({ index: 0, routes: [{ name: 'Onboarding' as never }] });
     } catch (e) {
       console.error('[Signup] submit error:', e);
-      setApiError(extractApiError(e));
+      // TODO: 디버깅 완료 후 제거
+      if (axios.isAxiosError(e)) console.log('[Signup] 422 detail:', JSON.stringify(e.response?.data));
+      if (axios.isAxiosError(e) && e.response?.status === 409) {
+        setFieldErrors(prev => ({ ...prev, email: '이미 사용 중인 이메일입니다.' }));
+        setEmailVerified(false);
+        setCodeSent(false);
+      } else if (axios.isAxiosError(e) && e.response?.status === 401) {
+        setFieldErrors(prev => ({ ...prev, form: '이메일 또는 비밀번호가 올바르지 않습니다' }));
+      } else if (axios.isAxiosError(e) && !e.response) {
+        setFieldErrors(prev => ({ ...prev, form: '네트워크 오류가 발생했습니다. 연결을 확인해주세요' }));
+      } else {
+        setFieldErrors(prev => ({ ...prev, form: extractApiError(e) }));
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  // 비밀번호 미충족 항목 텍스트
+  const pwUnmet = passwordTouched && !pwAllOk ? (() => {
+    const items: string[] = [];
+    if (!pwLengthOk)  items.push('8자 이상 20자 이하');
+    if (!pwUpperOk)   items.push('대문자 포함');
+    if (!pwLowerOk)   items.push('소문자 포함');
+    if (!pwNumberOk)  items.push('숫자 포함');
+    if (!pwSpecialOk) items.push('특수문자 포함');
+    return items.length > 0 ? `${items.join(', ')} 필요` : '';
+  })() : '';
 
   const formContent = (
     <>
       {/* 이름 */}
       <View style={styles.field}>
         <Text style={styles.label}>이름</Text>
-        <Input value={form.name} onChangeText={v => set('name', v)} style={{ outlineStyle: 'none' } as any} />
+        <Input value={form.name} onChangeText={v => set('name', v)} onBlur={() => setNameTouched(true)} style={{ outlineStyle: 'none' } as any} {...({ minLength: undefined, pattern: undefined } as any)} />
+        {nameTouched && form.name.length > 0 && form.name.length < 2 && (
+          <Text style={styles.fieldError}>이름은 2자 이상 입력해주세요</Text>
+        )}
+      </View>
+
+      {/* 닉네임 (선택) */}
+      <View style={styles.field}>
+        <Text style={styles.label}>닉네임</Text>
+        <Input
+          placeholder="미입력 시 이름으로 표시돼요"
+          value={form.nickname}
+          onChangeText={v => set('nickname', v)}
+          style={{ outlineStyle: 'none' } as any}
+        />
       </View>
 
       {/* 이메일 + 인증코드 발송 */}
@@ -165,10 +217,16 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
               placeholder="name@example.com"
               placeholderTextColor={colors.muted2}
               value={form.email}
-              onChangeText={v => { set('email', v); setEmailVerified(false); setCodeSent(false); setCode(''); }}
+              onChangeText={v => {
+                set('email', v);
+                setEmailVerified(false);
+                setCodeSent(false);
+                setCode('');
+                setFieldErrors(prev => ({ ...prev, email: '' }));
+              }}
               autoCapitalize="none"
               keyboardType="email-address"
-              editable={!emailVerified}
+              autoComplete="new-password"
               onFocus={() => setEmailFocused(true)}
               onBlur={() => setEmailFocused(false)}
             />
@@ -189,6 +247,11 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
             {codeSent && !emailVerified ? '재발송' : '인증코드 발송'}
           </Button>
         </View>
+
+        {/* 이메일 필드 에러 */}
+        {fieldErrors.email ? (
+          <Text style={styles.fieldError}>{fieldErrors.email}</Text>
+        ) : null}
 
         {/* 인증코드 입력 */}
         {codeSent && !emailVerified && (
@@ -224,20 +287,35 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       {/* 비밀번호 */}
       <View style={styles.field}>
         <Text style={styles.label}>비밀번호</Text>
-        <Input secureTextEntry value={form.pw} onChangeText={v => set('pw', v)} style={{ outlineStyle: 'none' } as any} />
-        {form.pw.length > 0 && (
-          <View style={{ marginTop: spacing.s8, gap: spacing.s4 }}>
-            <PwRule ok={pwLengthOk}>8자 이상 20자 이하</PwRule>
-            <PwRule ok={pwTypesOk}>영문 대/소문자·숫자·특수문자 중 3종류 이상</PwRule>
-            <PwRule ok={pwNotSameOk}>이메일·이름과 동일하지 않음</PwRule>
-          </View>
-        )}
+        <Input
+          secureTextEntry
+          placeholder="영문 대소문자, 숫자, 특수문자 포함 8자 이상"
+          value={form.pw}
+          onChangeText={v => { set('pw', v); setPasswordTouched(true); }}
+          onBlur={() => setPasswordTouched(true)}
+          autoComplete="new-password"
+          style={{ outlineStyle: 'none' } as any}
+        />
+        {pwUnmet ? (
+          <Text style={styles.fieldError}>{pwUnmet}</Text>
+        ) : null}
       </View>
 
       {/* 비밀번호 확인 */}
       <View style={styles.field}>
         <Text style={styles.label}>비밀번호 확인</Text>
-        <Input placeholder="비밀번호 재입력" secureTextEntry value={form.pw2} onChangeText={v => set('pw2', v)} style={{ outlineStyle: 'none' } as any} />
+        <Input
+          placeholder="비밀번호 재입력"
+          secureTextEntry
+          value={form.pw2}
+          onChangeText={v => { set('pw2', v); setConfirmTouched(true); }}
+          onBlur={() => setConfirmTouched(true)}
+          autoComplete="new-password"
+          style={{ outlineStyle: 'none' } as any}
+        />
+        {confirmTouched && form.pw !== form.pw2 ? (
+          <Text style={styles.fieldError}>비밀번호가 일치하지 않습니다.</Text>
+        ) : null}
       </View>
 
       {/* 약관 동의 */}
@@ -252,7 +330,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       </Card>
 
       <Button variant="primary" size="lg" loading={loading} disabled={!canSubmit} onPress={submit} fullWidth>가입하기</Button>
-      {apiError ? <Text style={{ fontSize: typography.fz13, color: colors.danger, textAlign: 'center', marginTop: spacing.s8 }}>{apiError}</Text> : null}
+      {fieldErrors.form ? <Text style={styles.formError}>{fieldErrors.form}</Text> : null}
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: spacing.s16 }}>
         <Text style={{ fontSize: typography.fz13, color: colors.muted }}>이미 계정이 있나요? </Text>
@@ -262,7 +340,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       </View>
 
       {/* 약관 모달 */}
-      <Modal visible={termsModal !== null} transparent animationType={isTabletOrAbove ? 'fade' : 'slide'} onRequestClose={() => setTermsModal(null)}>
+      <Modal visible={termsModal !== null} transparent animationType="fade" onRequestClose={() => setTermsModal(null)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: isTabletOrAbove ? 'center' : 'flex-end', alignItems: isTabletOrAbove ? 'center' : 'stretch' }}>
           <View style={[{ backgroundColor: colors.surface, maxHeight: '72%' }, isTabletOrAbove ? { borderRadius: 16, width: '90%', maxWidth: 560 } : { borderTopLeftRadius: 20, borderTopRightRadius: 20 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.s20, borderBottomWidth: 0.5, borderBottomColor: colors.hairline }}>
@@ -312,7 +390,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.authContainer} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.authContainer, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: spacing.s56 }]} keyboardShouldPersistTaps="handled">
         <View style={styles.brandRow}>
           <View style={styles.brandLogo}><Icon name="robot" size={18} color={colors.white} /></View>
           <Text style={styles.brandName}>MediPT</Text>

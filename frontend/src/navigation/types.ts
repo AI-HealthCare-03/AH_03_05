@@ -12,8 +12,9 @@ export type HomeStackParams = {
   Home: undefined;
   OCRProcessing: { recordId?: number };
   OCRResult: { recordId?: number };
-  DrugSearch: { medicationName?: string };
+  DrugCandidate: { medicationName?: string; drugIndex?: number };
   DrugDosage: undefined;
+  DrugDetail: { drugId: number };
   GuideLoading: { recordId?: number };
   GuideResult: { guideId?: number };
 };
@@ -22,6 +23,7 @@ export type RecordsStackParams = {
   RecordList: undefined;
   RecordDetail: { recordId: number };
   DrugDosage: undefined;
+  DrugDetail: { drugId: number };
 };
 
 export type GuideStackParams = {
@@ -30,14 +32,14 @@ export type GuideStackParams = {
 };
 
 export type ChatStackParams = {
-  ChatList: undefined;
-  ChatSession: { chatId: string };
+  ChatList: { sessionId?: string } | undefined;
+  ChatSession: { sessionId: string; guideId?: string };
 };
 
 export type SettingsStackParams = {
   Settings: undefined;
   NotificationSettings: undefined;
-  ProfileEdit: undefined;
+  HealthProfileEdit: undefined;
   Notifications: undefined;
   PasswordChange: undefined;
   DeviceManagement: undefined;
@@ -51,4 +53,5 @@ export type RootStackParams = {
   Onboarding: undefined;
   Main: undefined;
   UploadModal: undefined;
+  MedicationAlarm: { meal?: 'morning' | 'lunch' | 'dinner' };
 };

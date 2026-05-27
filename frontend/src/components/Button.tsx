@@ -18,6 +18,7 @@ interface ButtonProps {
   leftIcon?: string;
   fullWidth?: boolean;
   style?: ViewStyle | ViewStyle[];
+  borderRadius?: number;
   children: React.ReactNode;
   activeOpacity?: number;
 }
@@ -75,6 +76,7 @@ export default function Button({
   leftIcon,
   fullWidth,
   style,
+  borderRadius,
   children,
   activeOpacity = 0.85,
 }: ButtonProps) {
@@ -94,6 +96,7 @@ export default function Button({
         fullWidth && s.fullWidth,
         isDisabled && s.disabled,
         style,
+        borderRadius !== undefined ? { borderRadius } : undefined,
       ]}
       onPress={onPress}
       disabled={isDisabled}

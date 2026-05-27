@@ -23,13 +23,12 @@ export const FILTER_TO_TYPE: Record<string, RecordType | undefined> = {
 
 export const iconFor = (type: RecordType) => (type === "prescription" ? "doc" : type === "medicine_bag" ? "pill" : "list");
 
-export function formatDate(iso: string) {
-  return new Date(iso)
-    .toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
+export function formatDate(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  return d
+    .toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
     .replace(/\. /g, ".")
     .replace(/\.$/, "");
 }
@@ -37,6 +36,5 @@ export function formatDate(iso: string) {
 export const s = StyleSheet.create({
   chip: { paddingHorizontal: spacing.s12, paddingVertical: 6, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong },
   chipActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
-  recordCard: { backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s20, borderWidth: 0.5, borderColor: colors.hairline },
   drugRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14 },
 });
