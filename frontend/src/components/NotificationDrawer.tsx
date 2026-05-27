@@ -15,31 +15,6 @@ import { notificationsApi } from '../api';
 
 const DRAWER_WIDTH = 460;
 
-// TODO: [임시] UI 테스트용 더미 알림 — BE 연결 완료 후 제거
-const DUMMY_NOTIFICATIONS: Notification[] = [
-  {
-    id: 'dummy-1',
-    type: 'medication' as const,
-    title: '메트포르민 500mg 복약 시간이에요',
-    body: '점심 식후 30분 — 잊지 말고 복용해주세요.',
-    date: new Date().toISOString(),
-    time: '12:30',
-    icon: 'pill',
-    unread: false,
-  },
-  {
-    id: 'dummy-2',
-    type: 'guide' as const,
-    title: '복약 가이드가 업데이트됐어요',
-    body: '처방전 분석이 완료되어 새 가이드를 확인할 수 있어요.',
-    date: new Date().toISOString(),
-    time: '09:14',
-    icon: 'wand',
-    unread: false,
-  },
-];
-
-
 
 export default function NotificationDrawer() {
   const { notifDrawerOpen, setNotifDrawerOpen, notifications, setNotifications, flash, markNotificationRead } = useApp();
@@ -52,8 +27,6 @@ export default function NotificationDrawer() {
 
   useEffect(() => {
     if (!notifDrawerOpen) return;
-    // TODO: [임시] UI 테스트용 더미 알림 — BE 연결 완료 후 제거
-    setNotifications(DUMMY_NOTIFICATIONS);
     notificationsApi.getNotifications().then(res => {
       const mapped: Notification[] = res.items.map(item => {
         const d = item.created_at ? new Date(item.created_at) : new Date();

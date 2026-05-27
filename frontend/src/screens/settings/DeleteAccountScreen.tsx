@@ -72,7 +72,7 @@ export function DeleteAccountScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenLayout title="회원 탈퇴" back onBack={() => navigation.goBack()} scrollable>
+    <ScreenLayout title="회원 탈퇴" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
       <View style={[s.banner, s.bannerDanger, { marginBottom: 18 }]}>
         <Icon name="alert" size={16} color={colors.danger} />
         <View style={{ marginLeft: 10 }}>
@@ -99,7 +99,7 @@ export function DeleteAccountScreen({ navigation }: any) {
             <Text style={{ fontSize: typography.fz13, color: colors.ink2, marginBottom: 14 }}>
               정말로 탈퇴하시려면 현재 비밀번호를 입력해주세요.
             </Text>
-            <Input placeholder="비밀번호" value={confirm} onChangeText={v => { setConfirm(v); setError(''); }} secureTextEntry error={error || undefined} />
+            <Input placeholder="비밀번호" value={confirm} onChangeText={v => { setConfirm(v); setError(''); }} secureTextEntry autoComplete="current-password" error={error || undefined} />
             <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 10 }}>{user.email || '이 계정'}이 삭제됩니다.</Text>
           </>
         )}
