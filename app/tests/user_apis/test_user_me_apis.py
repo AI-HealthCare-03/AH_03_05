@@ -121,4 +121,61 @@ class TestUserMeApis(TestCase):
             )
 
         # Then
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_withdraw_user_success(self):
+        # Given
+        email = "withdraw@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "탈퇴테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            # When
+            response = await client.request(
+                "DELETE",
+                "/api/v1/users/me",
+                headers={**headers, "Content-Type": "application/json"},
+                content=b'{"password": "Password123!"}',
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["detail"] == "회원탈퇴가 완료되었습니다."
+
+    async def test_withdraw_user_wrong_password(self):
+        # Given
+        email = "withdraw2@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "탈퇴테스터2",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            # When
+            response = await client.request(
+                "DELETE",
+                "/api/v1/users/me",
+                headers={**headers, "Content-Type": "application/json"},
+                content=b'{"password": "WrongPassword123!"}',
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

@@ -39,7 +39,7 @@ async def login(
     return LoginResponse(
         access_token=str(tokens["access_token"]),
         refresh_token=str(tokens["refresh_token"]),
-        user=UserInfo(id=user.id, name=user.name),
+        user=UserInfo(id=user.id, name=user.name, nickname=user.nickname),
     )
 
 

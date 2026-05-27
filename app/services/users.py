@@ -2,7 +2,7 @@ from tortoise.transactions import in_transaction
 
 from app.core.utils.security import hash_password, verify_password
 from app.dtos.users import UserUpdateRequest
-from app.exceptions.common import BadRequestException, UnauthorizedException
+from app.exceptions.common import BadRequestException
 from app.models.users import User
 from app.repositories.user_repository import UserRepository
 
@@ -23,7 +23,7 @@ class UserManageService:
         from app.models.auth_tokens import AuthToken
 
         if not verify_password(current_password, user.password_hash):
-            raise UnauthorizedException(detail="현재 비밀번호가 일치하지 않습니다.")
+            raise BadRequestException(detail="현재 비밀번호가 일치하지 않습니다.")
         if current_password == new_password:
             raise BadRequestException(detail="새 비밀번호는 현재 비밀번호와 달라야 합니다.")
 
@@ -39,7 +39,7 @@ class UserManageService:
         from app.models.users import UserStatus
 
         if not verify_password(password, user.password_hash):
-            raise UnauthorizedException(detail="비밀번호가 일치하지 않습니다.")
+            raise BadRequestException(detail="비밀번호가 일치하지 않습니다.")
 
         async with in_transaction():
             user.status = UserStatus.WITHDRAWN
