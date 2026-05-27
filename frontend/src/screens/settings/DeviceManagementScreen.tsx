@@ -57,7 +57,7 @@ export function DeviceManagementScreen({ navigation }: any) {
   const revoke = (id: string) => { setDevices(prev => prev.filter(d => d.id !== id)); flash('해당 기기에서 로그아웃 했어요'); };
 
   return (
-    <ScreenLayout title="로그인 기기 관리" back onBack={() => navigation.goBack()} scrollable>
+    <ScreenLayout title="로그인 기기 관리" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
       <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 18 }}>
         {devices.map((d, i) => (
           <DeviceRow key={d.id} device={d} isFirst={i === 0} onRevoke={revoke} />

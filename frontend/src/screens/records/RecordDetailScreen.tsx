@@ -279,32 +279,6 @@ export function RecordDetailScreen({ navigation, route }: any) {
           </View>
         </Card>
 
-        {/* ── DEV: GuideLoading 진입 테스트 ── */}
-        {__DEV__ && (
-          <Card shadow style={{ marginBottom: 14, borderColor: colors.warning, borderWidth: 1 }}>
-            <Text style={{ fontSize: typography.fz11, color: colors.warning, fontWeight: typography.fw6, marginBottom: spacing.s8 }}>
-              DEV — GuideLoading 진입 테스트
-            </Text>
-            <View style={{ flexDirection: "row", gap: spacing.s8 }}>
-              <Button
-                variant="ghost"
-                size="sm"
-                onPress={() => navigation.getParent()?.navigate("GuideTab", { screen: "GuideLoading", params: {} })}
-              >
-                로딩 상태 확인
-              </Button>
-              {/* TODO: [임시] devError 진입 버튼 — 테스트 완료 후 제거 */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onPress={() => navigation.getParent()?.navigate("GuideTab", { screen: "GuideLoading", params: { devError: true } })}
-              >
-                실패 상태 확인
-              </Button>
-            </View>
-          </Card>
-        )}
-
         {/* ── 기록 삭제 ── */}
         <TouchableOpacity
           style={{ borderWidth: 1, borderColor: colors.danger, borderRadius: radii.pill, height: 50, alignItems: "center", justifyContent: "center" }}

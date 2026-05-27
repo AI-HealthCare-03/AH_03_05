@@ -51,7 +51,9 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
       const destination = updatedUser.profileComplete ? 'Main' : 'Onboarding';
       (navigation as any).reset({ index: 0, routes: [{ name: destination as never }] });
     } catch (e) {
-      if (axios.isAxiosError(e) && (e.response?.status === 401 || e.response?.status === 422)) {
+      if (axios.isAxiosError(e) && e.response?.status === 403) {
+        setFieldErrors(prev => ({ ...prev, form: '탈퇴한 계정입니다.' }));
+      } else if (axios.isAxiosError(e) && (e.response?.status === 401 || e.response?.status === 422)) {
         setFieldErrors(prev => ({ ...prev, form: '이메일 또는 비밀번호가 올바르지 않습니다' }));
       } else if (axios.isAxiosError(e) && !e.response) {
         setFieldErrors(prev => ({ ...prev, form: '네트워크 오류가 발생했습니다. 연결을 확인해주세요' }));
@@ -94,7 +96,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
               {fieldErrors.email ? <Text style={styles.fieldError}>{fieldErrors.email}</Text> : null}
             </View>
             <View style={styles.field}>
-              <Input label="비밀번호" icon="lock" placeholder="8~20자, 영문/숫자/특수문자 3종류 이상" value={pw} onChangeText={setPw} secureTextEntry />
+              <Input label="비밀번호" icon="lock" placeholder="8~20자, 영문/숫자/특수문자 3종류 이상" value={pw} onChangeText={setPw} secureTextEntry autoComplete="current-password" />
               <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: 6 }}>
                 <Text style={{ fontSize: typography.fz12, color: colors.accent }}>비밀번호 찾기</Text>
               </TouchableOpacity>
@@ -146,6 +148,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
             value={pw}
             onChangeText={setPw}
             secureTextEntry
+            autoComplete="current-password"
           />
           <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: 6 }}>
             <Text style={{ fontSize: typography.fz12, color: colors.accent }}>비밀번호 찾기</Text>

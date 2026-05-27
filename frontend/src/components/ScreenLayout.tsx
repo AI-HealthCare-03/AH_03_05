@@ -66,7 +66,7 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
       )}
 
       {scrollable ? (
-        <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={scrollPadding ? { padding: spacing.s16 } : undefined} refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.accent} /> : undefined}>
+        <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={scrollPadding ? (isDesktopOrAbove ? { paddingVertical: spacing.s16 } : { padding: spacing.s16 }) : undefined} refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.accent} /> : undefined}>
           <View
             style={[
               isDesktopOrAbove && {
@@ -74,6 +74,7 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
                 alignSelf: "center",
                 width: "100%",
               },
+              isDesktopOrAbove && scrollPadding && { paddingHorizontal: spacing.s16 },
               contentStyle,
             ]}
           >

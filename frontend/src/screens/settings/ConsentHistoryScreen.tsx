@@ -73,7 +73,7 @@ export function ConsentHistoryScreen({ navigation }: any) {
   const marketingConsent = consents.find(c => c.type === 'marketing');
 
   return (
-    <ScreenLayout title="약관 동의 내역" back onBack={() => navigation.goBack()} scrollable>
+    <ScreenLayout title="약관 동의 내역" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
       <View style={[s.banner, { backgroundColor: colors.accent50, marginBottom: 14 }]}>
         <Icon name="info" size={16} color={colors.accent700} />
         <Text style={{ fontSize: typography.fz13, color: colors.accent700, flex: 1, marginLeft: 10 }}>

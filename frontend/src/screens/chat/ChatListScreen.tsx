@@ -9,11 +9,10 @@ import Icon from '../../components/Icon';
 import { colors, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
-import ScreenLayout from '../../components/ScreenLayout';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { ChatSessionPane } from './ChatSessionPane';
 import { chatApi } from '../../api';
-import type { ChatSession } from '../../api';
+import type { ChatSession, ChatMessageItem } from '../../api';
 function formatTime(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -40,6 +39,7 @@ export function ChatListScreen({ navigation, route }: any) {
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(route?.params?.sessionId ?? null);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [messagesCache, setMessagesCache] = useState<Record<string, ChatMessageItem[]>>({});
   const { isDesktop } = useBreakpoint();
 
   useEffect(() => {
@@ -83,7 +83,15 @@ export function ChatListScreen({ navigation, route }: any) {
     const title = text.slice(0, 15);
     setSessions(prev => prev.map(s =>
       String(s.session_id) === selectedId
-        ? { ...s, title, updated_at: new Date().toISOString() }
+        ? { ...s, title, last_message: text, updated_at: new Date().toISOString() }
+        : s
+    ));
+  };
+
+  const handleMessageSent = (text: string) => {
+    setSessions(prev => prev.map(s =>
+      String(s.session_id) === selectedId
+        ? { ...s, last_message: text, updated_at: new Date().toISOString() }
         : s
     ));
   };
@@ -175,12 +183,15 @@ export function ChatListScreen({ navigation, route }: any) {
     </>
   );
 
-  // ── Desktop: split layout ──────────────────────────────────────────────────
-  if (isDesktop) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.canvas, alignItems: 'center' }}>
-        <View style={[ds.root, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: Math.max(safeTop + spacing.s8, spacing.safeTop) }]}>
-          <Card shadow style={ds.sidebar}>
+  // Single layout — ChatSessionPane stays at the same tree position on breakpoint change
+  return (
+    <View style={[{ flex: 1, backgroundColor: colors.canvas }, isDesktop && { alignItems: 'center' }]}>
+      <View style={isDesktop
+        ? [ds.root, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: Math.max(safeTop + spacing.s8, spacing.safeTop) }]
+        : { flex: 1, paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }
+      }>
+        {(isDesktop || !selectedId) && (
+          <Card shadow style={isDesktop ? ds.sidebar : { flex: 1 }}>
             <View style={ds.sidebarHeader}>
               <Text style={ds.sidebarTitle}>상담 목록</Text>
               <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
@@ -192,77 +203,43 @@ export function ChatListScreen({ navigation, route }: any) {
               {sessionList}
             </ScrollView>
           </Card>
+        )}
 
-          <Card shadow style={ds.pane}>
-            {selectedId ? (
-              <>
-                <View style={ds.paneHeader}>
-                  <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
-                    <Icon name="arrow-left" size={16} color={colors.ink2} />
-                  </TouchableOpacity>
-                  <View style={{ flex: 1, marginLeft: spacing.s8 }}>
-                    <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
-                    {selectedSession?.last_message ? (
-                      <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
-                    ) : null}
-                  </View>
-                </View>
-                <ChatSessionPane sessionId={selectedId} onFirstMessage={handleFirstMessage} />
-              </>
-            ) : (
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.s12 }}>
-                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon name="chat" size={28} color={colors.accent700} />
-                </View>
-                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>상담을 선택해주세요</Text>
-                <Text style={{ fontSize: typography.fz13, color: colors.muted }}>왼쪽에서 상담을 선택하거나 새 상담을 시작하세요.</Text>
-                <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>
+        {selectedId ? (
+          <Card shadow style={isDesktop ? ds.pane : { flex: 1 }}>
+            <View style={ds.paneHeader}>
+              <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
+                <Icon name="arrow-left" size={16} color={colors.ink2} />
+              </TouchableOpacity>
+              <View style={{ flex: 1, marginLeft: spacing.s8 }}>
+                <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
+                {selectedSession?.last_message ? (
+                  <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
+                ) : null}
               </View>
-            )}
-          </Card>
-        </View>
-      </View>
-    );
-  }
-
-  // ── Mobile: chat pane ──────────────────────────────────────────────────────
-  if (selectedId) {
-    return (
-      <ScreenLayout noHeader scrollable={false} contentStyle={{ paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }}>
-        <Card shadow style={{ flex: 1 }}>
-          <View style={ds.paneHeader}>
-            <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
-              <Icon name="arrow-left" size={16} color={colors.ink2} />
-            </TouchableOpacity>
-            <View style={{ flex: 1, marginLeft: spacing.s8 }}>
-              <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
-              {selectedSession?.last_message ? (
-                <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
-              ) : null}
             </View>
-          </View>
-          <ChatSessionPane sessionId={selectedId} onFirstMessage={handleFirstMessage} />
-        </Card>
-      </ScreenLayout>
-    );
-  }
-
-  // ── Mobile: session list ───────────────────────────────────────────────────
-  return (
-    <ScreenLayout noHeader scrollable={false} contentStyle={{ paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }}>
-      <Card shadow style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.s12, paddingTop: spacing.s12, paddingBottom: spacing.s8 }}>
-          <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink }}>상담 목록</Text>
-          <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
-        </View>
-        <View style={{ paddingHorizontal: spacing.s12, marginBottom: spacing.s8 }}>
-          {searchBar}
-        </View>
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>
-          {sessionList}
-        </ScrollView>
-      </Card>
-    </ScreenLayout>
+            <ChatSessionPane
+              sessionId={selectedId}
+              cachedMessages={messagesCache[selectedId]}
+              onMessagesChange={(msgs) => setMessagesCache(prev => ({ ...prev, [selectedId]: msgs }))}
+              onFirstMessage={handleFirstMessage}
+              onMessageSent={handleMessageSent}
+            />
+          </Card>
+        ) : isDesktop ? (
+          <Card shadow style={ds.pane}>
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.s12 }}>
+              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="chat" size={28} color={colors.accent700} />
+              </View>
+              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>상담을 선택해주세요</Text>
+              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>왼쪽에서 상담을 선택하거나 새 상담을 시작하세요.</Text>
+              <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>
+            </View>
+          </Card>
+        ) : null}
+      </View>
+    </View>
   );
 }
 
