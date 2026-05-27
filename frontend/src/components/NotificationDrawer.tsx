@@ -1,227 +1,340 @@
-import React, { useEffect } from "react";
-import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useApp } from "../context/AppContext";
-import Icon from "./Icon";
-import { colors, spacing, radii } from "../theme";
+import React, { useEffect, useRef, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Animated, Modal, TouchableOpacity, View, Text, ScrollView, StyleSheet,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useApp, type Notification } from '../context/AppContext';
+import { useBreakpoint } from '../hooks/useBreakpoint';
+import { colors, radii, spacing, typography } from '../theme';
+import Icon from './Icon';
+import Card from './Card';
+import Button from './Button';
+import { notificationsApi } from '../api';
 
-type NotifCategory = "복약" | "가이드" | "상담" | "안내";
-type NotifItem = {
-  id: string;
-  category: NotifCategory;
-  title: string;
-  body: string;
-  time: string;
-  unread: boolean;
-  destination?: { tab: string; screen?: string; params?: object };
-};
-type NotifState = { id: string; unread: boolean };
+const DRAWER_WIDTH = 460;
 
-const MOCK: NotifItem[] = [
-  { id: "1", category: "복약", title: "저녁 복약 시간이에요", body: "로수바스타틴 10mg · 19:00 식후 30분", time: "방금 전", unread: true, destination: { tab: "HomeTab", screen: "Home" } },
-  { id: "2", category: "가이드", title: "새 복약 가이드가 생성됐어요", body: "처방전 #4 분석 결과를 확인해보세요.", time: "1시간 전", unread: true, destination: { tab: "GuideTab", screen: "GuideResult" } },
-  { id: "3", category: "상담", title: "상담 답변이 도착했어요", body: "혈압약 복용 중 사우나 이용에 대한 답변", time: "오늘 오전 9:12", unread: false, destination: { tab: "ChatTab", screen: "ChatList" } },
-  { id: "4", category: "안내", title: "내 정보를 업데이트해 주세요", body: "마지막 수정 후 90일이 지났어요.", time: "어제", unread: false, destination: { tab: "SettingsTab", screen: "ProfileEdit" } },
-  { id: "5", category: "복약", title: "어제 복약을 빠뜨리셨어요", body: "메트포르민 500mg · 점심 식후", time: "어제", unread: false, destination: { tab: "HomeTab", screen: "Home" } },
+// TODO: [임시] UI 테스트용 더미 알림 — BE 연결 완료 후 제거
+const DUMMY_NOTIFICATIONS: Notification[] = [
+  {
+    id: 'dummy-1',
+    type: 'medication' as const,
+    title: '메트포르민 500mg 복약 시간이에요',
+    body: '점심 식후 30분 — 잊지 말고 복용해주세요.',
+    date: new Date().toISOString(),
+    time: '12:30',
+    icon: 'pill',
+    unread: false,
+  },
+  {
+    id: 'dummy-2',
+    type: 'guide' as const,
+    title: '복약 가이드가 업데이트됐어요',
+    body: '처방전 분석이 완료되어 새 가이드를 확인할 수 있어요.',
+    date: new Date().toISOString(),
+    time: '09:14',
+    icon: 'wand',
+    unread: false,
+  },
 ];
 
-const CAT: Record<NotifCategory, { color: string; bg: string; icon: string }> = {
-  복약: { color: colors.accent, bg: colors.accent50, icon: "pill" },
-  가이드: { color: colors.success, bg: colors.success50, icon: "doc" },
-  상담: { color: colors.muted, bg: colors.surface2, icon: "chat" },
-  안내: { color: colors.warning, bg: colors.warning50, icon: "info" },
-};
 
-// clearAll 여부를 판별하는 sentinel: { id: '__cleared__', unread: false }
-const CLEARED_SENTINEL = "__cleared__";
 
-export default function NotificationDrawer({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+export default function NotificationDrawer() {
+  const { notifDrawerOpen, setNotifDrawerOpen, notifications, setNotifications, flash, markNotificationRead } = useApp();
+  const { isDesktopOrAbove } = useBreakpoint();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { notifications, setNotifications } = useApp();
+  const [rendered, setRendered] = useState(false);
+  const slideAnim = useRef(new Animated.Value(DRAWER_WIDTH)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // 최초: AppContext가 비어있으면 MOCK unread 상태로 초기화 → 벨 뱃지 연동
   useEffect(() => {
-    if (!notifications || notifications.length === 0) {
-      setNotifications?.(MOCK.map((n) => ({ id: n.id, unread: n.unread })));
-    }
-  }, []);
-
-  // clearAll sentinel 여부 확인
-  const isCleared = (notifications || []).some((n: NotifState) => n.id === CLEARED_SENTINEL);
-
-  // AppContext의 unread 상태를 MOCK에 merge
-  const ctxMap = new Map<string, boolean>((notifications || []).filter((n: NotifState) => n.id !== CLEARED_SENTINEL).map((n: NotifState) => [n.id, n.unread]));
-  const mergedItems: NotifItem[] = MOCK.map((n) => (ctxMap.has(n.id) ? { ...n, unread: ctxMap.get(n.id)! } : n));
-
-  const displayItems = isCleared ? [] : mergedItems;
-  const unreadCount = displayItems.filter((n) => n.unread).length;
-
-  const syncCtx = (updated: NotifItem[]) => {
-    setNotifications?.(updated.map((n) => ({ id: n.id, unread: n.unread })));
-  };
-
-  const navigate = (item: NotifItem) => {
-    const updated = mergedItems.map((n) => (n.id === item.id ? { ...n, unread: false } : n));
-    syncCtx(updated);
-    if (!item.destination) {
-      onClose();
-      return;
-    }
-    onClose();
-    const { tab, screen, params } = item.destination;
-    setTimeout(() => {
-      navigation.navigate("Main", {
-        screen: tab,
-        ...(screen && { params: { screen, ...(params && { params }) } }),
+    if (!notifDrawerOpen) return;
+    // TODO: [임시] UI 테스트용 더미 알림 — BE 연결 완료 후 제거
+    setNotifications(DUMMY_NOTIFICATIONS);
+    notificationsApi.getNotifications().then(res => {
+      const mapped: Notification[] = res.items.map(item => {
+        const d = item.created_at ? new Date(item.created_at) : new Date();
+        const hh = d.getHours();
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return {
+          id: String(item.notification_id),
+          type: 'info' as const,
+          title: item.title,
+          body: item.body ?? '',
+          date: d.toISOString(),
+          time: `${hh}:${mm}`,
+          icon: 'bell',
+          unread: !item.is_read,
+        };
       });
-    }, 150);
+      if (mapped.length > 0) setNotifications(mapped);
+    }).catch(() => {});
+  }, [notifDrawerOpen]);
+
+  useEffect(() => {
+    if (notifDrawerOpen) {
+      setRendered(true);
+      Animated.parallel([
+        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 80, friction: 13 }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideAnim, { toValue: DRAWER_WIDTH, duration: 220, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+      ]).start(() => setRendered(false));
+    }
+  }, [notifDrawerOpen]);
+
+  const close = () => setNotifDrawerOpen(false);
+
+  const handlePress = (n: Notification) => {
+    const id = n.id;
+    if (id != null && !Number.isNaN(Number(id))) {
+      markNotificationRead(id);
+      notificationsApi.markNotificationRead(Number(id)).catch(() => {});
+    }
+    close();
+    switch (n.type) {
+      case 'medication':
+        navigation.navigate('HomeTab');
+        break;
+      case 'record':
+        if (n.target_id) {
+          navigation.navigate('RecordsTab', {
+            screen: 'RecordDetail',
+            params: { recordId: Number(n.target_id) },
+          });
+        }
+        break;
+      case 'guide':
+        navigation.navigate('HomeTab', {
+          screen: 'GuideResult',
+          params: { guideId: n.target_id ? Number(n.target_id) : undefined },
+        });
+        break;
+      case 'chat':
+        if (n.target_id) {
+          navigation.navigate('ChatTab', {
+            screen: 'ChatSession',
+            params: { chatId: n.target_id },
+          });
+        }
+        break;
+    }
   };
 
-  const markAllRead = () => {
-    syncCtx(mergedItems.map((n) => ({ ...n, unread: false })));
+  const markAll = () => {
+    notificationsApi.markAllNotificationsRead().catch(() => {});
+    setNotifications(notifications.map(n => ({ ...n, unread: false })));
+    flash('모두 읽음 처리했어요');
   };
 
-  const clearAll = () => {
-    // sentinel로 "지워진 상태" 표시 → 벨 뱃지도 0
-    setNotifications?.([{ id: CLEARED_SENTINEL, unread: false }]);
+  const handleDelete = (id: string) => {
+    const numId = Number(id);
+    if (!Number.isNaN(numId)) {
+      notificationsApi.deleteNotification(numId).catch(() => {});
+    }
+    setNotifications(notifications.filter(n => n.id !== id));
   };
+
+  const clear = () => {
+    notifications.forEach(n => {
+      const numId = Number(n.id);
+      if (!Number.isNaN(numId)) {
+        notificationsApi.deleteNotification(numId).catch(() => {});
+      }
+    });
+    setNotifications([]);
+    flash('알림을 모두 지웠어요');
+  };
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const isToday = (n: { date: string }) => new Date(n.date) >= todayStart;
+  const todayNotifs = notifications.filter(isToday);
+  const earlierNotifs = notifications.filter(n => !isToday(n));
+
+  if (!rendered) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={s.backdrop}>
-        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
+    <Modal transparent visible={rendered} animationType="none" onRequestClose={close}>
+      <View style={s.overlay} pointerEvents="box-none">
+        {/* 스크림 */}
+        <Animated.View style={[s.scrim, { opacity: fadeAnim }]} pointerEvents={notifDrawerOpen ? 'auto' : 'none'}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={close} activeOpacity={1} />
+        </Animated.View>
 
-        <View style={s.panel}>
+        {/* 드로워 패널 */}
+        <Animated.View
+          style={[
+            s.panel,
+            isDesktopOrAbove ? s.panelDesktop : s.panelMobile,
+            isDesktopOrAbove && { transform: [{ translateX: slideAnim }] },
+          ]}
+        >
           {/* 헤더 */}
-          <View style={s.header}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Icon name="bell" size={17} color={colors.ink} />
-              <Text style={{ fontSize: 17, fontWeight: "700", color: colors.ink }}>알림</Text>
-              {unreadCount > 0 && (
-                <View style={s.badge}>
-                  <Text style={{ fontSize: 10, color: "#fff", fontWeight: "700" }}>{unreadCount}</Text>
-                </View>
-              )}
-            </View>
-            <View style={{ flexDirection: "row", gap: 6 }}>
-              <TouchableOpacity
-                style={s.iconBtn}
-                onPress={() => {
-                  onClose();
-                  setTimeout(() => navigation.navigate("Main", { screen: "SettingsTab", params: { screen: "NotificationSettings" } }), 200);
-                }}
-              >
-                <Icon name="settings" size={15} color={colors.muted} />
-              </TouchableOpacity>
-              <TouchableOpacity style={s.iconBtn} onPress={onClose}>
-                <Icon name="x" size={15} color={colors.muted} />
+          <View style={[s.header, { paddingTop: insets.top + spacing.s16 }]}>
+            <Text style={s.title}>알림</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8 }}>
+              <Button variant="ghost" size="sm" onPress={markAll}>모두 읽음</Button>
+              <Button variant="ghost" size="sm" onPress={clear}>모두 지우기</Button>
+              <TouchableOpacity onPress={close} style={s.closeBtn}>
+                <Icon name="x" size={15} color={colors.ink2} />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* 서브헤더 */}
-          <View style={s.subHeader}>
-            <Text style={{ fontSize: 12, color: colors.muted }}>{unreadCount > 0 ? `안 읽은 알림 ${unreadCount}건` : "모두 읽었어요"}</Text>
-            <TouchableOpacity onPress={markAllRead}>
-              <Text style={{ fontSize: 12, color: colors.accent, fontWeight: "600" }}>✓ 모두 읽음</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* 목록 */}
-          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-            {displayItems.length === 0 ? (
-              <View style={{ alignItems: "center", padding: 48 }}>
-                <Icon name="bell" size={28} color={colors.muted2} />
-                <Text style={{ fontSize: 13, color: colors.muted, marginTop: 10 }}>새 알림이 없어요</Text>
-              </View>
+          {/* 알림 목록 */}
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: spacing.s16, gap: spacing.s16 }}>
+            {notifications.length === 0 ? (
+              <Card style={{ alignItems: 'center', paddingVertical: spacing.s56 }}>
+                <Icon name="bell" size={36} color={colors.muted2} />
+                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, marginTop: 14 }}>
+                  알림이 없어요
+                </Text>
+              </Card>
             ) : (
-              displayItems.map((item) => {
-                const cfg = CAT[item.category];
-                return (
-                  <TouchableOpacity key={item.id} style={[s.item, item.unread && s.itemUnread]} activeOpacity={0.7} onPress={() => navigate(item)}>
-                    <View style={{ width: 3, alignSelf: "stretch", backgroundColor: item.unread ? cfg.color : "transparent", borderRadius: 2 }} />
-                    <View style={[s.itemIcon, { backgroundColor: cfg.bg }]}>
-                      <Icon name={cfg.icon} size={13} color={cfg.color} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 3 }}>
-                        <View style={[s.catBadge, { backgroundColor: cfg.bg }]}>
-                          <Text style={{ fontSize: 10, color: cfg.color, fontWeight: "700" }}>{item.category}</Text>
+              [{ label: '오늘', items: todayNotifs }, { label: '이전', items: earlierNotifs }].map(g =>
+                g.items.length > 0 ? (
+                  <View key={g.label}>
+                    <Text style={s.groupLabel}>{g.label}</Text>
+                    <Card noPadding style={{ overflow: 'hidden' }}>
+                      {g.items.map((n, i) => (
+                        <View
+                          key={n.id}
+                          style={[
+                            s.notifRow,
+                            i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline },
+                            n.unread && { backgroundColor: colors.accent50 },
+                          ]}
+                        >
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            onPress={() => handlePress(n)}
+                            style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s12 }}
+                          >
+                            <View style={s.notifIcon}>
+                              <Icon name={n.icon} size={14} color={colors.accent700} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.s8 }}>
+                                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, flex: 1 }} numberOfLines={1}>
+                                  {n.title}
+                                </Text>
+                                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{n.time}</Text>
+                              </View>
+                              <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s4 }}>
+                                {n.body}
+                              </Text>
+                            </View>
+                            {n.unread && <View style={s.unreadDot} />}
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => handleDelete(n.id)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            style={s.deleteBtn}
+                          >
+                            <Icon name="x" size={12} color={colors.muted2} />
+                          </TouchableOpacity>
                         </View>
-                        {item.unread && <View style={s.dot} />}
-                        <Text style={{ fontSize: 11, color: colors.muted, marginLeft: "auto" as any }}>{item.time}</Text>
-                      </View>
-                      <Text style={{ fontSize: 13, fontWeight: item.unread ? "700" : "600", color: colors.ink, marginBottom: 2 }}>{item.title}</Text>
-                      <Text style={{ fontSize: 11, color: colors.muted, lineHeight: 16 }} numberOfLines={2}>
-                        {item.body}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })
+                      ))}
+                    </Card>
+                  </View>
+                ) : null
+              )
             )}
           </ScrollView>
-
-          {/* 푸터 */}
-          {displayItems.length > 0 && (
-            <TouchableOpacity style={s.footer} onPress={clearAll}>
-              <Icon name="trash" size={13} color={colors.muted} />
-              <Text style={{ fontSize: 12, color: colors.muted, marginLeft: 5 }}>모두 지우기</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
 }
 
 const s = StyleSheet.create({
-  backdrop: { flex: 1, flexDirection: "row", backgroundColor: "rgba(15,23,42,0.4)" },
+  overlay: {
+    flex: 1,
+  },
+  scrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
   panel: {
-    width: "38%",
-    maxWidth: 420,
-    minWidth: 300,
     backgroundColor: colors.surface,
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
+    shadowColor: '#000',
     shadowOffset: { width: -4, height: 0 },
-    elevation: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 16,
+  },
+  panelDesktop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: DRAWER_WIDTH,
+  },
+  panelMobile: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.s16,
+    paddingBottom: spacing.s16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.hairline,
+  },
+  title: {
+    fontSize: typography.fz17,
+    fontWeight: typography.fw7,
+    color: colors.ink,
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.sm,
+    backgroundColor: colors.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  groupLabel: {
+    fontSize: typography.fz12,
+    color: colors.muted,
     paddingHorizontal: spacing.s4,
-    paddingTop: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.hairline,
+    marginBottom: spacing.s8,
   },
-  badge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.danger, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
-  iconBtn: { width: 28, height: 28, borderRadius: radii.sm, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface2 },
-  subHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: spacing.s4,
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.hairline,
-    backgroundColor: colors.canvas,
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: spacing.s16,
+    gap: spacing.s12,
   },
-  item: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    paddingVertical: 12,
-    paddingRight: spacing.s4,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.hairline,
+  notifIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.pill,
+    backgroundColor: colors.accent100,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  itemUnread: { backgroundColor: "#f0f9ff" },
-  itemIcon: { width: 34, height: 34, borderRadius: 999, alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  catBadge: { paddingHorizontal: 5, paddingVertical: 2, borderRadius: radii.pill },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.danger },
-  footer: { flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 12, borderTopWidth: 0.5, borderTopColor: colors.hairline },
+  unreadDot: {
+    width: 7,
+    height: 7,
+    borderRadius: radii.pill,
+    backgroundColor: colors.danger,
+    marginTop: spacing.s4,
+    marginLeft: 6,
+  },
+  deleteBtn: {
+    paddingLeft: spacing.s8,
+    alignSelf: 'center',
+  },
 });
