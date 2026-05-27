@@ -240,6 +240,7 @@ class TestUserMeApis(TestCase):
         # Given
         from datetime import UTC, datetime, timedelta
         from unittest.mock import patch
+
         email = "nickname3@example.com"
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(

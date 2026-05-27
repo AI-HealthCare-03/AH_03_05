@@ -19,7 +19,9 @@ class UserManageService:
                 next_available = user.nickname_updated_at + timedelta(days=30)
                 if datetime.now(UTC) < next_available:
                     next_date = next_available.strftime("%Y.%m.%d")
-                    raise BadRequestException(detail=f"닉네임은 30일에 1회만 변경할 수 있어요. 다음 변경 가능일: {next_date}")
+                    raise BadRequestException(
+                        detail=f"닉네임은 30일에 1회만 변경할 수 있어요. 다음 변경 가능일: {next_date}"
+                    )
         async with in_transaction():
             update_data = data.model_dump(exclude_none=True)
             if "nickname" in update_data and update_data["nickname"] != user.nickname:
