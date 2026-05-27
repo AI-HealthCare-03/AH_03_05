@@ -13,6 +13,10 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
   return res.data;
 }
 
+// TODO: BE 명세 확정 후 endpoint 경로 통일 필요
+// sendEmailCode → '/auth/email/verify/send'
+// verifyEmailCode → '/auth/email-verify/confirm'
+// 참고: PR #72 리뷰 코멘트
 // TODO: [BE 대기] POST /auth/email-verify/send 미구현 — 구현 완료 후 mock 제거
 // 409 → 이미 사용 중인 이메일
 export async function sendEmailCode(email: string): Promise<void> {

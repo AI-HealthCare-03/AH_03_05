@@ -65,7 +65,7 @@ export function DeleteAccountScreen({ navigation }: any) {
         (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)
           ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
       } catch (e: any) {
-        if (e?.response?.status === 401) {
+        if (e?.response?.status === 400) {
           setError('비밀번호가 올바르지 않습니다.');
         } else {
           setError(extractApiError(e));
