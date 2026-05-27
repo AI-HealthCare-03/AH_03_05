@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 from tortoise.transactions import in_transaction
 
 from app.core.utils.security import hash_password, verify_password
@@ -12,8 +13,17 @@ class UserManageService:
         self.repo = UserRepository()
 
     async def update_user(self, user: User, data: UserUpdateRequest) -> User:
+        if data.nickname is not None and data.nickname != user.nickname:
+            if user.nickname_updated_at is not None:
+                next_available = user.nickname_updated_at + timedelta(days=30)
+                if datetime.now(UTC) < next_available:
+                    next_date = next_available.strftime("%Y.%m.%d")
+                    raise BadRequestException(detail=f"닉네임은 30일에 1회만 변경할 수 있어요. 다음 변경 가능일: {next_date}")
         async with in_transaction():
-            await self.repo.update_instance(user=user, data=data.model_dump(exclude_none=True))
+            update_data = data.model_dump(exclude_none=True)
+            if "nickname" in update_data and update_data["nickname"] != user.nickname:
+                update_data["nickname_updated_at"] = datetime.now(UTC)
+            await self.repo.update_instance(user=user, data=update_data)
             await user.refresh_from_db()
         return user
 
