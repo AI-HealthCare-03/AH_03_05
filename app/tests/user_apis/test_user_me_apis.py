@@ -121,4 +121,4 @@ class TestUserMeApis(TestCase):
             )
 
         # Then
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

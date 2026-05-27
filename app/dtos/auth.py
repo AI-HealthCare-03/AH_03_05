@@ -30,6 +30,7 @@ class LoginRequest(BaseModel):
 class UserInfo(BaseModel):
     id: int
     name: str
+    nickname: str | None = None
 
 
 class LoginResponse(BaseModel):
