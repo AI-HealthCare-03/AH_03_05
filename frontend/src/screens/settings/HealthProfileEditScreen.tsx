@@ -11,11 +11,11 @@ import { healthProfileApi, extractApiError } from "../../api";
 import { s } from "./_settingsShared";
 
 const AGE_MAP: Record<string, string> = { '20대': '20s', '30대': '30s', '40대': '40s', '50대': '50s', '60대+': '60s' };
-const GENDER_MAP: Record<string, string | undefined> = { '여성': 'F', '남성': 'M' };
+const GENDER_MAP: Record<string, string | undefined> = { '여성': 'F', '남성': 'M', '답변 안 함': undefined };
 const splitList = (v: string) => v.split(',').map(x => x.trim()).filter(Boolean);
 
 const AGES = ["20대", "30대", "40대", "50대", "60대+"];
-const SEXES = ["여성", "남성"];
+const SEXES = ["여성", "남성", "답변 안 함"];
 const YN = ["예", "아니오"];
 
 const CHIP_FIELDS: { label: string; key: string; options: string[] }[] = [
