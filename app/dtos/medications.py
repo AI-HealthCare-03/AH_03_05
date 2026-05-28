@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 # ─── [기존] 유정님 구현: 약품 후보 일괄 확정 DTO ───
 
@@ -13,7 +13,7 @@ MedicationVerifyItem = MedicationVerificationItem
 
 
 class MedicationVerifyRequest(BaseModel):
-    verifications: list[MedicationVerifyItem] = Field(..., min_items=1, description="확정할 항목 목록")
+    verifications: list[MedicationVerifyItem] = Field(..., min_length=1, description="확정할 항목 목록")
 
 
 class MedicationVerifyResponse(BaseModel):
@@ -50,5 +50,4 @@ class MedicationAlarmResponse(BaseModel):
     alarm_times: list[str] | None
     is_alarm_enabled: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
