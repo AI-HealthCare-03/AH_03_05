@@ -34,6 +34,40 @@ DISEASE_LORE_MAP = {
 
 LORE_DIR = "docs/guidelines/lore"
 
+# age_group 문자열 → 숫자 변환 매핑
+# 두 형태 모두 지원 ("30s" / "30대")
+# 60대는 65로 매핑 → old 로어북 적용 (의료 안전 기준 보수적 처리)
+AGE_GROUP_MAP = {
+    "10s": 15,
+    "20s": 25,
+    "30s": 35,
+    "40s": 45,
+    "50s": 55,
+    "60s": 65,
+    "70s": 75,
+    "80s": 85,
+    "10대": 15,
+    "20대": 25,
+    "30대": 35,
+    "40대": 45,
+    "50대": 55,
+    "60대": 65,
+    "70대": 75,
+    "80대": 85,
+}
+
+
+def parse_age(age_group: str | int) -> int:
+    """
+    age_group 문자열 또는 숫자를 정수로 변환
+    "30대" / "30s" / 55 모두 처리 가능
+    """
+    if isinstance(age_group, int):
+        return age_group
+    if str(age_group).isdigit():
+        return int(age_group)
+    return AGE_GROUP_MAP.get(str(age_group), 50)
+
 
 def load_lore(filename: str) -> str:
     """로어북 텍스트 파일 로드"""
@@ -44,11 +78,12 @@ def load_lore(filename: str) -> str:
         return f.read()
 
 
-def get_guideline_context(chronic_diseases: list, age: int) -> str:
+def get_guideline_context(chronic_diseases: list, age_group: str | int) -> str:
     """
     건강 프로필의 만성질환 목록과 나이를 받아
     해당하는 가이드라인 로어북을 조합하여 반환
     """
+    age = parse_age(age_group)
     loaded = set()
     context_parts = []
 
@@ -76,7 +111,7 @@ def get_guideline_context(chronic_diseases: list, age: int) -> str:
     return "\n\n---\n\n".join(context_parts)
 
 
-def get_disease_names(chronic_diseases: list) -> list:
+def get_disease_names(diseases: list) -> list:
     """질환 코드를 질환명으로 변환"""
     code_to_name = {
         "I10": "고혈압",
@@ -89,4 +124,4 @@ def get_disease_names(chronic_diseases: list) -> list:
         "J45": "천식",
         "J44": "만성폐쇄성폐질환",
     }
-    return [code_to_name.get(d, d) for d in chronic_diseases]
+    return [code_to_name.get(d, d) for d in diseases]
