@@ -1,4 +1,5 @@
 import asyncio
+import os
 from collections.abc import Generator
 from typing import Any
 from unittest.mock import Mock, patch
@@ -9,23 +10,25 @@ from _pytest.fixtures import FixtureRequest
 from tortoise import generate_config
 from tortoise.contrib.test import finalizer, initializer
 
-from app.core import config
-from app.core.db.databases import TORTOISE_APP_MODELS
+os.environ.setdefault("MFDS_API_KEY", "test-dummy-key")
+os.environ.setdefault("OPENAI_API_KEY", "test-dummy-key")
 
-TEST_BASE_URL = "http://test"
+from app.core import config  # noqa: E402
+from app.core.db.databases import TORTOISE_APP_MODELS  # noqa: E402
+
+TEST_BASE_URL = "http://ai_health"
 TEST_DB_LABEL = "models"
 TEST_DB_TZ = "Asia/Seoul"
 
 
 def get_test_db_config() -> dict[str, Any]:
     tortoise_config = generate_config(
-        db_url=f"mysql://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/test",
+        db_url=f"postgres://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/ai_health",
         app_modules={TEST_DB_LABEL: TORTOISE_APP_MODELS},
         connection_label=TEST_DB_LABEL,
         testing=True,
     )
     tortoise_config["timezone"] = TEST_DB_TZ
-
     return tortoise_config
 
 

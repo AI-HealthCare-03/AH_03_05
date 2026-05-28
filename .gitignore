@@ -12,3 +12,20 @@ wheels/
 .coverage
 *.coverage
 .coverage.*
+tests/mock_data/images/
+.DS_Store
+.venv311/
+.junie/
+/.claude
+app/core/db/migrations/models/1_20260520090032_update.py
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Local env backups
+.env.backup
+.env.*.backup
+
+# Office temporary files (Excel/Word)
+~$*

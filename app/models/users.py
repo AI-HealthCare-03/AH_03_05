@@ -3,24 +3,24 @@ from enum import StrEnum
 from tortoise import fields, models
 
 
-class Gender(StrEnum):
-    MALE = "MALE"
-    FEMALE = "FEMALE"
+class UserStatus(StrEnum):
+    ACTIVE = "active"
+    WITHDRAWN = "withdrawn"
 
 
 class User(models.Model):
     id = fields.BigIntField(primary_key=True)
-    email = fields.CharField(max_length=40)
-    hashed_password = fields.CharField(max_length=128)
-    name = fields.CharField(max_length=20)
-    gender = fields.CharEnumField(enum_type=Gender)
-    birthday = fields.DateField()
-    phone_number = fields.CharField(max_length=11)
-    is_active = fields.BooleanField(default=True)
-    is_admin = fields.BooleanField(default=False)
-    last_login = fields.DatetimeField(null=True)
+    email = fields.CharField(max_length=255, unique=True)
+    password_hash = fields.CharField(max_length=255)
+    name = fields.CharField(max_length=50)
+    nickname = fields.CharField(max_length=100, null=True)
+    status = fields.CharEnumField(enum_type=UserStatus, default=UserStatus.ACTIVE)
+    last_login_at = fields.DatetimeField(null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
+    withdrawn_at = fields.DatetimeField(null=True)
+    nickname_updated_at = fields.DatetimeField(null=True)
+    password_changed_at = fields.DatetimeField(null=True)
 
     class Meta:
         table = "users"

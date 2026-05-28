@@ -1,18 +1,109 @@
-# AI Healthcare Project Template
+# MediPT - AI 의료 도우미 백엔드
 
-이 프로젝트는 AI 모델 추론(Inference) 워커와 FastAPI API 서버를 통합한 서비스 템플릿입니다. 
-현대적인 Python 패키지 관리 도구인 `uv`와 컨테이너화 도구인 `Docker`를 활용하여 일관된 개발 및 배포 환경을 제공합니다.
+> AI 기반 의료 영상 분석 및 맞춤형 복약 가이드 서비스 백엔드 API
+
+[![codecov](https://codecov.io/gh/AI-HealthCare-03/AH_03_05/branch/develop/graph/badge.svg)](https://codecov.io/gh/AI-HealthCare-03/AH_03_05)
 
 ---
 
-## 🚀 주요 특징
+## 📋 프로젝트 소개
 
-- **FastAPI Framework**: 고성능 비동기 API 서버 구현.
-- **AI Worker**: 모델 추론 및 학습 작업을 API 서버와 분리하여 처리.
-- **UV Package Manager**: 매우 빠른 의존성 설치 및 가상환경 관리.
-- **Tortoise ORM**: 비동기 방식의 데이터베이스 모델링 및 쿼리 관리.
-- **Docker-Compose**: MySQL, Redis, Nginx를 포함한 전체 서비스 스택을 한 번에 실행.
-- **CI/CD Scripts**: 코드 포맷팅(Ruff), 타입 체크(Mypy), 테스트(Pytest)를 위한 자동화 스크립트 제공.
+MediPT는 사용자가 업로드한 처방전/검사지 이미지를 분석하여 맞춤형 복약·생활습관 가이드를 제공하는 AI 의료 도우미 서비스입니다.
+
+### 주요 기능
+
+- **의료 이미지 OCR 분석**: 처방전/검사지 이미지에서 약품 정보 자동 추출
+- **식약처 API 연동**: 추출된 약품의 상세 정보 (성분/제조사/주의사항) 조회
+- **LLM 맞춤형 가이드**: 사용자 건강 프로필(연령/만성질환/임신 여부 등) 기반 복약·생활습관 가이드 생성
+- **안전 필터 적용 챗봇**: 위험 질문 감지 및 의료기관 권고를 포함한 실시간 상담
+
+---
+
+## 👥 팀 구성
+
+| 역할 | 담당 영역 |
+|---|---|
+| Backend A | 회원/인증/의료 기록 |
+| Backend B | 약품/가이드/챗봇 |
+| AI/Infra | OCR 파이프라인, LLM 워커, CI 배포 |
+| Frontend | React 기반 UI |
+
+---
+
+## 🏗 기술 스택
+
+### Backend
+- **Web Framework**: FastAPI (비동기 API 서버)
+- **ORM**: Tortoise ORM (비동기 ORM) + aerich (마이그레이션)
+- **Database**: PostgreSQL 16
+- **Cache/Session**: Redis 7
+- **Authentication**: JWT
+
+### AI/Integration
+- **LLM**: OpenAI GPT (복약 가이드 + 챗봇)
+- **OCR**: AI Worker (모델 추론 분리)
+- **External API**: 식약처(MFDS) 의약품안전나라 API
+
+### DevOps
+- **Package Manager**: uv (Python 패키지 관리)
+- **Containerization**: Docker / Docker Compose
+- **CI**: GitHub Actions (lint + test)
+- **Coverage**: Codecov
+
+### Testing
+- **Framework**: pytest + pytest-asyncio
+- **Mocking**: pytest-mock (외부 API 의존성 mocking)
+- **Coverage**: 90%+ 유지
+
+---
+
+## 🚀 빠른 시작
+
+### 사전 요구사항
+
+- Python 3.13+
+- Docker & Docker Compose
+- uv (`brew install uv` 또는 [공식 설치 가이드](https://docs.astral.sh/uv/))
+
+### 환경 구축
+
+```bash
+# 1. 저장소 클론
+git clone https://github.com/AI-HealthCare-03/AH_03_05.git
+cd AH_03_05
+
+# 2. 환경 변수 설정
+cp envs/example.local.env .env
+# .env 파일을 열어 OPENAI_API_KEY, MFDS_API_KEY 등 실제 값으로 교체
+
+# 3. 의존성 설치
+uv sync --group app
+
+# 4. PostgreSQL + Redis 컨테이너 기동
+docker compose up -d --build
+
+# 5. DB 마이그레이션 적용
+DB_HOST=localhost DB_PORT=5433 uv run --group app aerich upgrade
+
+# 6. 서버 실행
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+서버 기동 후 [http://localhost:8000/docs](http://localhost:8000/docs)에서 Swagger 문서 확인 가능.
+
+### 테스트 실행
+
+```bash
+# 전체 테스트
+DB_HOST=localhost DB_PORT=5433 uv run --group app pytest
+
+# 통합 테스트만 (외부 API mocking 적용, DB 불필요)
+uv run --group app pytest tests/integration/
+
+# 커버리지 리포트
+DB_HOST=localhost DB_PORT=5433 uv run --group app coverage run --source=app -m pytest app tests
+uv run coverage report -m
+```
 
 ---
 
@@ -20,158 +111,54 @@
 
 ```text
 .
-├── ai_worker/          # AI 모델 추론 및 학습 관련 코드 (Worker)
-│   ├── core/           # 워커 설정 및 로거
-│   ├── models/         # AI 모델 파일 보관 (PyTorch 등)
-│   ├── tasks/          # 실제 처리할 작업 정의
-│   └── main.py         # 워커 진입점
-├── app/                # FastAPI 서버 코드
-│   ├── apis/           # API 라우터 (v1 버전 관리)
-│   ├── core/           # 서버 설정 (pydantic-settings), DB 설정, JWT, Validator 등 핵심 기능
-│   ├── dtos/           # 데이터 전송 객체 (Pydantic models)
-│   ├── models/         # DB 테이블 정의
-│   ├── services/       # 비즈니스 로직
-│   └── main.py         # FastAPI 애플리케이션 진입점
-├── envs/               # 환경 변수 설정 파일 (.env)
-├── infra/              # 인프라 설정 관련 디렉터리
-│   ├── docker/         # Docker Compose 설정 (운영용)
-│   └── nginx/          # Nginx 설정 파일 (리버스 프록시)
-├── scripts/            # 배포 및 CI용 쉘 스크립트
-├── docker-compose.yml  # 로컬 개발용 서비스 실행 설정
-└── pyproject.toml      # uv 기반 의존성 관리 설정
+├── ai_worker/                  # AI 모델 추론 워커 (OCR, 학습)
+│   ├── core/                   # 워커 설정 및 로거
+│   ├── models/                 # AI 모델 파일
+│   ├── tasks/                  # 처리할 작업 정의
+│   └── main.py                 # 워커 진입점
+├── app/                        # FastAPI 서버 코드
+│   ├── apis/v1/                # API 라우터
+│   ├── core/                   # 서버 설정, DB, JWT, Validator
+│   │   └── db/migrations/      # aerich 마이그레이션
+│   ├── dtos/                   # Pydantic 요청/응답 DTO
+│   ├── models/                 # Tortoise ORM 모델
+│   ├── services/               # 비즈니스 로직
+│   │   └── safety/             # 안전 필터
+│   ├── tests/                  # API 통합 테스트
+│   └── main.py                 # FastAPI 진입점
+├── tests/integration/          # 외부 의존성 mocking 통합 테스트
+│   ├── conftest.py             # OpenAI + MFDS mocking fixture
+│   └── fixtures/               # mock 응답 데이터
+├── envs/                       # 환경 변수 예시
+│   ├── example.local.env
+│   └── example.prod.env
+├── infra/                      # Docker / Nginx 설정
+├── scripts/                    # 배포 및 운영 스크립트
+├── docs/                       # 프로젝트 문서
+│   ├── api/                    # API 명세
+│   ├── spec/                   # 영역별 명세
+│   ├── meetings/               # 회의록
+│   ├── requirements/           # 요구사항 정의서
+│   └── dev-environment-strategy.md
+├── CONTRIBUTING.md             # 기여 가이드
+├── docker-compose.yml          # 로컬 개발 환경
+└── pyproject.toml              # Python 프로젝트 설정
 ```
 
 ---
 
-## ⚙️ 사전 준비 사항
+## 📚 문서
 
-- **Python**: 3.13 이상 (로컬 개발 환경용)
-- **UV**: Python 패키지 매니저 ([설치 가이드](https://github.com/astral-sh/uv))
-- **Docker & Docker-Compose**: 전체 서비스 실행용
-
----
-
-## 🛠️ 설치 및 설정
-
-### 1. 가상환경 구축 및 의존성 설치
-
-`uv`를 사용하여 프로젝트에 필요한 패키지를 설치합니다.
-
-```bash
-# 의존성 설치 (가상환경 자동 생성)
-uv sync
-
-# 특정 그룹의 의존성만 설치하려는 경우
-uv sync --group app  # API 서버용
-uv sync --group ai   # AI 워커용
-```
-
-### 2. 환경 변수 설정
-
-`envs/` 디렉토리에 있는 예시 파일을 복사하여 `.env` 파일을 생성합니다.
-- 로컬용 
-    ```bash
-    cp envs/example.local.env envs/.local.env
-    ```
-- 배포용 
-    ```bash
-    cp envs/example.prod.env envs/.prod.env
-    ```
-
-생성된 `env` 파일 내의 환경변수들은 프로젝트 상황에 맞게 수정하세요.
+| 문서 | 설명 |
+|---|---|
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | 브랜치 전략, 커밋/PR 컨벤션, 마이그레이션 워크플로우 |
+| [docs/dev-environment-strategy.md](./docs/dev-environment-strategy.md) | dev/staging/prod 환경 분리 전략 |
+| [docs/spec/](./docs/spec/) | 영역별 상세 명세 (가이드라인, LLM, 안전, 보안 등) |
+| [docs/api/](./docs/api/) | API 명세서 (Excel) |
+| [docs/requirements/](./docs/requirements/) | 요구사항 정의서 |
 
 ---
 
-## 🏃 실행 방법
+## 🔧 개발 참여
 
-### 1. 로컬 및 개발 환경
-
-#### Docker Compose로 전체 스택 실행
-
-모든 서비스(API, Worker, DB, Redis, Nginx)를 한 번에 실행합니다.
-
-```bash
-docker-compose up -d --build
-```
-
-실행 후 다음 주소로 접속 가능합니다:
-- **API 서버**: [http://localhost/api/docs](http://localhost/api/docs) (Swagger UI)
-- **Nginx**: 80 포트를 통해 API 서버로 요청을 전달합니다.
-
-#### 로컬에서 개별 실행 (개발용)
-
-**FastAPI 서버 실행:**
-```bash
-uv run uvicorn app.main:app --reload
-# or
-docker compose up -d --build app
-```
-
-**AI Worker 실행:**
-```bash
-uv run python -m ai_worker.main
-# or
-docker compose up -d --build ai_worker
-```
-
-### 2. EC2 배포 환경 (Production)
-
-제공된 쉘 스크립트를 사용하여 AWS EC2 환경에 이미지를 빌드, 푸시 및 배포할 수 있습니다.
-
-#### 사전 준비
-- EC2 인스턴스 (Ubuntu 권장)
-- SSH 키 페어 (`~/.ssh/` 경로에 위치)
-- 도커 허브(Docker Hub) 계정 및 Personal Access Token
-- 배포용 환경 변수 설정 (`envs/.prod.env`)
-- 도메인 구매 (Gabia, GoDaddy, AWS Route53 등)
-
-#### 자동 배포 스크립트 실행
-`scripts/deployment.sh`는 도커 이미지 빌드, 레포지토리 푸시, EC2 접속 및 컨테이너 실행 과정을 자동화합니다.
-
-```bash
-chmod +x scripts/deployment.sh
-./scripts/deployment.sh
-```
-스크립트 실행 시 다음 정보를 입력해야 합니다:
-1. 도커 허브 계정 정보 (Username, PAT)
-2. 이미지를 업로드할 레포지토리 이름
-3. 배포할 서비스 선택 (FastAPI, AI-Worker) 및 버전(Tag)
-4. SSH 키 파일명 및 EC2 IP 주소
-5. https 사용여부
-   - 5-1. https인 경우 도메인 추가 입력  
-
-#### SSL(HTTPS) 설정 (Certbot)
-도메인을 연결하고 HTTPS를 적용하려면 `scripts/certbot.sh`를 사용합니다.
-
-```bash
-chmod +x scripts/certbot.sh
-./scripts/certbot.sh
-```
-1. 도메인 주소 및 이메일 입력
-2. SSH 키 파일명 및 EC2 IP 주소 입력
-3. Let's Encrypt를 통한 인증서 발급 및 Nginx 설정 자동 갱신 적용
-
----
-
-## 🧪 테스트 및 품질 관리
-
-제공된 스크립트를 사용하여 코드의 품질을 검증할 수 있습니다.
-
-```bash
-# 테스트 실행
-./scripts/ci/run_test.sh
-
-# 코드 포맷팅 확인 (Ruff)
-./scripts/ci/code_fommatting.sh
-
-# 정적 타입 검사 (Mypy)
-./scripts/ci/check_mypy.sh
-```
-
----
-
-## 📝 개발 가이드
-
-- **API 추가**: `app/apis/v1/` 아래에 새로운 라우터 파일을 생성하고 `app/apis/v1/__init__.py`에 등록하세요.
-- **DB 모델 추가**: `app/models/`에 Tortoise 모델을 정의하고 `app/db/databases.py`의 `MODELS` 리스트에 추가하세요.
-- **AI 로직 추가**: `ai_worker/tasks/`에 새로운 처리 로직을 작성하고 `ai_worker/main.py`에서 호출하도록 구성하세요.
+본 프로젝트에 기여하실 분은 [CONTRIBUTING.md](./CONTRIBUTING.md)를 먼저 읽어주세요. 브랜치 네이밍, 커밋 메시지 규칙, PR 작성 컨벤션, 마이그레이션 워크플로우 등이 정리되어 있습니다.

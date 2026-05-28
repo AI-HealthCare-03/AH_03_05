@@ -1,0 +1,315 @@
+import React, { useState, useEffect } from "react";
+import { useApp } from "../../context/AppContext";
+import { View, Text, TouchableOpacity, ActivityIndicator, Modal, Linking } from "react-native";
+import Icon from "../../components/Icon";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import Badge from "../../components/Badge";
+import ScreenLayout from "../../components/ScreenLayout";
+import { colors, radii, spacing, typography } from "../../theme";
+import { recordsApi, extractApiError } from "../../api";
+import type { RecordDetail, MedicationItem, RecordGuideResponse } from "../../api";
+import { RECORD_LABEL, formatDate, getRecordColor, iconFor } from "./_recordsShared";
+
+function mapApiError(err: any): string {
+  const status = err?.response?.status;
+  if (status === 403) return "접근 권한이 없습니다.";
+  if (status === 404) return "기록을 찾을 수 없습니다.";
+  if (!err?.response) return "네트워크 오류가 발생했습니다.";
+  return extractApiError(err) || "오류가 발생했습니다.";
+}
+
+export function RecordDetailScreen({ navigation, route }: any) {
+  const { flash } = useApp();
+  const recordId: number | undefined = route?.params?.recordId;
+  const [record, setRecord] = useState<RecordDetail | null>(null);
+  const [medications, setMedications] = useState<MedicationItem[]>([]);
+  const [guide, setGuide] = useState<RecordGuideResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if (!recordId) { setLoading(false); setError("기록 ID가 없어요."); return; }
+    (async () => {
+      setLoading(true);
+      try {
+        const [rec, meds, gd] = await Promise.allSettled([
+          recordsApi.getRecord(recordId),
+          recordsApi.getRecordMedications(recordId),
+          recordsApi.getRecordGuide(recordId),
+        ]);
+
+        if (rec.status === "fulfilled") {
+          const r = rec.value;
+          setRecord(__DEV__ ? {
+            ...r,
+            hospital_name: r.hospital_name ?? "서울 내과 의원",
+            doctor_name: r.doctor_name ?? "김민수",
+            total_days: r.total_days ?? 30,
+            notes: r.notes ?? "고혈압·당뇨 정기 처방, 14일분",
+            file_name: r.file_name ?? "처방전.jpg",
+            file_size: r.file_size ?? "1.8MB",
+          } : r);
+        } else if (__DEV__) {
+          setRecord({
+            record_id: 10,
+            record_type: "prescription",
+            status: "ocr_completed",
+            uploaded_at: "2026-05-11T10:00:00",
+            ocr_confidence: 0.91,
+            hospital_name: "서울 내과 의원",
+            doctor_name: "김민수",
+            total_days: 30,
+            notes: "고혈압·당뇨 정기 처방, 14일분",
+            file_name: "처방전.jpg",
+            file_size: "1.8MB",
+          });
+        } else {
+          setError(mapApiError((rec as PromiseRejectedResult).reason));
+        }
+
+        // TODO: [BE 대기] GET /records/{record_id}/medications 미구현 — 구현 완료 후 __DEV__ 분기 제거
+        if (meds.status === "fulfilled") {
+          setMedications(meds.value.medications);
+        } else if (__DEV__) {
+          setMedications([
+            { medication_id: 30, drug_ref_id: 1, drug_name: "암로디핀정 5mg",      frequency: "1일 1회", dosage: "아침 식후", is_verified: true },
+            { medication_id: 31, drug_ref_id: 2, drug_name: "로수바스타틴 10mg",   frequency: "1일 1회", dosage: "저녁 식후", is_verified: true },
+            { medication_id: 32, drug_ref_id: 3, drug_name: "메트포르민 500mg",    frequency: "1일 2회", dosage: "식후",      is_verified: true },
+          ]);
+        }
+
+        // TODO: [BE 대기] GET /records/{record_id}/guide 미구현 — 구현 완료 후 __DEV__ 분기 제거
+        if (gd.status === "fulfilled") {
+          setGuide(gd.value);
+        } else if (__DEV__) {
+          setGuide({ record_id: 10, guide_id: 50, status: "completed" });
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [recordId]);
+
+  const handleDownload = async () => {
+    if (!record?.file_url) {
+      flash("파일 URL을 불러올 수 없어요.");
+      return;
+    }
+    setDownloading(true);
+    try {
+      const supported = await Linking.canOpenURL(record.file_url);
+      if (!supported) throw new Error("unsupported");
+      await Linking.openURL(record.file_url);
+    } catch {
+      flash("파일을 열 수 없어요.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!recordId) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await recordsApi.deleteRecord(recordId);
+      setDeleteModal(false);
+      navigation.goBack();
+    } catch (err: any) {
+      setDeleteError(mapApiError(err));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <ScreenLayout back onBack={() => navigation.goBack()} title="진료기록으로 돌아가기">
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={colors.accent} size="large" />
+        </View>
+      </ScreenLayout>
+    );
+  }
+
+  if (error || !record) {
+    return (
+      <ScreenLayout back onBack={() => navigation.goBack()} title="진료기록으로 돌아가기">
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.s20 }}>
+          <Text style={{ fontSize: typography.fz14, color: colors.muted }}>{error || "기록을 불러올 수 없어요."}</Text>
+        </View>
+      </ScreenLayout>
+    );
+  }
+
+  const typeLabel = RECORD_LABEL[record.record_type];
+  const guideReady = guide?.status === "completed";
+  const accentColor = getRecordColor(record.record_id);
+
+  return (
+    <>
+      <ScreenLayout
+        title="진료기록으로 돌아가기"
+        back
+        onBack={() => navigation.goBack()}
+        scrollable
+        scrollPadding={false}
+        contentStyle={{ padding: spacing.s20, paddingBottom: spacing.s40 }}
+      >
+        {/* ── 기록 헤더 ── */}
+        <View style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: spacing.s20 }}>
+          <View style={{ width: 52, height: 52, borderRadius: radii.lg, backgroundColor: colors.accent50, alignItems: "center", justifyContent: "center", marginRight: spacing.s16 }}>
+            <Icon name={iconFor(record.record_type)} size={26} color={colors.accent} />
+          </View>
+          <View style={{ flex: 1 }}>
+            {/* 뱃지 + 날짜 + 버튼 (한 행) */}
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8 }}>
+                <Badge variant="accent">{typeLabel}</Badge>
+                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(record.uploaded_at ?? "")}</Text>
+              </View>
+              <View style={{ flexDirection: "row", gap: spacing.s8 }}>
+                <Button variant="ghost" size="sm" leftIcon="edit" onPress={() => flash("편집 기능은 준비 중이에요.")}>편집</Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon="wand"
+                  disabled={!guideReady}
+                  onPress={() =>
+                    guide?.guide_id
+                      ? navigation.getParent()?.navigate("GuideTab", { screen: "GuideResult", params: { guideId: guide.guide_id } })
+                      : navigation.getParent()?.navigate("GuideTab", { screen: "GuideLoading", params: { recordId } })
+                  }
+                >가이드</Button>
+              </View>
+            </View>
+            {/* 병원명 */}
+            <Text style={{ fontSize: typography.fz20, fontWeight: typography.fw7, color: colors.ink, marginBottom: 2 }}>
+              {record.hospital_name ?? "병원 정보 없음"}
+            </Text>
+            {/* 담당의 — 병원명 아래 */}
+            {record.doctor_name ? (
+              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>담당: {record.doctor_name}</Text>
+            ) : null}
+          </View>
+        </View>
+
+        {/* ── 처방 약품 ── */}
+        <Card shadow style={{ marginBottom: 14 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s12 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Icon name="link" size={14} color={colors.ink2} />
+              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>처방 약품 ({medications.length}종)</Text>
+            </View>
+            {record.total_days ? (
+              <Text style={{ fontSize: typography.fz12, color: colors.muted }}>총 처방 일수 {record.total_days}일</Text>
+            ) : null}
+          </View>
+
+          {medications.length === 0 ? (
+            <Text style={{ fontSize: typography.fz13, color: colors.muted, textAlign: "center", paddingVertical: spacing.s12 }}>
+              약품 정보를 불러오는 중이에요.
+            </Text>
+          ) : (
+            medications.map((med, i) => (
+              <TouchableOpacity
+                key={med.medication_id}
+                style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, borderTopWidth: i === 0 ? 0 : 0.5, borderTopColor: colors.hairline }}
+                disabled={!med.drug_ref_id}
+                activeOpacity={med.drug_ref_id ? 0.7 : 1}
+                onPress={() => med.drug_ref_id && navigation.navigate("DrugDetail", { drugId: med.drug_ref_id })}
+              >
+                <View style={{ width: 4, height: 36, borderRadius: 2, backgroundColor: accentColor }} />
+                <View style={{ flex: 1, marginLeft: spacing.s12 }}>
+                  <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: med.drug_ref_id ? colors.accent700 : colors.ink }}>
+                    {med.drug_name}
+                  </Text>
+                  {med.frequency || med.dosage ? (
+                    <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>
+                      {[med.frequency, med.dosage].filter(Boolean).join(" · ")}
+                    </Text>
+                  ) : null}
+                </View>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  borderRadius={radii.pill}
+                  disabled={!med.drug_ref_id}
+                  onPress={() => med.drug_ref_id && navigation.navigate("DrugDetail", { drugId: med.drug_ref_id })}
+                >복용법</Button>
+              </TouchableOpacity>
+            ))
+          )}
+        </Card>
+
+        {/* ── 의사 메모 ── */}
+        {record.notes ? (
+          <Card shadow style={{ marginBottom: 14 }}>
+            <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, marginBottom: spacing.s8 }}>의사 메모</Text>
+            <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{record.notes}</Text>
+          </Card>
+        ) : null}
+
+        {/* ── 원본 이미지 ── */}
+        <Card shadow style={{ marginBottom: 14 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s12 }}>
+            <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>원본 이미지</Text>
+            <TouchableOpacity onPress={handleDownload} disabled={downloading} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              {downloading
+                ? <ActivityIndicator size="small" color={colors.accent} />
+                : <Icon name="download" size={14} color={record.file_url ? colors.accent : colors.muted2} />}
+              <Text style={{ fontSize: typography.fz13, color: record.file_url ? colors.accent : colors.muted2 }}>
+                {downloading ? "여는 중..." : "다운로드"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ height: 200, backgroundColor: colors.accent50, borderRadius: radii.md, alignItems: "center", justifyContent: "center", marginBottom: spacing.s12 }}>
+            <Icon name="doc" size={72} color="rgba(8,145,178,0.25)" />
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{record.file_name ?? "파일명 없음"}</Text>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+              {[record.file_size, record.uploaded_at ? `업로드 ${formatDate(record.uploaded_at)}` : null].filter(Boolean).join(" · ")}
+            </Text>
+          </View>
+        </Card>
+
+        {/* ── 기록 삭제 ── */}
+        <TouchableOpacity
+          style={{ borderWidth: 1, borderColor: colors.danger, borderRadius: radii.pill, height: 50, alignItems: "center", justifyContent: "center" }}
+          onPress={() => setDeleteModal(true)}
+        >
+          <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.danger }}>기록 삭제</Text>
+        </TouchableOpacity>
+      </ScreenLayout>
+
+      {/* ── 삭제 확인 모달 ── */}
+      <Modal visible={deleteModal} transparent animationType="fade" onRequestClose={() => setDeleteModal(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", alignItems: "center", justifyContent: "center", padding: spacing.s24 }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s24, width: "100%", maxWidth: 360 }}>
+            <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>기록 삭제</Text>
+            <Text style={{ fontSize: typography.fz14, color: colors.muted, marginBottom: spacing.s20, lineHeight: 22 }}>
+              이 기록과 연결된 약품 정보, 가이드가 모두 삭제돼요. 삭제 후에는 복구가 불가능해요.
+            </Text>
+            {deleteError ? (
+              <Text style={{ fontSize: typography.fz13, color: colors.danger, marginBottom: spacing.s12 }}>{deleteError}</Text>
+            ) : null}
+            <View style={{ flexDirection: "row", gap: spacing.s12, justifyContent: "flex-end" }}>
+              <Button variant="ghost" size="sm" onPress={() => { setDeleteModal(false); setDeleteError(""); }}>취소</Button>
+              <Button variant="danger" size="sm" onPress={handleDelete} disabled={deleting}>
+                {deleting ? "삭제 중..." : "삭제"}
+              </Button>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+}
+
+export default RecordDetailScreen;

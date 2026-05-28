@@ -23,7 +23,7 @@ class Config(BaseSettings):
     TEMPLATE_DIR: str = os.path.join(Path(__file__).resolve().parent.parent, "templates")
 
     DB_HOST: str = "localhost"
-    DB_PORT: int = 3306
+    DB_PORT: int = 5432
     DB_USER: str = "root"
     DB_PASSWORD: str = "pw1234"
     DB_NAME: str = "ai_health"
@@ -36,3 +36,14 @@ class Config(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 14 * 24 * 60
     JWT_LEEWAY: int = 5
+
+    # ⭐ 외부 API (PR #18 리뷰 반영 - 유정님)
+    # 필수 필드: 기본값 없음 → Pydantic이 환경 변수 누락 시 ValidationError 발생
+    # → 앱 시작 시점에 fail-fast (런타임 500 방지)
+    MFDS_API_KEY: str
+    OPENAI_API_KEY: str
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+
+    OPENAI_CHAT_MODEL: str = "gpt-4o-mini"
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
