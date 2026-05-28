@@ -25,3 +25,19 @@ class BadRequestException(HTTPException):
 class ConflictException(HTTPException):
     def __init__(self, detail: str = "이미 존재하는 리소스입니다."):
         super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
+
+
+class TooManyRequestsException(HTTPException):
+    def __init__(self, detail: str = "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."):
+        super().__init__(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail)
+
+
+class NicknameTooSoonException(HTTPException):
+    def __init__(self, next_date: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "message": f"닉네임은 30일에 1회만 변경할 수 있어요. 다음 변경 가능일: {next_date}",
+                "error_code": "NICKNAME_CHANGE_TOO_SOON",
+            },
+        )
