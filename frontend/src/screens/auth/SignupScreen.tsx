@@ -159,8 +159,6 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
         setFieldErrors(prev => ({ ...prev, email: '이미 사용 중인 이메일입니다.' }));
         setEmailVerified(false);
         setCodeSent(false);
-      } else if (axios.isAxiosError(e) && e.response?.status === 401) {
-        setFieldErrors(prev => ({ ...prev, form: '이메일 또는 비밀번호가 올바르지 않습니다' }));
       } else if (axios.isAxiosError(e) && !e.response) {
         setFieldErrors(prev => ({ ...prev, form: '네트워크 오류가 발생했습니다. 연결을 확인해주세요' }));
       } else {
