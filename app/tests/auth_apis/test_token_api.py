@@ -122,3 +122,32 @@ class TestRefreshAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_200_OK
+
+    async def test_refresh_expired_token(self):
+        # Given
+        from datetime import UTC, datetime, timedelta
+
+        signup_data = {
+            "email": "refresh_expired@example.com",
+            "password": "Password123!",
+            "name": "만료테스터",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "refresh_expired@example.com", "password": "Password123!"},
+            )
+            refresh_token = login_response.json()["refresh_token"]
+            from app.models.auth_tokens import AuthToken
+
+            token = await AuthToken.get(refresh_token=refresh_token)
+            token.expires_at = datetime.now(UTC) - timedelta(days=1)
+            await token.save()
+
+            # When
+            response = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+
+        # Then
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
