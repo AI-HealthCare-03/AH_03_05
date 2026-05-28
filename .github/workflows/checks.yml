@@ -45,7 +45,18 @@ jobs:
       DB_PASSWORD: pw1234
       DB_NAME: ai_health
       OPENAI_API_KEY: ci-dummy-key-not-used-in-tests
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
     services:
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
       postgresql:
         image: postgres:16
         env:
