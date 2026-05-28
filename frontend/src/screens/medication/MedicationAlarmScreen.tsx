@@ -32,9 +32,19 @@ export function MedicationAlarmScreen({ navigation, route }: any) {
   const { notifSettings } = useApp();
   const insets = useSafeAreaInsets();
   const [snoozing, setSnoozing] = useState<number | null>(null);
+  const [done, setDone] = useState(false);
 
   const mealState = notifSettings[meal];
   const timeDisplay = formatTime(mealState.time);
+  // TODO: NotifSettings에 drugs 필드 추가 시 아래 타입 확장 필요
+  const drugNames: string[] = (mealState as any).drugs ?? [];
+
+  const handleComplete = async () => {
+    // TODO: BE 연결 — POST /medications/checkin { meal, checked_at: new Date().toISOString() }
+    // await medicationApi.checkIn({ meal, checked_at: new Date().toISOString() });
+    setDone(true);
+    dismiss();
+  };
 
   const snooze = async (minutes: number) => {
     setSnoozing(minutes);
@@ -69,17 +79,28 @@ export function MedicationAlarmScreen({ navigation, route }: any) {
         </View>
         <Text style={[s.timeText, { marginBottom: spacing.s12 }]}>{timeDisplay}</Text>
         <Text style={s.mealLabel}>{MEAL_LABELS[meal]}</Text>
+        {drugNames.length > 0 && (
+          <Text style={s.drugNames}>{drugNames.join(' · ')}</Text>
+        )}
       </View>
 
       <View style={[s.actions, { bottom: insets.bottom + spacing.s24 }]}>
+        <TouchableOpacity
+          style={[s.completeBtn, (snoozing !== null || done) && s.dimmed]}
+          onPress={handleComplete}
+          disabled={snoozing !== null || done}
+          activeOpacity={0.75}
+        >
+          <Text style={s.completeBtnText}>{done ? '복약 완료됨 ✓' : '복약 완료'}</Text>
+        </TouchableOpacity>
         <Text style={s.snoozeHint}>스누즈</Text>
         <View style={s.snoozeRow}>
           {([5, 10] as const).map(min => (
             <TouchableOpacity
               key={min}
-              style={[s.snoozeCircle, snoozing !== null && s.dimmed]}
+              style={[s.snoozeCircle, (snoozing !== null || done) && s.dimmed]}
               onPress={() => snooze(min)}
-              disabled={snoozing !== null}
+              disabled={snoozing !== null || done}
               activeOpacity={0.75}
             >
               {snoozing === min
@@ -96,9 +117,9 @@ export function MedicationAlarmScreen({ navigation, route }: any) {
         </View>
 
         <TouchableOpacity
-          style={[s.dismissBtn, snoozing !== null && s.dimmed]}
+          style={[s.dismissBtn, (snoozing !== null || done) && s.dimmed]}
           onPress={dismiss}
-          disabled={snoozing !== null}
+          disabled={snoozing !== null || done}
           activeOpacity={0.6}
         >
           <Text style={s.dismissText}>중지</Text>
@@ -183,5 +204,23 @@ const s = StyleSheet.create({
   },
   dimmed: {
     opacity: 0.45,
+  },
+  completeBtn: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    paddingVertical: spacing.s16,
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
+  },
+  completeBtnText: {
+    fontSize: typography.fz16,
+    fontWeight: typography.fw6,
+    color: colors.white,
+  },
+  drugNames: {
+    fontSize: typography.fz13,
+    color: colors.muted,
+    marginTop: spacing.s8,
+    textAlign: 'center',
   },
 });

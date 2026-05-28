@@ -330,27 +330,20 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>예정</Text>
             </View>
           </View>
+          {(donePastDay || missedPastDay) && (
+            <View style={{ marginTop: spacing.s12, paddingTop: spacing.s12, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s8 }}>
+                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>{viewM}월 {selectedDay}일 기록</Text>
+                {donePastDay
+                  ? <Badge variant="success" size="md">복약 완료</Badge>
+                  : <Badge variant="danger" size="md">미복용 있음</Badge>}
+              </View>
+              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>
+                {donePastDay ? "처방된 약을 모두 복용했어요. 좋은 흐름을 이어가세요!" : "일부 복약이 미복용됐어요. 꾸준히 이어가 보세요!"}
+              </Text>
+            </View>
+          )}
         </Card>
-
-        {/* 과거 날짜 요약 */}
-        {donePastDay && (
-          <Card shadow style={{ marginBottom: 14 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s8 }}>
-              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>{viewM}월 {selectedDay}일 기록</Text>
-              <Badge variant="success" size="md">복약 완료</Badge>
-            </View>
-            <Text style={{ fontSize: typography.fz13, color: colors.muted }}>처방된 약을 모두 복용했어요. 좋은 흐름을 이어가세요!</Text>
-          </Card>
-        )}
-        {missedPastDay && (
-          <Card shadow style={{ marginBottom: 14 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s8 }}>
-              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>{viewM}월 {selectedDay}일 기록</Text>
-              <Badge variant="danger" size="md">미복용 있음</Badge>
-            </View>
-            <Text style={{ fontSize: typography.fz13, color: colors.muted }}>일부 복약이 미복용됐어요. 꾸준히 이어가 보세요!</Text>
-          </Card>
-        )}
 
         {/* 복약 현황 */}
         <Card shadow>
