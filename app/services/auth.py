@@ -96,12 +96,21 @@ class AuthService:
         token = await AuthToken.get_or_none(refresh_token=refresh_token)
         if not token or token.revoked_at is not None:
             raise UnauthorizedException(detail="유효하지 않은 refresh token입니다.")
+        if token.expires_at < datetime.now(UTC):
+            raise UnauthorizedException(detail="만료된 refresh token입니다.")
         user = await token.user
         if user.status == UserStatus.WITHDRAWN:
             raise UnauthorizedException(detail="탈퇴한 계정입니다.")
         token.revoked_at = datetime.now(UTC)
         await token.save()
-        return self.jwt_service.issue_jwt_pair(user)
+        new_tokens = self.jwt_service.issue_jwt_pair(user)
+        new_rt = new_tokens["refresh_token"]
+        await AuthToken.create(
+            user=user,
+            refresh_token=str(new_rt),
+            expires_at=new_rt.current_time + new_rt.lifetime,
+        )
+        return new_tokens
 
     async def check_email_exists(self, email: str | EmailStr) -> None:
         if await User.exists(email=email):
