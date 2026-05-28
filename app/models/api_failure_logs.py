@@ -14,7 +14,7 @@ class APIFailureLog(models.Model):
     id = fields.BigIntField(primary_key=True)
 
     # 어떤 API 호출이 실패했는지
-    api_source = fields.CharField(max_length=100, index=True)
+    api_source = fields.CharField(max_length=100, db_index=True)
     endpoint = fields.CharField(max_length=500, null=True)
     request_params = fields.JSONField(null=True)
 
@@ -24,7 +24,7 @@ class APIFailureLog(models.Model):
     error_message = fields.TextField(null=True)
 
     # 시점
-    occurred_at = fields.DatetimeField(auto_now_add=True, index=True)
+    occurred_at = fields.DatetimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         table = "api_failure_logs"
