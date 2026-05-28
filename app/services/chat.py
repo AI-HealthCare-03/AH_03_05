@@ -101,3 +101,42 @@ class ChatService:
             "safety_flag": is_risky,
             "safety_notice": DEFAULT_SAFETY_NOTICE,
         }
+
+    async def list_sessions(
+        self,
+        user: User,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[list[ChatSession], int]:
+        """
+        사용자의 채팅 세션 목록을 조회한다 (updated_at 최신순).
+
+        반환값:
+            - tuple: (세션 리스트, 전체 개수)
+        """
+        query = ChatSession.filter(user=user)
+        total = await query.count()
+        sessions = await query.order_by("-updated_at").offset(offset).limit(limit)
+        return sessions, total
+
+    async def list_messages(
+        self,
+        user: User,
+        session_id: int,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[ChatMessage], int] | None:
+        """
+        세션의 메시지 목록을 조회한다 (created_at 오름차순).
+
+        반환값:
+            - tuple: (메시지 리스트, 전체 개수)
+            - None: 세션이 존재하지 않거나 다른 사용자 소유 (404)
+        """
+        session = await ChatSession.get_or_none(id=session_id, user=user)
+        if session is None:
+            return None
+        query = ChatMessage.filter(session=session)
+        total = await query.count()
+        messages = await query.order_by("created_at").offset(offset).limit(limit)
+        return messages, total
