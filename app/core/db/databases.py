@@ -24,6 +24,7 @@ TORTOISE_APP_MODELS = [
     "app.models.guides",
     "app.models.guideline_sources",
 ]
+
 TORTOISE_ORM = {
     "connections": {
         "default": {
