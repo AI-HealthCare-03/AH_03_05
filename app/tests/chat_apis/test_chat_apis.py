@@ -149,3 +149,134 @@ class TestChatMessageAPI(TestCase):
         # DB에 메시지 2개 저장됐는지 확인 (user + assistant)
         messages = await ChatMessage.filter(session_id=session_id).all()
         assert len(messages) == 2
+
+
+class TestChatSessionListAPI(TestCase):
+    async def test_list_sessions_without_auth_returns_401(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/api/v1/chat/sessions")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_list_sessions_empty_returns_200(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "list_empty@example.com")
+            response = await client.get("/api/v1/chat/sessions", headers=headers)
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["items"] == []
+        assert body["total"] == 0
+
+    async def test_list_sessions_success_returns_200(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "list_ok@example.com")
+            record = await _create_record("list_ok@example.com")
+
+            session_ids = []
+            for _ in range(3):
+                create_response = await client.post(
+                    "/api/v1/chat/sessions",
+                    json={"record_id": record.id},
+                    headers=headers,
+                )
+                session_ids.append(create_response.json()["session_id"])
+
+            response = await client.get("/api/v1/chat/sessions", headers=headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["total"] == 3
+        assert len(body["items"]) == 3
+        # updated_at 최신순 검증: 마지막 생성 세션이 첫번째
+        assert body["items"][0]["session_id"] == session_ids[-1]
+        assert body["items"][2]["session_id"] == session_ids[0]
+
+    async def test_list_sessions_only_own_sessions(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            # user A가 세션 2개 생성
+            headers_a = await _signup_and_login(client, "iso_a@example.com")
+            record_a = await _create_record("iso_a@example.com")
+            for _ in range(2):
+                await client.post(
+                    "/api/v1/chat/sessions",
+                    json={"record_id": record_a.id},
+                    headers=headers_a,
+                )
+
+            # user B는 본인 세션 0개
+            headers_b = await _signup_and_login(client, "iso_b@example.com")
+            response = await client.get("/api/v1/chat/sessions", headers=headers_b)
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["total"] == 0
+        assert body["items"] == []
+
+
+class TestChatMessageListAPI(TestCase):
+    async def test_list_messages_without_auth_returns_401(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/api/v1/chat/sessions/1/messages")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_list_messages_not_found_returns_404(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "msg_404@example.com")
+            response = await client.get("/api/v1/chat/sessions/999999/messages", headers=headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_list_messages_other_user_session_returns_404(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            # user A가 세션 생성
+            headers_a = await _signup_and_login(client, "msg_iso_a@example.com")
+            record_a = await _create_record("msg_iso_a@example.com")
+            create_response = await client.post(
+                "/api/v1/chat/sessions",
+                json={"record_id": record_a.id},
+                headers=headers_a,
+            )
+            session_id = create_response.json()["session_id"]
+
+            # user B가 user A 세션 메시지 시도
+            headers_b = await _signup_and_login(client, "msg_iso_b@example.com")
+            response = await client.get(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                headers=headers_b,
+            )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_list_messages_success_returns_200(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "msg_list@example.com")
+            record = await _create_record("msg_list@example.com")
+
+            create_response = await client.post(
+                "/api/v1/chat/sessions",
+                json={"record_id": record.id},
+                headers=headers,
+            )
+            session_id = create_response.json()["session_id"]
+
+            # 메시지 2번 전송 (각각 user + assistant 저장 -> 총 4개)
+            for msg in ["첫번째 질문", "두번째 질문"]:
+                await client.post(
+                    f"/api/v1/chat/sessions/{session_id}/messages",
+                    json={"message": msg},
+                    headers=headers,
+                )
+
+            response = await client.get(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                headers=headers,
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["session_id"] == session_id
+        assert body["total"] == 4
+        assert len(body["items"]) == 4
+        # created_at 오름차순 검증
+        assert body["items"][0]["sender_type"] == "USER"
+        assert body["items"][0]["content"] == "첫번째 질문"
+        assert body["items"][1]["sender_type"] == "ASSISTANT"
+        assert body["items"][2]["sender_type"] == "USER"
+        assert body["items"][2]["content"] == "두번째 질문"
