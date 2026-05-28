@@ -96,3 +96,29 @@ class TestRefreshAPI(TestCase):
             response = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
         # Then
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_refresh_twice_in_a_row(self):
+        # Given
+        signup_data = {
+            "email": "refresh_twice@example.com",
+            "password": "Password123!",
+            "name": "연속리프레시테스터",
+            "consents": CONSENTS,
+        }
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post("/api/v1/auth/signup", json=signup_data)
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "refresh_twice@example.com", "password": "Password123!"},
+            )
+            refresh_token = login_response.json()["refresh_token"]
+            # 1차 refresh
+            first_refresh = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+            assert first_refresh.status_code == status.HTTP_200_OK
+            new_refresh_token = first_refresh.json().get("refresh_token")
+
+            # When - 새 refresh_token으로 2차 refresh
+            response = await client.post("/api/v1/auth/refresh", json={"refresh_token": new_refresh_token})
+
+        # Then
+        assert response.status_code == status.HTTP_200_OK

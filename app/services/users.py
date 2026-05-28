@@ -6,6 +6,7 @@ from app.core.redis import redis_client
 from app.core.utils.security import hash_password, verify_password
 from app.dtos.users import UserUpdateRequest
 from app.exceptions.common import BadRequestException, NicknameTooSoonException, TooManyRequestsException
+from app.models.auth_tokens import AuthToken
 from app.models.users import User
 from app.repositories.user_repository import UserRepository
 
@@ -34,7 +35,6 @@ class UserManageService:
         return user
 
     async def change_password(self, user: User, current_password: str, new_password: str) -> None:
-        from app.models.auth_tokens import AuthToken
 
         redis_key = PW_CHANGE_FAIL_KEY.format(user_id=user.id)
         fail_count = await redis_client.get(redis_key)
@@ -54,7 +54,6 @@ class UserManageService:
         await redis_client.delete(redis_key)
 
     async def withdraw_user(self, user: User, password: str) -> None:
-        from app.models.auth_tokens import AuthToken
         from app.models.users import UserStatus
 
         if not verify_password(password, user.password_hash):

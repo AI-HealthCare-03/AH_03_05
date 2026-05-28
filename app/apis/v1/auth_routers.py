@@ -62,4 +62,5 @@ async def refresh_token(
     tokens = await auth_service.refresh(request.refresh_token)
     return TokenRefreshResponse(
         access_token=str(tokens["access_token"]),
+        refresh_token=str(tokens["refresh_token"]),
     )
