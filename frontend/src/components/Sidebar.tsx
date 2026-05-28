@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useApp } from "../context/AppContext";
 import Icon from "./Icon";
+import MediPTLogo from "./MediPTLogo";
 import { colors, spacing, radii } from "../theme";
 
 const TAB_ROOT_SCREENS: Record<string, string> = {
@@ -62,10 +63,7 @@ export default function Sidebar() {
     <View style={s.sidebar}>
       {/* 브랜드 */}
       <TouchableOpacity style={s.brand} onPress={() => go("HomeTab", "Home")} activeOpacity={0.7}>
-        <View style={s.logo}>
-          <Icon name="robot" size={16} color="#fff" />
-        </View>
-        <Text style={s.brandName}>MediPT</Text>
+        <MediPTLogo width={130} />
       </TouchableOpacity>
 
       {/* 메뉴 */}
@@ -121,15 +119,6 @@ const s = StyleSheet.create({
     marginBottom: spacing.s24,
     paddingHorizontal: 4,
   },
-  logo: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  brandName: { fontSize: 16, fontWeight: "700", color: colors.ink },
   sectionLabel: {
     fontSize: 11,
     fontWeight: "600",

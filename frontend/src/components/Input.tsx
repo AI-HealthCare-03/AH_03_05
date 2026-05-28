@@ -21,6 +21,7 @@ export default function Input({
   style,
   onFocus,
   onBlur,
+  multiline,
   ...props
 }: InputProps) {
   const [focused, setFocused] = useState(false);
@@ -32,6 +33,8 @@ export default function Input({
       <View
         style={[
           s.row,
+          !multiline && s.rowFixed,
+          multiline && s.rowMultiline,
           !icon && s.plain,
           focused && !hasError && s.focused,
           hasError && s.errorBorder,
@@ -45,6 +48,7 @@ export default function Input({
           />
         )}
         <TextInput
+          multiline={multiline}
           style={[s.input, icon && { marginLeft: spacing.s8 }, { outlineStyle: 'none' } as any, style]}
           placeholderTextColor={colors.muted2}
           onFocus={(e) => { setFocused(true); onFocus?.(e); }}
@@ -66,13 +70,19 @@ const s = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.hairlineStrong,
     borderRadius: radii.md,
     paddingHorizontal: spacing.s12,
-    height: 44,
     backgroundColor: colors.surface,
+  },
+  rowFixed: {
+    height: 44,
+    alignItems: 'center',
+  },
+  rowMultiline: {
+    alignItems: 'flex-start',
+    paddingVertical: spacing.s8,
   },
   plain: {
     // identical to row but without flexDirection (TextInput fills width naturally)

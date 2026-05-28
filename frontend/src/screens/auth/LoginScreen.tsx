@@ -5,7 +5,6 @@ import {
   ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useApp, defaultUser } from '../../context/AppContext';
-import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../theme';
@@ -15,6 +14,7 @@ import { authApi, extractApiError } from '../../api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
+import MediPTLogo from '../../components/MediPTLogo';
 
 // ─── LoginScreen ─────────────────────────────────────────────────────────────
 
@@ -119,10 +119,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={[styles.authContainer, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop) }]} keyboardShouldPersistTaps="handled">
         <View style={styles.brandRow}>
-          <View style={styles.brandLogo}>
-            <Icon name="robot" size={18} color={colors.white} />
-          </View>
-          <Text style={styles.brandName}>MediPT</Text>
+          <MediPTLogo width={130} />
         </View>
         <Text style={styles.authTitle}>만나서 반가워요 👋</Text>
         <Text style={styles.authSub}>MediPT 계정으로 로그인해주세요.</Text>

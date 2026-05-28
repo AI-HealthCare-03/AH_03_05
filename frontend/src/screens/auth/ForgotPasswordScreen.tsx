@@ -10,6 +10,7 @@ import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
+import MediPTLogo from '../../components/MediPTLogo';
 
 // ─── ForgotPasswordScreen ─────────────────────────────────────────────────────
 
@@ -101,8 +102,7 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={[styles.authContainer, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop) }]} keyboardShouldPersistTaps="handled">
         <View style={styles.brandRow}>
-          <View style={styles.brandLogo}><Icon name="robot" size={18} color={colors.white} /></View>
-          <Text style={styles.brandName}>MediPT</Text>
+          <MediPTLogo width={130} />
         </View>
         <Text style={styles.authTitle}>비밀번호 찾기</Text>
         <Text style={styles.authSub}>가입한 이메일로 재설정 링크를 보내드려요.</Text>

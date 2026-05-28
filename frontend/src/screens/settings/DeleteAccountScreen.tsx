@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
 import type { RootStackParams } from '../../navigation/types';
-import { useApp } from '../../context/AppContext';
+import { useApp, defaultUser } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
@@ -43,7 +43,7 @@ function CheckRow({ label, checked, onToggle }: CheckRowProps) {
 }
 
 export function DeleteAccountScreen({ navigation }: any) {
-  const { user, flash } = useApp();
+  const { user, setUser, flash } = useApp();
   const [step, setStep] = useState(1);
   const [checked, setChecked] = useState({ data: false, irreversible: false, alt: false });
   const [confirm, setConfirm] = useState('');
@@ -60,11 +60,16 @@ export function DeleteAccountScreen({ navigation }: any) {
       try {
         await usersApi.deleteAccount(confirm);
         await tokenStore.clear();
+        setUser({ ...defaultUser });
         flash('탈퇴 처리가 완료됐어요. 안녕히 가세요 👋');
         (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)
           ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
       } catch (e: any) {
-        setError(extractApiError(e));
+        if (e?.response?.status === 400) {
+          setError('비밀번호가 올바르지 않습니다.');
+        } else {
+          setError(extractApiError(e));
+        }
       } finally {
         setLoading(false);
       }

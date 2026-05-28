@@ -1,0 +1,10 @@
+<svg width="1024" height="1024" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <rect width="56" height="56" rx="14" fill="#0891B2"/>
+  <g transform="translate(28,28) rotate(-40)">
+    <circle cx="-8" cy="0" r="7" fill="white"/>
+    <rect x="-8" y="-7" width="8" height="14" fill="white"/>
+    <circle cx="8" cy="0" r="7" fill="white" opacity="0.5"/>
+    <rect x="0" y="-7" width="8" height="14" fill="white" opacity="0.5"/>
+    <line x1="0" y1="-7" x2="0" y2="7" stroke="white" stroke-width="1.5"/>
+  </g>
+</svg>
