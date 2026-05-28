@@ -4,7 +4,11 @@ from fastapi import APIRouter, Depends
 
 from app.dependencies.security import get_request_user
 from app.dtos.chat import (
+    ChatMessageListItem,
+    ChatMessageListResponse,
     ChatMessageResponse,
+    ChatSessionListItem,
+    ChatSessionListResponse,
     ChatSessionResponse,
     CreateChatSessionRequest,
     SendChatMessageRequest,
@@ -85,3 +89,90 @@ async def send_chat_message(
     if result is None:
         raise NotFoundException(detail="해당 챗봇 세션을 찾을 수 없습니다.")
     return ChatMessageResponse(**result)
+
+
+@chat_router.get(
+    "/sessions",
+    response_model=ChatSessionListResponse,
+    status_code=200,
+)
+async def list_chat_sessions(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChatService, Depends(ChatService)],
+    limit: int = 20,
+    offset: int = 0,
+) -> ChatSessionListResponse:
+    """
+    사용자의 채팅 세션 목록을 조회한다 (updated_at 최신순).
+
+    쿼리 파라미터:
+    - limit: 조회 개수 (기본 20)
+    - offset: 시작 위치 (기본 0)
+
+    에러:
+    - 401: 미인증
+    """
+    sessions, total = await service.list_sessions(user=user, limit=limit, offset=offset)
+    return ChatSessionListResponse(
+        items=[
+            ChatSessionListItem(
+                session_id=s.id,
+                record_id=s.record_id,
+                guide_id=s.guide_id,
+                title=s.title,
+                status=s.status.value,
+                created_at=s.created_at,
+                updated_at=s.updated_at,
+            )
+            for s in sessions
+        ],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@chat_router.get(
+    "/sessions/{session_id}/messages",
+    response_model=ChatMessageListResponse,
+    status_code=200,
+)
+async def list_chat_messages(
+    session_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChatService, Depends(ChatService)],
+    limit: int = 50,
+    offset: int = 0,
+) -> ChatMessageListResponse:
+    """
+    특정 세션의 메시지 목록을 조회한다 (created_at 오름차순).
+
+    쿼리 파라미터:
+    - limit: 조회 개수 (기본 50)
+    - offset: 시작 위치 (기본 0)
+
+    에러:
+    - 401: 미인증
+    - 404: 세션 없음 또는 다른 사용자 소유
+    """
+    result = await service.list_messages(user=user, session_id=session_id, limit=limit, offset=offset)
+    if result is None:
+        raise NotFoundException(detail="해당 챗봇 세션을 찾을 수 없습니다.")
+    messages, total = result
+    return ChatMessageListResponse(
+        session_id=session_id,
+        items=[
+            ChatMessageListItem(
+                message_id=m.id,
+                sender_type=m.sender_type.value,
+                content=m.content,
+                safety_flag=m.safety_flag,
+                safety_notice=m.safety_notice,
+                created_at=m.created_at,
+            )
+            for m in messages
+        ],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )

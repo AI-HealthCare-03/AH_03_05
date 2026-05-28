@@ -34,3 +34,43 @@ class ChatMessageResponse(BaseModel):
     assistant_message: str
     safety_flag: bool
     safety_notice: str | None
+
+
+# --- 세션 목록 조회 ---
+
+
+class ChatSessionListItem(BaseModel):
+    session_id: int
+    record_id: int | None
+    guide_id: int | None
+    title: str | None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ChatSessionListResponse(BaseModel):
+    items: list[ChatSessionListItem]
+    total: int
+    limit: int
+    offset: int
+
+
+# --- 메시지 목록 조회 ---
+
+
+class ChatMessageListItem(BaseModel):
+    message_id: int
+    sender_type: str
+    content: str
+    safety_flag: bool
+    safety_notice: str | None
+    created_at: datetime
+
+
+class ChatMessageListResponse(BaseModel):
+    session_id: int
+    items: list[ChatMessageListItem]
+    total: int
+    limit: int
+    offset: int
