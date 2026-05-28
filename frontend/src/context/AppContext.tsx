@@ -191,28 +191,6 @@ const seedChats: Chat[] = [
   { id: "c3", title: "고지혈증 식단", preview: "어떤 음식이 좋을까요?", time: "5월 1일", messages: [] },
 ];
 
-const seedNotifications: Notification[] = (() => {
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
-  const yesterdayStr = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10);
-  return [
-    // medication → HomeTab
-    { id: 'n1', icon: 'pill', title: '메트포르민 500mg 복약 시간이에요', time: '12:30',
-      date: `${todayStr}T12:30:00`, body: '점심 식후 30분 — 잊지 말고 복용해주세요.', unread: false, type: 'medication' },
-    // guide → HomeTab > GuideResult (target_id: guideId)
-    { id: 'n2', icon: 'wand', title: '새 복약 가이드가 도착했어요', time: '오늘 09:14',
-      date: `${todayStr}T09:14:00`, body: '처방전 분석이 완료되어 가이드를 업데이트했어요.', unread: false, type: 'guide', target_id: '1' },
-    // chat → ChatTab > ChatSession (target_id: chatId)
-    { id: 'n3', icon: 'chat', title: '상담 답변이 도착했어요', time: '어제 18:02',
-      date: `${yesterdayStr}T18:02:00`, body: '혈압약 부작용 문의에 대한 답변을 확인해보세요.', unread: false, type: 'chat', target_id: 'c1' },
-    // info → 라우팅 없음 (드로워 닫기만)
-    { id: 'n4', icon: 'info', title: '내 정보 업데이트를 권장해요', time: '5월 10일',
-      date: '2026-05-10T00:00:00', body: '마지막 업데이트가 30일 전이에요. 정보가 바뀌었다면 수정해주세요.', unread: false, type: 'info' },
-    // record → RecordsTab > RecordDetail (target_id: recordId)
-    { id: 'n5', icon: 'doc', title: '진료기록 분석이 완료됐어요', time: '어제 10:05',
-      date: `${yesterdayStr}T10:05:00`, body: '서울 내과 의원 처방전 OCR 결과를 확인해보세요.', unread: false, type: 'record', target_id: '1' },
-  ];
-})();
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
@@ -223,8 +201,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [drugs, setDrugs] = useState<Drug[]>(seedDrugs);
   const [records, setRecords] = useState<Record[]>(seedRecords);
   const [chats, setChats] = useState<Chat[]>(seedChats);
-  const [notifications, setNotificationsState] = useState<Notification[]>(seedNotifications);
-  const [unreadCountState, setUnreadCountState] = useState(() => seedNotifications.filter(n => n.unread).length);
+  const [notifications, setNotificationsState] = useState<Notification[]>([]);
+  const [unreadCountState, setUnreadCountState] = useState(0);
   const [activeChat, setActiveChat] = useState('c1');
   const [notifSettings, setNotifSettingsState] = useState<NotifSettings>(defaultNotifSettings);
   const [ocrSession, setOcrSession] = useState<OcrSession>({

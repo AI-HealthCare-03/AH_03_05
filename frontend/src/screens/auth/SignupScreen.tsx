@@ -54,7 +54,7 @@ function AgreeRow({ checked, onPress, label, extra, onPressExtra }: {
 // ─── SignupScreen ─────────────────────────────────────────────────────────────
 
 export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
-  const { user, setUser } = useApp();
+  const { user, setUser, flash } = useApp();
   const { isTabletOrAbove } = useBreakpoint();
   const { top: safeTop } = useSafeAreaInsets();
   const [form, setForm] = useState({ name: '', nickname: '', email: '', pw: '', pw2: '' });
@@ -151,9 +151,14 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
           { consent_type: 'marketing',        is_agreed: agreed.marketing },
         ],
       });
-      await authApi.login({ email: form.email, password: form.pw });
-      setUser({ ...defaultUser, name: form.name, nickname: resolvedNickname, email: form.email, loggedIn: true, profileComplete: false });
-      (navigation as any).reset({ index: 0, routes: [{ name: 'Onboarding' as never }] });
+      try {
+        await authApi.login({ email: form.email, password: form.pw });
+        setUser({ ...defaultUser, name: form.name, nickname: resolvedNickname, email: form.email, loggedIn: true, profileComplete: false });
+        (navigation as any).reset({ index: 0, routes: [{ name: 'Onboarding' as never }] });
+      } catch {
+        flash('자동 로그인에 실패했습니다. 로그인 화면에서 다시 시도해주세요.');
+        navigation.navigate('Login');
+      }
     } catch (e) {
       if (axios.isAxiosError(e) && e.response?.status === 409) {
         setFieldErrors(prev => ({ ...prev, email: '이미 사용 중인 이메일입니다.' }));

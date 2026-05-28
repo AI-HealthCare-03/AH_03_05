@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import { StyleSheet } from 'react-native';
-import { chatApi, feedbacksApi } from '../../api';
-import type { ChatMessageItem } from '../../api';
+import { chatApi, feedbacksApi, ragApi } from '../../api';
+import type { ChatMessageItem, RagSource } from '../../api';
 import { s } from './_chatShared';
 
 interface Props {
@@ -16,7 +16,6 @@ interface Props {
   onMessageSent?: (text: string) => void;
 }
 
-const MOCK_AI_RESPONSE = '도움이 되도록 답변드릴게요. 다만 복약·치료 결정을 바꾸기 전에는 반드시 담당 의사·약사와 상담해주세요.';
 const GREETING: ChatMessageItem = {
   message_id: -1,
   sender_type: 'assistant',
@@ -61,7 +60,6 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
         onMessagesChangeRef.current?.(msgs);
       })
       .catch(err => {
-        console.warn('[ChatPane] 메시지 로드 실패:', err);
         if (__DEV__) setMessages([GREETING]);
       });
   }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -88,34 +86,24 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
     setSending(true);
 
     try {
-      // TODO: [BE 대기] POST /chat/sessions/{session_id}/messages 미구현 — 구현 완료 후 mock 제거
-      const res = await chatApi.sendChatMessage(Number(sessionId), { message: text });
+      const [res, ragSources] = await Promise.all([
+        chatApi.sendChatMessage(Number(sessionId), { message: text }),
+        ragApi.searchGuidelines(text).catch(() => [] as RagSource[]),
+      ]);
       const aiMsg: ChatMessageItem = {
-        message_id: res.message_id,
+        message_id: Date.now(),
         sender_type: 'assistant',
-        content: res.answer,
+        content: res.assistant_message,
         safety_flag: res.safety_flag,
-        created_at: res.created_at,
+        created_at: new Date().toISOString(),
+        rag_sources: ragSources.length > 0 ? ragSources : undefined,
       };
       updateMessages(prev => [...prev, aiMsg]);
       onMessageSent?.(aiMsg.content);
     } catch (err: any) {
-      console.warn('[ChatPane] 메시지 전송 실패:', err);
       const status = err?.response?.status;
       if (status === 429) {
         setSendError('잠시 후 다시 시도해주세요.');
-      } else if (__DEV__) {
-        // TODO: [BE 대기] 목업 응답 — 구현 완료 후 제거
-        await new Promise<void>(res => setTimeout(res, 1500));
-        const SAFETY_KEYWORDS = ['자살', '자해', '죽고싶', '극단적선택'];
-        const mockMsg: ChatMessageItem = {
-          message_id: Date.now(),
-          sender_type: 'assistant',
-          content: MOCK_AI_RESPONSE,
-          safety_flag: SAFETY_KEYWORDS.some(k => text.includes(k)),
-        };
-        updateMessages(prev => [...prev, mockMsg]);
-        onMessageSent?.(mockMsg.content);
       } else {
         setSendError('메시지 전송에 실패했어요. 다시 시도해주세요.');
       }
@@ -140,7 +128,7 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
 
       <ScrollView
         ref={scrollRef}
-        style={{ flex: 1 }}
+        style={{ flex: 1, minHeight: 0 }}
         contentContainerStyle={{ padding: spacing.s16, paddingBottom: spacing.s16 }}
       >
         {messages.map((msg, i) => <Bubble key={msg.message_id ?? i} msg={msg} />)}
@@ -208,6 +196,11 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
           isUser ? s.bubbleUser : s.bubbleAI,
           isSafe && { borderWidth: 1.5, borderColor: colors.danger },
         ]}>
+          {!isUser && msg.category && (
+            <View style={{ alignSelf: 'flex-end', marginBottom: spacing.s4 }}>
+              <CategoryBadge category={msg.category} />
+            </View>
+          )}
           {isSafe && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: spacing.s4 }}>
               <Icon name="alert-circle" size={13} color={colors.danger} />
@@ -223,29 +216,35 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
         )}
       </View>
       {!isUser && msg.message_id !== -1 && (
-        <View style={{ flexDirection: 'row', gap: spacing.s8, marginLeft: 36, marginTop: spacing.s4 }}>
-          <TouchableOpacity
-            disabled={!!fb}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'good' ? colors.accent : colors.hairline, backgroundColor: fb === 'good' ? colors.accent50 : 'transparent', opacity: fb && fb !== 'good' ? 0.4 : 1 }}
-            onPress={() => { if (fb) return; setFb('good'); submitFeedback(4); }}>
-            <Text style={{ fontSize: typography.fz12 }}>👍</Text>
-            <Text style={{ fontSize: typography.fz11, color: fb === 'good' ? colors.accent700 : colors.muted }}>도움됨</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            disabled={!!fb}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'bad' ? colors.danger : colors.hairline, backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent', opacity: fb && fb !== 'bad' ? 0.4 : 1 }}
-            onPress={() => { if (fb) return; setFb('bad'); submitFeedback(2); }}>
-            <Text style={{ fontSize: typography.fz12 }}>👎</Text>
-            <Text style={{ fontSize: typography.fz11, color: fb === 'bad' ? colors.danger : colors.muted }}>별로</Text>
-          </TouchableOpacity>
-          {isSafe && (
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: colors.danger, backgroundColor: 'transparent' }}
-              onPress={() => submitFeedback(2, 'chat_error')}>
-              <Text style={{ fontSize: typography.fz11, color: colors.danger }}>신고하기</Text>
-            </TouchableOpacity>
+        <>
+          {msg.summary && <SummarySection summary={msg.summary} />}
+          {msg.rag_sources && msg.rag_sources.length > 0 && (
+            <RagSourcesSection sources={msg.rag_sources} />
           )}
-        </View>
+          <View style={{ flexDirection: 'row', gap: spacing.s8, marginLeft: 36, marginTop: spacing.s4 }}>
+            <TouchableOpacity
+              disabled={!!fb}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'good' ? colors.accent : colors.hairline, backgroundColor: fb === 'good' ? colors.accent50 : 'transparent', opacity: fb && fb !== 'good' ? 0.4 : 1 }}
+              onPress={() => { if (fb) return; setFb('good'); submitFeedback(4); }}>
+              <Text style={{ fontSize: typography.fz12 }}>👍</Text>
+              <Text style={{ fontSize: typography.fz11, color: fb === 'good' ? colors.accent700 : colors.muted }}>도움됨</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              disabled={!!fb}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'bad' ? colors.danger : colors.hairline, backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent', opacity: fb && fb !== 'bad' ? 0.4 : 1 }}
+              onPress={() => { if (fb) return; setFb('bad'); submitFeedback(2); }}>
+              <Text style={{ fontSize: typography.fz12 }}>👎</Text>
+              <Text style={{ fontSize: typography.fz11, color: fb === 'bad' ? colors.danger : colors.muted }}>별로</Text>
+            </TouchableOpacity>
+            {isSafe && (
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: colors.danger, backgroundColor: 'transparent' }}
+                onPress={() => submitFeedback(2, 'chat_error')}>
+                <Text style={{ fontSize: typography.fz11, color: colors.danger }}>신고하기</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </>
       )}
     </View>
   );
@@ -262,5 +261,71 @@ const ps = StyleSheet.create({
     borderBottomColor: colors.hairline,
   },
 });
+
+// ─── Inline helper components ────────────────────────────────────────────────
+
+const CATEGORY_STYLE: Record<string, { bg: string; fg: string }> = {
+  복약:    { bg: colors.accent50,   fg: colors.accent700 },
+  부작용:  { bg: colors.danger50,   fg: colors.danger },
+  생활습관: { bg: colors.success50,  fg: colors.success },
+  일반:    { bg: colors.surface2,   fg: colors.muted },
+};
+
+function CategoryBadge({ category }: { category: string }) {
+  const style = CATEGORY_STYLE[category] ?? { bg: colors.surface2, fg: colors.muted };
+  return (
+    <View style={{ backgroundColor: style.bg, borderRadius: radii.pill, paddingHorizontal: spacing.s8, paddingVertical: 2 }}>
+      <Text style={{ fontSize: typography.fz11, color: style.fg, fontWeight: typography.fw6 }}>{category}</Text>
+    </View>
+  );
+}
+
+function SummarySection({ summary }: { summary: string }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <View style={{ marginLeft: 36, marginTop: spacing.s4 }}>
+      <TouchableOpacity
+        onPress={() => setExpanded(p => !p)}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, alignSelf: 'flex-start' }}
+        activeOpacity={0.7}
+      >
+        <Icon name="info" size={11} color={colors.muted} />
+        <Text style={{ fontSize: typography.fz11, color: colors.muted }}>요약 {expanded ? '접기' : '보기'}</Text>
+        <Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={11} color={colors.muted} />
+      </TouchableOpacity>
+      {expanded && (
+        <View style={{ backgroundColor: colors.accent50, borderRadius: radii.sm, padding: spacing.s8, marginTop: spacing.s4 }}>
+          <Text style={{ fontSize: typography.fz12, color: colors.ink2, lineHeight: 18 }}>{summary}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function RagSourcesSection({ sources }: { sources: RagSource[] }) {
+  const displayed = sources.slice(0, 3);
+  const overflow = sources.length - 3;
+  return (
+    <View style={{ marginLeft: 36, marginTop: spacing.s6 }}>
+      <Text style={{ fontSize: typography.fz11, color: colors.muted, marginBottom: spacing.s4 }}>참고 자료</Text>
+      {displayed.map(src => (
+        <TouchableOpacity
+          key={src.source_id}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, paddingVertical: 2 }}
+          onPress={() => Linking.openURL(src.source_url)}
+          activeOpacity={0.7}
+        >
+          <Icon name="link" size={11} color={colors.accent} />
+          <Text style={{ fontSize: typography.fz11, color: colors.accent, flex: 1 }} numberOfLines={1}>
+            {src.organization_name} · {src.guideline_title}
+          </Text>
+        </TouchableOpacity>
+      ))}
+      {overflow > 0 && (
+        <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: 2 }}>외 {overflow}개</Text>
+      )}
+    </View>
+  );
+}
 
 export default ChatSessionPane;

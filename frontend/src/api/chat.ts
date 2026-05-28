@@ -5,9 +5,22 @@ import type {
   SendMessageRequest, SendMessageResponse,
 } from './types';
 
+interface _CreateSessionBEResponse {
+  session_id: number;
+  record_id: number | null;
+  guide_id: number | null;
+  status: string;
+  created_at: string;
+}
+
 export async function createChatSession(data: CreateSessionRequest): Promise<ChatSession> {
-  const res = await apiClient.post<ChatSession>('/chat/sessions', data);
-  return res.data;
+  const res = await apiClient.post<_CreateSessionBEResponse>('/chat/sessions', data);
+  return {
+    session_id: res.data.session_id,
+    title: data.title ?? '새 상담',
+    status: res.data.status as 'active' | 'closed',
+    updated_at: res.data.created_at,
+  };
 }
 
 // ⚠ Backend TODO: GET /chat/sessions

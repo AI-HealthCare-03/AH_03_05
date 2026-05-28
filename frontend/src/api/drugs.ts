@@ -13,7 +13,6 @@ export async function searchDrugs(params: DrugSearchParams): Promise<DrugSearchR
   return res.data;
 }
 
-// ⚠ Backend TODO: GET /drugs/{drug_id}
 export async function getDrug(drugId: number): Promise<DrugDetail> {
   const res = await apiClient.get<DrugDetail>(`/drugs/${drugId}`);
   return res.data;

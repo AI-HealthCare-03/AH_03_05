@@ -16,6 +16,7 @@ import { s } from './_settingsShared';
 const MENU_SECTIONS: { icon: string; label: string; to: string; params?: Record<string, string> }[][] = [
   [
     { icon: 'wand', label: '건강 프로필', to: 'HealthProfileEdit' },
+    { icon: 'list', label: '건강 프로필 변경 이력', to: 'HealthProfileHistory' },
     { icon: 'bell', label: '알림 설정', to: 'NotificationSettings' },
   ],
   [
@@ -83,7 +84,6 @@ export function SettingsScreen({ navigation }: any) {
             ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
           return;
         }
-        console.error('[Settings] getMe 실패 — AppContext 데이터 사용:', err);
       } finally {
         if (mounted) setLoading(false);
       }

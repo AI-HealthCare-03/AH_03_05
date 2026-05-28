@@ -63,7 +63,6 @@ export function RecordListScreen({ navigation }: any) {
         });
         if (res.items.length === 0 && __DEV__) {
           if (filter === '전체') {
-            console.warn('[RecordListScreen] 전체 조회 결과 0건 — 백엔드 GET /records 필터 없음 버그 의심');
           }
           setRecords(devRecords);
         } else {

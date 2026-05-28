@@ -10,6 +10,7 @@ import { DeviceManagementScreen } from '../../screens/settings/DeviceManagementS
 import { LegalDocScreen } from '../../screens/settings/LegalDocScreen';
 import { DeleteAccountScreen } from '../../screens/settings/DeleteAccountScreen';
 import { ConsentHistoryScreen } from '../../screens/settings/ConsentHistoryScreen';
+import { HealthProfileHistoryScreen } from '../../screens/settings/HealthProfileHistoryScreen';
 
 const SettingsStack = createNativeStackNavigator<SettingsStackParams>();
 const noHeader = { headerShown: false };
@@ -26,6 +27,7 @@ export default function SettingsNavigator() {
       <SettingsStack.Screen name="LegalDoc" component={LegalDocScreen} />
       <SettingsStack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
       <SettingsStack.Screen name="ConsentHistory" component={ConsentHistoryScreen} />
+      <SettingsStack.Screen name="HealthProfileHistory" component={HealthProfileHistoryScreen} />
     </SettingsStack.Navigator>
   );
 }

@@ -7,3 +7,4 @@ export { DeviceManagementScreen } from './DeviceManagementScreen';
 export { LegalDocScreen } from './LegalDocScreen';
 export { DeleteAccountScreen } from './DeleteAccountScreen';
 export { ConsentHistoryScreen } from './ConsentHistoryScreen';
+export { HealthProfileHistoryScreen } from './HealthProfileHistoryScreen';

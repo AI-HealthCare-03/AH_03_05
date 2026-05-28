@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
 import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import type { LinkingOptions } from '@react-navigation/native';
@@ -77,6 +78,7 @@ const linking: LinkingOptions<any> = {
               LegalDoc: 'settings/legal/:docKey',
               DeleteAccount: 'settings/delete-account',
               ConsentHistory: 'settings/consent',
+              HealthProfileHistory: 'settings/health-profile-history',
             },
           },
         },
@@ -89,6 +91,18 @@ const linking: LinkingOptions<any> = {
 
 export default function AppNavigator() {
   const { isReady, user } = useApp();
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data as { type?: string; meal?: string };
+      if (data?.type === 'medication' && navigationRef.isReady()) {
+        navigationRef.navigate('MedicationAlarm', {
+          meal: (data.meal ?? 'morning') as 'morning' | 'lunch' | 'dinner',
+        });
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   if (!isReady) {
     return <View style={{ flex: 1, backgroundColor: colors.canvas }} />;

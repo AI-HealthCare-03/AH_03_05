@@ -45,7 +45,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
   // Calling navigation.reset() immediately after setUser() races against
   // React's async state commit — HomeScreen would mount with stale context.
   useEffect(() => {
-    if (!pendingNav || !user.profileComplete) return;
+    if (!pendingNav) return;
     navigation.reset({ index: 0, routes: [{ name: 'Main' as never }] });
   }, [pendingNav, user.profileComplete, navigation]);
 
@@ -77,7 +77,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
 
   const back = () => navigation.replace('OnboardingStep', { step: 1 });
   const skip = () => {
-    setUser({ ...user, profileComplete: true });
+    setUser({ ...user, profileComplete: false });
     setPendingNav(true);
   };
 

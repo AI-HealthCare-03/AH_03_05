@@ -10,7 +10,7 @@ import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import axios from 'axios';
-import { authApi, extractApiError } from '../../api';
+import { authApi, usersApi, extractApiError } from '../../api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
@@ -46,13 +46,16 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
       const res = await authApi.login({ email, password: pw });
       const rawFlags = await AsyncStorage.getItem('medipt_profile_flags').catch(() => null);
       const profileFlags: Record<string, boolean> = rawFlags ? JSON.parse(rawFlags) : {};
-      const updatedUser = { ...defaultUser, loggedIn: true, email, name: res.user.name, nickname: '', profileComplete: profileFlags[email] ?? false };
+      const me = await usersApi.getMe().catch(() => null);
+      const updatedUser = { ...defaultUser, loggedIn: true, email, name: me?.name ?? res.user.name, nickname: me?.nickname ?? me?.name ?? res.user.name, profileComplete: profileFlags[email] ?? false };
       setUser(updatedUser);
       const destination = updatedUser.profileComplete ? 'Main' : 'Onboarding';
       (navigation as any).reset({ index: 0, routes: [{ name: destination as never }] });
     } catch (e) {
       if (axios.isAxiosError(e) && e.response?.status === 403) {
         setFieldErrors(prev => ({ ...prev, form: '탈퇴한 계정입니다.' }));
+      } else if (axios.isAxiosError(e) && e.response?.status === 429) {
+        setFieldErrors(prev => ({ ...prev, form: '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.' }));
       } else if (axios.isAxiosError(e) && (e.response?.status === 401 || e.response?.status === 422)) {
         setFieldErrors(prev => ({ ...prev, form: '이메일 또는 비밀번호가 올바르지 않습니다' }));
       } else if (axios.isAxiosError(e) && !e.response) {

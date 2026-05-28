@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
-import { colors, spacing, typography } from '../../theme';
+import { colors, spacing, typography, radii } from '../../theme';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
@@ -37,7 +37,7 @@ export function ChatListScreen({ navigation, route }: any) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(route?.params?.sessionId ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [messagesCache, setMessagesCache] = useState<Record<string, ChatMessageItem[]>>({});
   const { isDesktop } = useBreakpoint();
@@ -50,7 +50,6 @@ export function ChatListScreen({ navigation, route }: any) {
         const res = await chatApi.getChatSessions({ page: 1, size: 20 });
         setSessions(res.items);
       } catch (err: any) {
-        console.warn('[ChatList] 세션 로드 실패:', err);
         if (__DEV__) {
           // TODO: [BE 대기] GET /chat/sessions 미구현 — 구현 완료 후 mock 제거
           setSessions(MOCK_SESSIONS);
@@ -63,20 +62,34 @@ export function ChatListScreen({ navigation, route }: any) {
     })();
   }, []);
 
+  useEffect(() => {
+    if (route?.params?.sessionId) {
+      navigation.navigate('ChatSession', { sessionId: route.params.sessionId });
+    }
+  }, [route?.params?.sessionId]);
+
   const startNew = async () => {
     try {
-      // TODO: [BE 대기] POST /chat/sessions 미구현 — 구현 완료 후 연결 필요
+      // TODO: BE standalone 세션 지원 후 createChatSession() 활성화
+      // PR 코멘트 참고: record_id optional 지원 요청 필요
       const newId = String(Date.now());
       const tempSession: ChatSession = { session_id: Number(newId), title: '새 상담', status: 'active' };
       setSessions(prev => [tempSession, ...prev]);
-      setSelectedId(newId);
+      if (isDesktop) {
+        setSelectedId(newId);
+      } else {
+        navigation.navigate('ChatSession', { sessionId: newId, title: '새 상담' });
+      }
     } catch (err: any) {
-      console.warn('[ChatList] 세션 생성 실패:', err);
     }
   };
 
   const openSession = (c: ChatSession) => {
-    setSelectedId(String(c.session_id));
+    if (isDesktop) {
+      setSelectedId(String(c.session_id));
+    } else {
+      navigation.navigate('ChatSession', { sessionId: String(c.session_id), title: c.title, subtitle: c.last_message });
+    }
   };
 
   const handleFirstMessage = (text: string) => {
@@ -161,11 +174,11 @@ export function ChatListScreen({ navigation, route }: any) {
       ) : (
         filtered.map(c => {
           const sid = String(c.session_id);
-          const selected = selectedId === sid;
+          const selected = isDesktop && selectedId === sid;
           return (
             <TouchableOpacity
               key={sid}
-              style={[ds.sessionRow, selected && { backgroundColor: colors.accent50 }]}
+              style={[ds.sessionRow, selected && { backgroundColor: colors.accent50, borderRadius: radii.lg }]}
               onPress={() => openSession(c)}
               activeOpacity={0.7}
             >
@@ -183,51 +196,55 @@ export function ChatListScreen({ navigation, route }: any) {
     </>
   );
 
-  // Single layout — ChatSessionPane stays at the same tree position on breakpoint change
+  // Both panels stay in the tree at all times — visibility toggled via display:none.
+  // This prevents ChatSessionPane from remounting on resize (no flicker).
+  const showSidebar = isDesktop || !selectedId;
+  const showPane = isDesktop || !!selectedId;
+
   return (
     <View style={[{ flex: 1, backgroundColor: colors.canvas }, isDesktop && { alignItems: 'center' }]}>
       <View style={isDesktop
         ? [ds.root, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: Math.max(safeTop + spacing.s8, spacing.safeTop) }]
         : { flex: 1, paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }
       }>
-        {(isDesktop || !selectedId) && (
-          <Card shadow style={isDesktop ? ds.sidebar : { flex: 1 }}>
-            <View style={ds.sidebarHeader}>
-              <Text style={ds.sidebarTitle}>상담 목록</Text>
-              <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
-            </View>
-            <View style={{ paddingHorizontal: spacing.s12, marginBottom: spacing.s8 }}>
-              {searchBar}
-            </View>
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>
-              {sessionList}
-            </ScrollView>
-          </Card>
-        )}
+        {/* Sidebar — always mounted; hidden on mobile when a session is open */}
+        <Card shadow style={[isDesktop ? ds.sidebar : { flex: 1 }, !showSidebar && { display: 'none' as any }]}>
+          <View style={ds.sidebarHeader}>
+            <Text style={ds.sidebarTitle}>상담 목록</Text>
+            <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
+          </View>
+          <View style={{ paddingHorizontal: spacing.s12, marginBottom: spacing.s8 }}>
+            {searchBar}
+          </View>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>
+            {sessionList}
+          </ScrollView>
+        </Card>
 
-        {selectedId ? (
-          <Card shadow style={isDesktop ? ds.pane : { flex: 1 }}>
-            <View style={ds.paneHeader}>
-              <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
-                <Icon name="arrow-left" size={16} color={colors.ink2} />
-              </TouchableOpacity>
-              <View style={{ flex: 1, marginLeft: spacing.s8 }}>
-                <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
-                {selectedSession?.last_message ? (
-                  <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
-                ) : null}
+        {/* Pane — always mounted; hidden on mobile when no session is selected */}
+        <Card shadow style={[isDesktop ? ds.pane : { flex: 1 }, !showPane && { display: 'none' as any }]}>
+          {selectedId ? (
+            <>
+              <View style={ds.paneHeader}>
+                <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
+                  <Icon name="arrow-left" size={16} color={colors.ink2} />
+                </TouchableOpacity>
+                <View style={{ flex: 1, marginLeft: spacing.s8 }}>
+                  <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
+                  {selectedSession?.last_message ? (
+                    <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
+                  ) : null}
+                </View>
               </View>
-            </View>
-            <ChatSessionPane
-              sessionId={selectedId}
-              cachedMessages={messagesCache[selectedId]}
-              onMessagesChange={(msgs) => setMessagesCache(prev => ({ ...prev, [selectedId]: msgs }))}
-              onFirstMessage={handleFirstMessage}
-              onMessageSent={handleMessageSent}
-            />
-          </Card>
-        ) : isDesktop ? (
-          <Card shadow style={ds.pane}>
+              <ChatSessionPane
+                sessionId={selectedId}
+                cachedMessages={messagesCache[selectedId]}
+                onMessagesChange={(msgs) => setMessagesCache(prev => ({ ...prev, [selectedId]: msgs }))}
+                onFirstMessage={handleFirstMessage}
+                onMessageSent={handleMessageSent}
+              />
+            </>
+          ) : (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.s12 }}>
               <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="chat" size={28} color={colors.accent700} />
@@ -236,8 +253,8 @@ export function ChatListScreen({ navigation, route }: any) {
               <Text style={{ fontSize: typography.fz13, color: colors.muted }}>왼쪽에서 상담을 선택하거나 새 상담을 시작하세요.</Text>
               <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>
             </View>
-          </Card>
-        ) : null}
+          )}
+        </Card>
       </View>
     </View>
   );
@@ -253,7 +270,7 @@ const ds = StyleSheet.create({
   paneTitle:     { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   paneSubtitle:  { fontSize: typography.fz12, color: colors.muted, marginTop: 2 },
   iconBtn:       { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  sessionRow:    { paddingVertical: spacing.s12, paddingHorizontal: spacing.s16, borderBottomWidth: 0.5, borderBottomColor: colors.hairline },
+  sessionRow:    { paddingVertical: spacing.s12, paddingHorizontal: spacing.s16 },
 });
 
 export default ChatListScreen;

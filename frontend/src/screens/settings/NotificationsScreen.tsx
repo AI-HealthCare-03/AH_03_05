@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useApp, type Notification } from '../../context/AppContext';
 import Icon from '../../components/Icon';
@@ -7,6 +7,7 @@ import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
+import { notificationsApi } from '../../api';
 
 type NotificationRowProps = {
   item: Notification;
@@ -30,23 +31,71 @@ function NotificationRow({ item: n, isFirst, onPress }: NotificationRowProps) {
   );
 }
 
+function mapNotifType(t: string): Notification['type'] {
+  if (t.includes('medication') || t.includes('alarm')) return 'medication';
+  if (t.includes('record') || t.includes('prescription')) return 'record';
+  if (t.includes('guide')) return 'guide';
+  if (t.includes('chat')) return 'chat';
+  return 'info';
+}
+
+function mapNotifIcon(t: string): string {
+  if (t.includes('medication') || t.includes('alarm')) return 'pill';
+  if (t.includes('record') || t.includes('prescription')) return 'doc';
+  if (t.includes('guide')) return 'wand';
+  if (t.includes('chat')) return 'chat';
+  return 'bell';
+}
+
 export function NotificationsScreen({ navigation }: any) {
-  // TODO: [BE 대기] GET /notifications 백엔드 미구현 — 구현 완료 후 AppContext 목업 대신 API 응답으로 교체 필요
   const { notifications, setNotifications, flash, markNotificationRead } = useApp();
+
+  useEffect(() => {
+    notificationsApi.getNotifications().then(res => {
+      const mapped: Notification[] = res.items.map(item => {
+        const d = item.created_at ? new Date(item.created_at) : new Date();
+        const hh = d.getHours();
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return {
+          id: String(item.notification_id),
+          type: mapNotifType(item.notification_type),
+          title: item.title,
+          body: item.message,
+          date: d.toISOString(),
+          time: `${hh}:${mm}`,
+          icon: mapNotifIcon(item.notification_type),
+          unread: !item.is_read,
+        };
+      });
+      setNotifications(mapped);
+    }).catch(() => {});
+  }, []);
 
   const handleNotifPress = (n: Notification) => {
     const id = n.id;
     if (id != null && !Number.isNaN(Number(id))) {
-      markNotificationRead(id as string);
+      markNotificationRead(id);
+      notificationsApi.markNotificationRead(Number(id)).catch(() => {});
     }
     if (n.type === 'medication') {
       navigation.navigate('MedicationAlarm', {});
     }
   };
-  // TODO: [BE 대기] PATCH /notifications/read-all 백엔드 미구현 — 구현 완료 후 연결 필요
-  const markAll = () => { setNotifications(notifications.map(n => ({ ...n, unread: false }))); flash('모두 읽음 처리했어요'); };
-  // TODO: [BE 대기] DELETE /notifications 백엔드 미구현 — 구현 완료 후 연결 필요
-  const clear   = () => { setNotifications([]); flash('알림을 모두 지웠어요'); };
+
+  const markAll = () => {
+    notificationsApi.markAllNotificationsRead().catch(() => {});
+    setNotifications(notifications.map(n => ({ ...n, unread: false })));
+    flash('모두 읽음 처리했어요');
+  };
+
+  const clear = () => {
+    notifications.forEach(n => {
+      const numId = Number(n.id);
+      if (!Number.isNaN(numId)) notificationsApi.deleteNotification(numId).catch(() => {});
+    });
+    setNotifications([]);
+    flash('알림을 모두 지웠어요');
+  };
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);

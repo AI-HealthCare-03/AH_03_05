@@ -43,7 +43,6 @@ export async function getRecord(recordId: number): Promise<RecordDetail> {
   return res.data;
 }
 
-// ⚠ Backend TODO: DELETE /records/{record_id}
 export async function deleteRecord(recordId: number): Promise<void> {
   await apiClient.delete(`/records/${recordId}`);
 }

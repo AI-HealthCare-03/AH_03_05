@@ -33,7 +33,7 @@ const LIFE_ITEMS = [
 
 // ─── 서브컴포넌트 ──────────────────────────────────────────────────────────────
 
-type GuideItem = GuideResponse["items"][number];
+type GuideItem = GuideResponse["guide_items"][number];
 
 function GuideItemCard({ item }: { item: GuideItem }) {
   return (
@@ -132,8 +132,8 @@ export function GuideResultScreen({ navigation, route }: any) {
       .finally(() => setGuideLoading(false));
   }, [guideId]);
 
-  const apiMedItems = guide?.items.filter((it) => it.item_type === "medication") ?? [];
-  const apiLifeItems = guide?.items.filter((it) => it.item_type === "lifestyle") ?? [];
+  const apiMedItems = guide?.guide_items.filter((it) => it.item_type === "medication") ?? [];
+  const apiLifeItems = guide?.guide_items.filter((it) => it.item_type === "lifestyle") ?? [];
 
   return (
     <ScreenLayout

@@ -36,7 +36,7 @@ export default function NotificationDrawer() {
           id: String(item.notification_id),
           type: 'info' as const,
           title: item.title,
-          body: item.body ?? '',
+          body: item.message ?? '',
           date: d.toISOString(),
           time: `${hh}:${mm}`,
           icon: 'bell',

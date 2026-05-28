@@ -36,6 +36,7 @@ const FEATHER_MAP: Record<string, FeatherName> = {
   "chevron-left": "chevron-left",
   "chevron-right": "chevron-right",
   "chevron-down": "chevron-down",
+  "chevron-up": "chevron-up",
   "arrow-left": "arrow-left",
   "arrow-right": "arrow-right",
   logout: "log-out",

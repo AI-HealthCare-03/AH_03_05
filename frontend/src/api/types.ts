@@ -34,7 +34,7 @@ export interface LoginResponse {
   access_token: string;
   refresh_token: string;
   token_type: 'bearer';
-  user: { id: number; name: string };
+  user: { id: number; name: string; nickname: string };
 }
 
 export interface LogoutResponse {
@@ -49,6 +49,7 @@ export interface UserInfo {
   name: string;
   nickname: string;
   status: 'active' | 'withdrawn';
+  created_at?: string;
 }
 
 export interface UpdateUserRequest {
@@ -61,11 +62,11 @@ export interface ChangePasswordRequest {
 }
 
 export interface ConsentItem {
-  type: ConsentType;
-  label: string;
-  required: boolean;
-  agreed: boolean;
-  agreedAt: string;
+  consent_type: ConsentType;
+  required_type: string;
+  is_agreed: boolean;
+  agreed_at?: string;
+  revoked_at?: string;
 }
 
 export interface ConsentsResponse {
@@ -256,7 +257,7 @@ export interface DrugDetail {
 
 export interface MedicationVerifyItem {
   medication_id: number;
-  drug_ref_id: string;
+  drug_ref_id: number;
 }
 
 export interface VerifyMedicationResponse {
@@ -280,23 +281,35 @@ export interface CreateGuideResponse {
 
 export type GuideItemType = 'medication' | 'lifestyle' | 'disclaimer';
 
-export interface GuideItem {
+export interface GuideItemResponse {
   item_type: GuideItemType;
   title?: string;
   content: string;
+  sort_order: number;
+  guideline_source_id?: number;
+}
+
+export interface DataSourceInfo {
+  type: string;
+  timestamp: string;
+  notice: string;
 }
 
 export interface GuideResponse {
   guide_id: number;
-  record_id: number;
-  status: AsyncJobStatus;
-  items: GuideItem[];
+  status: string;
+  data_source: DataSourceInfo;
+  medication_guide: string;
+  lifestyle_guide: string;
+  warning_message?: string;
+  disclaimer: string;
+  guide_items: GuideItemResponse[];
 }
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────
 
 export interface CreateSessionRequest {
-  record_id: number;
+  record_id?: number;
   guide_id?: number;
   title?: string;
 }
@@ -315,12 +328,28 @@ export interface ChatSessionListResponse {
   size: number;
 }
 
+export interface RagSource {
+  source_id: number;
+  organization_name: string;
+  guideline_title: string;
+  source_url: string;
+  disease_or_topic: string;
+  relevance_score: number;
+  excerpt?: string;
+}
+
 export interface ChatMessageItem {
   message_id: number;
   sender_type: 'user' | 'assistant';
   content: string;
   safety_flag?: boolean;
   created_at?: string;
+  // TODO: [BE 대기] message.category — POST /chat/.../messages 응답에 category 필드 추가 요청 필요
+  category?: string;
+  // TODO: [BE 대기] GET /rag/search — BE 구현 완료 후 실데이터로 교체
+  rag_sources?: RagSource[];
+  // TODO: [BE 대기] message.summary — 요약 API 스펙 미확정
+  summary?: string;
 }
 
 export interface ChatMessagesResponse {
@@ -335,28 +364,29 @@ export interface SendMessageRequest {
 }
 
 export interface SendMessageResponse {
-  message_id: number;
   session_id: number;
-  answer: string;
+  user_message: string;
+  assistant_message: string;
   safety_flag: boolean;
-  model_name?: string;
-  created_at: string;
+  safety_notice?: string;
 }
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 
 export interface NotificationItem {
   notification_id: number;
+  notification_type: string;
   title: string;
-  body?: string;
+  message: string;
   is_read: boolean;
+  related_url?: string;
   created_at?: string;
+  read_at?: string;
 }
 
 export interface NotificationListResponse {
   items: NotificationItem[];
-  page: number;
-  size: number;
+  unread_count: number;
 }
 
 export interface UnreadCountResponse {
