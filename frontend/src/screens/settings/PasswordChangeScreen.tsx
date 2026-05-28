@@ -37,10 +37,8 @@ export function PasswordChangeScreen({ navigation }: any) {
     } catch (e: any) {
       const status = e?.response?.status;
       const detail = e?.response?.data?.detail;
-      if (status === 401) {
+      if (status === 400) {
         setError(detail ?? '현재 비밀번호가 일치하지 않습니다.');
-      } else if (status === 400) {
-        setError(detail ?? '새 비밀번호는 현재 비밀번호와 달라야 합니다.');
       } else {
         setError(extractApiError(e));
       }
