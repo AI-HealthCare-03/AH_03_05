@@ -22,6 +22,8 @@ TORTOISE_APP_MODELS = [
     "app.models.chat_sessions",
     "app.models.chat_messages",
     "app.models.guides",
+    "app.models.guideline_sources",
+    "app.models.prompt_policies",
 ]
 
 TORTOISE_ORM = {

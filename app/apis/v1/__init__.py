@@ -12,6 +12,7 @@ from app.apis.v1.ocr_routers import jobs_router, ocr_router
 from app.apis.v1.rag_routers import rag_router
 from app.apis.v1.records_routers import records_router
 from app.apis.v1.user_routers import user_router
+from app.apis.v1.prompt_policy_routers import prompt_policy_router
 
 v1_routers = APIRouter(prefix="/api/v1")
 v1_routers.include_router(auth_router)
@@ -28,3 +29,4 @@ v1_routers.include_router(notifications_router)
 v1_routers.include_router(rag_router)
 v1_routers.include_router(chat_router)
 v1_routers.include_router(guide_router)
+v1_routers.include_router(prompt_policy_router)
