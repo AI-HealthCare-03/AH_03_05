@@ -23,16 +23,14 @@ export async function createChatSession(data: CreateSessionRequest): Promise<Cha
   };
 }
 
-// ⚠ Backend TODO: GET /chat/sessions
 export async function getChatSessions(params?: {
-  page?: number;
-  size?: number;
+  limit?: number;
+  offset?: number;
 }): Promise<ChatSessionListResponse> {
   const res = await apiClient.get<ChatSessionListResponse>('/chat/sessions', { params });
   return res.data;
 }
 
-// ⚠ Backend TODO: GET /chat/sessions/{session_id}/messages
 export async function getChatMessages(
   sessionId: number,
   params?: { limit?: number },

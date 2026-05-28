@@ -324,8 +324,9 @@ export interface ChatSession {
 
 export interface ChatSessionListResponse {
   items: ChatSession[];
-  page: number;
-  size: number;
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 export interface RagSource {
@@ -354,7 +355,10 @@ export interface ChatMessageItem {
 
 export interface ChatMessagesResponse {
   session_id: number;
-  messages: ChatMessageItem[];
+  items: ChatMessageItem[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 export interface SendMessageRequest {

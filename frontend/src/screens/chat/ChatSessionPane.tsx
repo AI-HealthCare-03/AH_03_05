@@ -52,15 +52,14 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
       return;
     }
     setMessages([GREETING]);
-    // TODO: [BE 대기] GET /chat/sessions/{session_id}/messages 미구현 — 구현 완료 후 mock 제거
     chatApi.getChatMessages(Number(sessionId), { limit: 50 })
       .then(res => {
-        const msgs = res.messages.length > 0 ? res.messages : [GREETING];
+        const msgs = res.items.length > 0 ? res.items : [GREETING];
         setMessages(msgs);
         onMessagesChangeRef.current?.(msgs);
       })
-      .catch(err => {
-        if (__DEV__) setMessages([GREETING]);
+      .catch(() => {
+        setMessages([GREETING]);
       });
   }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
