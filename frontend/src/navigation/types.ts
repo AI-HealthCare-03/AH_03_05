@@ -46,6 +46,7 @@ export type SettingsStackParams = {
   LegalDoc: { docKey: 'tos' | 'privacy' | 'sensitive' };
   DeleteAccount: undefined;
   ConsentHistory: undefined;
+  HealthProfileHistory: undefined;
 };
 
 export type RootStackParams = {

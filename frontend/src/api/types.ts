@@ -315,12 +315,28 @@ export interface ChatSessionListResponse {
   size: number;
 }
 
+export interface RagSource {
+  source_id: number;
+  organization_name: string;
+  guideline_title: string;
+  source_url: string;
+  disease_or_topic: string;
+  relevance_score: number;
+  excerpt?: string;
+}
+
 export interface ChatMessageItem {
   message_id: number;
   sender_type: 'user' | 'assistant';
   content: string;
   safety_flag?: boolean;
   created_at?: string;
+  // TODO: [BE 대기] message.category — POST /chat/.../messages 응답에 category 필드 추가 요청 필요
+  category?: string;
+  // TODO: [BE 대기] GET /rag/search — BE 구현 완료 후 실데이터로 교체
+  rag_sources?: RagSource[];
+  // TODO: [BE 대기] message.summary — 요약 API 스펙 미확정
+  summary?: string;
 }
 
 export interface ChatMessagesResponse {

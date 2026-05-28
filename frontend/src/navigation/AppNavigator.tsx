@@ -78,6 +78,7 @@ const linking: LinkingOptions<any> = {
               LegalDoc: 'settings/legal/:docKey',
               DeleteAccount: 'settings/delete-account',
               ConsentHistory: 'settings/consent',
+              HealthProfileHistory: 'settings/health-profile-history',
             },
           },
         },

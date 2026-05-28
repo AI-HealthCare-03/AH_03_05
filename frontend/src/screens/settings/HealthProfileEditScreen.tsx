@@ -104,7 +104,13 @@ export function HealthProfileEditScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenLayout title="건강 프로필 수정" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
+    <ScreenLayout
+      title="건강 프로필 수정"
+      back
+      onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')}
+      right={<Button variant="ghost" size="sm" onPress={() => navigation.navigate('HealthProfileHistory')}>변경 이력</Button>}
+      scrollable
+    >
       <Card shadow>
         <View style={[s.banner, { backgroundColor: colors.accent50, marginBottom: spacing.s20 }]}>
           <Icon name="info" size={16} color={colors.accent700} />

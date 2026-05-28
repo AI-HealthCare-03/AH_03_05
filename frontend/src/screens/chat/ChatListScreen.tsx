@@ -6,11 +6,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
-import { colors, spacing, typography } from '../../theme';
+import { colors, spacing, typography, radii } from '../../theme';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
+import { ChatSessionPane } from './ChatSessionPane';
 import { chatApi } from '../../api';
-import type { ChatSession } from '../../api';
+import type { ChatSession, ChatMessageItem } from '../../api';
 function formatTime(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -35,7 +37,10 @@ export function ChatListScreen({ navigation, route }: any) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [messagesCache, setMessagesCache] = useState<Record<string, ChatMessageItem[]>>({});
+  const { isDesktop } = useBreakpoint();
 
   useEffect(() => {
     (async () => {
@@ -70,19 +75,46 @@ export function ChatListScreen({ navigation, route }: any) {
       const newId = String(Date.now());
       const tempSession: ChatSession = { session_id: Number(newId), title: '새 상담', status: 'active' };
       setSessions(prev => [tempSession, ...prev]);
-      navigation.navigate('ChatSession', { sessionId: newId, title: '새 상담' });
+      if (isDesktop) {
+        setSelectedId(newId);
+      } else {
+        navigation.navigate('ChatSession', { sessionId: newId, title: '새 상담' });
+      }
     } catch (err: any) {
       console.warn('[ChatList] 세션 생성 실패:', err);
     }
   };
 
   const openSession = (c: ChatSession) => {
-    navigation.navigate('ChatSession', { sessionId: String(c.session_id), title: c.title, subtitle: c.last_message });
+    if (isDesktop) {
+      setSelectedId(String(c.session_id));
+    } else {
+      navigation.navigate('ChatSession', { sessionId: String(c.session_id), title: c.title, subtitle: c.last_message });
+    }
+  };
+
+  const handleFirstMessage = (text: string) => {
+    const title = text.slice(0, 15);
+    setSessions(prev => prev.map(s =>
+      String(s.session_id) === selectedId
+        ? { ...s, title, last_message: text, updated_at: new Date().toISOString() }
+        : s
+    ));
+  };
+
+  const handleMessageSent = (text: string) => {
+    setSessions(prev => prev.map(s =>
+      String(s.session_id) === selectedId
+        ? { ...s, last_message: text, updated_at: new Date().toISOString() }
+        : s
+    ));
   };
 
   const filtered = sessions.filter(c =>
     !query || c.title.toLowerCase().includes(query.toLowerCase())
   );
+
+  const selectedSession = sessions.find(c => String(c.session_id) === selectedId);
 
   const searchBar = (
     <Card
@@ -143,10 +175,11 @@ export function ChatListScreen({ navigation, route }: any) {
       ) : (
         filtered.map(c => {
           const sid = String(c.session_id);
+          const selected = isDesktop && selectedId === sid;
           return (
             <TouchableOpacity
               key={sid}
-              style={ds.sessionRow}
+              style={[ds.sessionRow, selected && { backgroundColor: colors.accent50, borderRadius: radii.lg }]}
               onPress={() => openSession(c)}
               activeOpacity={0.7}
             >
@@ -164,10 +197,19 @@ export function ChatListScreen({ navigation, route }: any) {
     </>
   );
 
+  // Both panels stay in the tree at all times — visibility toggled via display:none.
+  // This prevents ChatSessionPane from remounting on resize (no flicker).
+  const showSidebar = isDesktop || !selectedId;
+  const showPane = isDesktop || !!selectedId;
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.canvas }}>
-      <View style={{ flex: 1, paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }}>
-        <Card shadow style={{ flex: 1 }}>
+    <View style={[{ flex: 1, backgroundColor: colors.canvas }, isDesktop && { alignItems: 'center' }]}>
+      <View style={isDesktop
+        ? [ds.root, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: Math.max(safeTop + spacing.s8, spacing.safeTop) }]
+        : { flex: 1, paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }
+      }>
+        {/* Sidebar — always mounted; hidden on mobile when a session is open */}
+        <Card shadow style={[isDesktop ? ds.sidebar : { flex: 1 }, !showSidebar && { display: 'none' as any }]}>
           <View style={ds.sidebarHeader}>
             <Text style={ds.sidebarTitle}>상담 목록</Text>
             <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
@@ -179,14 +221,56 @@ export function ChatListScreen({ navigation, route }: any) {
             {sessionList}
           </ScrollView>
         </Card>
+
+        {/* Pane — always mounted; hidden on mobile when no session is selected */}
+        <Card shadow style={[isDesktop ? ds.pane : { flex: 1 }, !showPane && { display: 'none' as any }]}>
+          {selectedId ? (
+            <>
+              <View style={ds.paneHeader}>
+                <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
+                  <Icon name="arrow-left" size={16} color={colors.ink2} />
+                </TouchableOpacity>
+                <View style={{ flex: 1, marginLeft: spacing.s8 }}>
+                  <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
+                  {selectedSession?.last_message ? (
+                    <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
+                  ) : null}
+                </View>
+              </View>
+              <ChatSessionPane
+                sessionId={selectedId}
+                cachedMessages={messagesCache[selectedId]}
+                onMessagesChange={(msgs) => setMessagesCache(prev => ({ ...prev, [selectedId]: msgs }))}
+                onFirstMessage={handleFirstMessage}
+                onMessageSent={handleMessageSent}
+              />
+            </>
+          ) : (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.s12 }}>
+              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="chat" size={28} color={colors.accent700} />
+              </View>
+              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>상담을 선택해주세요</Text>
+              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>왼쪽에서 상담을 선택하거나 새 상담을 시작하세요.</Text>
+              <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>
+            </View>
+          )}
+        </Card>
       </View>
     </View>
   );
 }
 
 const ds = StyleSheet.create({
+  root:          { flex: 1, flexDirection: 'row', width: '100%', maxWidth: 900, padding: spacing.s16, gap: spacing.s16 },
+  sidebar:       { width: 300 },
   sidebarHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.s16, paddingTop: spacing.s12, paddingBottom: spacing.s12 },
   sidebarTitle:  { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
+  pane:          { flex: 1 },
+  paneHeader:    { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: spacing.s16, borderBottomWidth: 0.5, borderBottomColor: colors.hairline },
+  paneTitle:     { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
+  paneSubtitle:  { fontSize: typography.fz12, color: colors.muted, marginTop: 2 },
+  iconBtn:       { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   sessionRow:    { paddingVertical: spacing.s12, paddingHorizontal: spacing.s16 },
 });
 
