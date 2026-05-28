@@ -28,6 +28,11 @@ export async function verifyEmailCode(email: string, code: string): Promise<void
   await apiClient.post('/auth/email-verify/confirm', { email, code });
 }
 
+export async function refresh(refreshToken: string): Promise<{ access_token: string }> {
+  const res = await apiClient.post<{ access_token: string }>('/auth/refresh', { refresh_token: refreshToken });
+  return res.data;
+}
+
 export async function logout(): Promise<LogoutResponse> {
   try {
     const res = await apiClient.post<LogoutResponse>('/auth/logout', {
