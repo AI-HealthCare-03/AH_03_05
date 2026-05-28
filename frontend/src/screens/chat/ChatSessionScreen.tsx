@@ -2,13 +2,16 @@ import React from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
+import Card from '../../components/Card';
 import { colors, spacing, typography } from '../../theme';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { ChatSessionPane } from './ChatSessionPane';
 
 const TAB_BAR_HEIGHT = 80;
 
 export function ChatSessionScreen({ navigation, route }: any) {
   const { top: safeTop } = useSafeAreaInsets();
+  const { isDesktop } = useBreakpoint();
   const sessionId: string | undefined = route?.params?.sessionId;
   const sessionTitle: string = route?.params?.title ?? '상담';
   const sessionSubtitle: string | undefined = route?.params?.subtitle;
@@ -21,21 +24,21 @@ export function ChatSessionScreen({ navigation, route }: any) {
     );
   }
 
-  return (
+  // 공통: 헤더 + 세션 패널을 KAV 안에 배치
+  const inner = (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.canvas }}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={TAB_BAR_HEIGHT}
     >
-      {/* 1단: 건강 상담 */}
-      <View style={[cs.header1, { paddingTop: Math.max(safeTop, spacing.safeTop) }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={cs.iconBtn}>
-          <Icon name="arrow-left" size={16} color={colors.ink2} />
-        </TouchableOpacity>
-        <Text style={[cs.title, { marginLeft: spacing.s8 }]} numberOfLines={1}>건강 상담</Text>
-      </View>
-
-      {/* 2단: 세션 제목 + 서브타이틀 */}
+      {isDesktop && (
+        <View style={[cs.header1, { paddingTop: Math.max(safeTop, spacing.safeTop) }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={cs.iconBtn}>
+            <Icon name="arrow-left" size={16} color={colors.ink2} />
+          </TouchableOpacity>
+          <Text style={[cs.title, { marginLeft: spacing.s8 }]} numberOfLines={1}>건강 상담</Text>
+        </View>
+      )}
       <View style={cs.header2}>
         <TouchableOpacity onPress={() => navigation.navigate('ChatList')} style={cs.iconBtn}>
           <Icon name="arrow-left" size={16} color={colors.ink2} />
@@ -47,9 +50,26 @@ export function ChatSessionScreen({ navigation, route }: any) {
           ) : null}
         </View>
       </View>
-
       <ChatSessionPane sessionId={sessionId} />
     </KeyboardAvoidingView>
+  );
+
+  // 모바일: 카드 컨테이너에 좌우 여백 적용
+  if (!isDesktop) {
+    return (
+      <View style={[cs.mobileCanvas, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop) }]}>
+        <Card shadow noPadding style={cs.mobileCard}>
+          {inner}
+        </Card>
+      </View>
+    );
+  }
+
+  // 데스크탑: 기존 풀사이즈 레이아웃
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.canvas }}>
+      {inner}
+    </View>
   );
 }
 
@@ -57,9 +77,10 @@ const cs = StyleSheet.create({
   header1: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingTop: spacing.s12,
     paddingBottom: 14,
     paddingHorizontal: spacing.s16,
-    backgroundColor: colors.canvas,
+    backgroundColor: colors.surface,
     borderBottomWidth: 0.5,
     borderBottomColor: colors.hairline,
   },
@@ -72,10 +93,20 @@ const cs = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: colors.hairline,
   },
-  iconBtn:        { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  title:          { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
-  sessionTitle:   { fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink },
-  sessionSubtitle:{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 },
+  iconBtn:         { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  title:           { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
+  sessionTitle:    { fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink },
+  sessionSubtitle: { fontSize: typography.fz12, color: colors.muted, marginTop: 2 },
+  mobileCanvas: {
+    flex: 1,
+    backgroundColor: colors.canvas,
+    paddingHorizontal: spacing.s12,
+    paddingBottom: spacing.s12,
+  },
+  mobileCard: {
+    flex: 1,
+    overflow: 'hidden',
+  },
 });
 
 export default ChatSessionScreen;

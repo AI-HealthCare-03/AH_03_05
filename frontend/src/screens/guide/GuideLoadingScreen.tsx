@@ -66,7 +66,6 @@ export function GuideLoadingScreen({ navigation, route }: any) {
       }
     } catch (err: any) {
       if (abortRef.current) return;
-      console.error('[GuideLoading] error:', err);
       setErrorMsg(extractApiError(err) || '가이드 생성 중 오류가 발생했어요.');
       setPhase('failed');
     }

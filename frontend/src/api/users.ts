@@ -14,7 +14,6 @@ export async function updateMe(data: UpdateUserRequest): Promise<UserInfo> {
   return res.data;
 }
 
-// ⚠ Backend TODO: PATCH /users/me/password
 export async function changePassword(data: ChangePasswordRequest): Promise<{ message: string }> {
   const res = await apiClient.patch<{ message: string }>('/users/me/password', data);
   return res.data;
@@ -25,13 +24,11 @@ export async function deleteAccount(password: string): Promise<{ detail: string 
   return res.data;
 }
 
-// ⚠ Backend TODO: GET /users/me/consents
 export async function getConsents(): Promise<ConsentsResponse> {
   const res = await apiClient.get<ConsentsResponse>('/users/me/consents');
   return res.data;
 }
 
-// ⚠ Backend TODO: PATCH /users/me/consents/{type}
 export async function updateConsent(type: ConsentType, is_agreed: boolean): Promise<void> {
   await apiClient.patch(`/users/me/consents/${type}`, { is_agreed });
 }

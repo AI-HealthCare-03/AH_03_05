@@ -84,7 +84,6 @@ export function SettingsScreen({ navigation }: any) {
             ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
           return;
         }
-        console.error('[Settings] getMe 실패 — AppContext 데이터 사용:', err);
       } finally {
         if (mounted) setLoading(false);
       }

@@ -107,7 +107,7 @@ export default function HomeScreen({ navigation }: any) {
             id: String(item.notification_id),
             type: 'info' as const,
             title: item.title,
-            body: item.body ?? '',
+            body: item.message ?? '',
             date: d.toISOString(),
             time: `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`,
             icon: 'bell',

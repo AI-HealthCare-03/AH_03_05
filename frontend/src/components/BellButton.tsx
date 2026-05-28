@@ -10,7 +10,10 @@ export default function BellButton() {
   const insets = useSafeAreaInsets();
 
   return (
-    <TouchableOpacity style={[styles.bellBtn, { top: insets.top + spacing.s8 }]} onPress={() => setNotifDrawerOpen(true)}>
+    <TouchableOpacity
+      style={[styles.bellBtn, { top: insets.top + spacing.s8 }]}
+      onPress={() => setNotifDrawerOpen(true)}
+    >
       <Icon name="bell" size={18} color={colors.ink2} />
       {unreadCount > 0 && (
         <View style={styles.bellBadge}>

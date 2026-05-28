@@ -50,7 +50,6 @@ export function ChatListScreen({ navigation, route }: any) {
         const res = await chatApi.getChatSessions({ page: 1, size: 20 });
         setSessions(res.items);
       } catch (err: any) {
-        console.warn('[ChatList] 세션 로드 실패:', err);
         if (__DEV__) {
           // TODO: [BE 대기] GET /chat/sessions 미구현 — 구현 완료 후 mock 제거
           setSessions(MOCK_SESSIONS);
@@ -71,7 +70,8 @@ export function ChatListScreen({ navigation, route }: any) {
 
   const startNew = async () => {
     try {
-      // TODO: [BE 대기] POST /chat/sessions 미구현 — 구현 완료 후 연결 필요
+      // TODO: BE standalone 세션 지원 후 createChatSession() 활성화
+      // PR 코멘트 참고: record_id optional 지원 요청 필요
       const newId = String(Date.now());
       const tempSession: ChatSession = { session_id: Number(newId), title: '새 상담', status: 'active' };
       setSessions(prev => [tempSession, ...prev]);
@@ -81,7 +81,6 @@ export function ChatListScreen({ navigation, route }: any) {
         navigation.navigate('ChatSession', { sessionId: newId, title: '새 상담' });
       }
     } catch (err: any) {
-      console.warn('[ChatList] 세션 생성 실패:', err);
     }
   };
 

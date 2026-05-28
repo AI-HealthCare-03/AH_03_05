@@ -4,7 +4,7 @@ import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import { StyleSheet } from 'react-native';
-import { chatApi, feedbacksApi } from '../../api';
+import { chatApi, feedbacksApi, ragApi } from '../../api';
 import type { ChatMessageItem, RagSource } from '../../api';
 import { s } from './_chatShared';
 
@@ -16,7 +16,6 @@ interface Props {
   onMessageSent?: (text: string) => void;
 }
 
-const MOCK_AI_RESPONSE = '도움이 되도록 답변드릴게요. 다만 복약·치료 결정을 바꾸기 전에는 반드시 담당 의사·약사와 상담해주세요.';
 const GREETING: ChatMessageItem = {
   message_id: -1,
   sender_type: 'assistant',
@@ -61,7 +60,6 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
         onMessagesChangeRef.current?.(msgs);
       })
       .catch(err => {
-        console.warn('[ChatPane] 메시지 로드 실패:', err);
         if (__DEV__) setMessages([GREETING]);
       });
   }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -88,59 +86,24 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
     setSending(true);
 
     try {
-      // TODO: [BE 대기] POST /chat/sessions/{session_id}/messages 미구현 — 구현 완료 후 mock 제거
-      const res = await chatApi.sendChatMessage(Number(sessionId), { message: text });
+      const [res, ragSources] = await Promise.all([
+        chatApi.sendChatMessage(Number(sessionId), { message: text }),
+        ragApi.searchGuidelines(text).catch(() => [] as RagSource[]),
+      ]);
       const aiMsg: ChatMessageItem = {
-        message_id: res.message_id,
+        message_id: Date.now(),
         sender_type: 'assistant',
-        content: res.answer,
+        content: res.assistant_message,
         safety_flag: res.safety_flag,
-        created_at: res.created_at,
+        created_at: new Date().toISOString(),
+        rag_sources: ragSources.length > 0 ? ragSources : undefined,
       };
       updateMessages(prev => [...prev, aiMsg]);
       onMessageSent?.(aiMsg.content);
     } catch (err: any) {
-      console.warn('[ChatPane] 메시지 전송 실패:', err);
       const status = err?.response?.status;
       if (status === 429) {
         setSendError('잠시 후 다시 시도해주세요.');
-      } else if (__DEV__) {
-        // TODO: [BE 대기] 목업 응답 — 구현 완료 후 제거
-        await new Promise<void>(res => setTimeout(res, 1500));
-        const SAFETY_KEYWORDS = ['자살', '자해', '죽고싶', '극단적선택'];
-        const CATEGORIES = ['복약', '부작용', '생활습관', '일반'] as const;
-        const mockMsg: ChatMessageItem = {
-          message_id: Date.now(),
-          sender_type: 'assistant',
-          content: MOCK_AI_RESPONSE,
-          safety_flag: SAFETY_KEYWORDS.some(k => text.includes(k)),
-          // TODO: [BE 대기] message.category — POST /chat/.../messages 응답에 category 필드 추가 요청 필요
-          category: CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)],
-          // TODO: [BE 대기] GET /rag/search — BE 구현 완료 후 실데이터로 교체
-          rag_sources: [
-            {
-              source_id: 1,
-              organization_name: '식품의약품안전처',
-              guideline_title: '의약품 안전사용 가이드',
-              source_url: 'https://www.mfds.go.kr',
-              disease_or_topic: '해열진통제',
-              relevance_score: 0.92,
-              excerpt: '아세트아미노펜은 공복 복용 시 위장장애를 유발할 수 있습니다.',
-            },
-            {
-              source_id: 2,
-              organization_name: '대한의사협회',
-              guideline_title: '복약 지도 가이드라인',
-              source_url: 'https://www.kma.org',
-              disease_or_topic: '복약지도',
-              relevance_score: 0.78,
-            },
-          ],
-          // TODO: [BE 대기] message.summary — 요약 API 스펙 미확정
-          summary: '복약 안전성과 부작용에 대한 AI 답변입니다.',
-        };
-        updateMessages(prev => [...prev, mockMsg]);
-        onMessageSent?.(mockMsg.content);
       } else {
         setSendError('메시지 전송에 실패했어요. 다시 시도해주세요.');
       }

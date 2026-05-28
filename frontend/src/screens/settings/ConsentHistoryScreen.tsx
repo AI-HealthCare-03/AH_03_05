@@ -44,11 +44,17 @@ export function ConsentHistoryScreen({ navigation }: any) {
   useEffect(() => {
     usersApi.getConsents()
       .then(res => {
-        const beMap = new Map(res.consents.map(c => [c.type, c]));
+        const beMap = new Map(res.consents.map(c => [c.consent_type, c]));
         setConsents(STATIC_CONSENTS.map(s => {
           const be = beMap.get(s.type);
           if (!be) return s;
-          return { type: be.type, name: be.label, required: be.required, agreed: be.agreed, agreedAt: be.agreedAt ?? null };
+          return {
+            type: be.consent_type as ConsentType,
+            name: s.name,
+            required: be.required_type === 'required',
+            agreed: be.is_agreed,
+            agreedAt: be.agreed_at ? new Date(be.agreed_at).toLocaleString('ko-KR') : null,
+          };
         }));
       })
       .catch(() => { /* silent — keep static fallback */ })
