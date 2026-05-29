@@ -9,6 +9,7 @@ from app.apis.v1.health_profile_routers import health_profile_router
 from app.apis.v1.medication_routers import medication_router, records_medications_router
 from app.apis.v1.notifications_routers import notifications_router
 from app.apis.v1.ocr_routers import jobs_router, ocr_router
+from app.apis.v1.prompt_policy_routers import prompt_policy_router
 from app.apis.v1.rag_routers import rag_router
 from app.apis.v1.records_routers import records_router
 from app.apis.v1.user_routers import user_router
@@ -28,3 +29,4 @@ v1_routers.include_router(notifications_router)
 v1_routers.include_router(rag_router)
 v1_routers.include_router(chat_router)
 v1_routers.include_router(guide_router)
+v1_routers.include_router(prompt_policy_router)
