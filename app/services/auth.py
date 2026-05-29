@@ -1,3 +1,6 @@
+import hmac
+import secrets
+import string
 from datetime import UTC, datetime
 
 from pydantic import EmailStr
@@ -14,7 +17,7 @@ from app.exceptions import (
     InvalidCredentialsException,
     WithdrawnUserException,
 )
-from app.exceptions.common import TooManyRequestsException, UnauthorizedException
+from app.exceptions.common import BadRequestException, TooManyRequestsException, UnauthorizedException
 from app.models.auth_tokens import AuthToken
 from app.models.user_consents import ConsentType, RequiredType, UserConsent
 from app.models.users import User, UserStatus
@@ -114,13 +117,10 @@ class AuthService:
         return new_tokens
 
     async def request_password_reset(self, email: str) -> None:
-        import random
-        import string
-
         user = await User.get_or_none(email=email)
         if not user:
             return  # 보안상 존재 여부 노출 안 함
-        code = "".join(random.choices(string.digits, k=6))
+        code = "".join(secrets.choice(string.digits) for _ in range(6))
         redis_key = f"pw_reset:{email}"
         await redis_client.set(redis_key, code, ex=600)  # 10분 TTL
         body = f"""
@@ -132,15 +132,13 @@ class AuthService:
         await send_email(to=email, subject="[MediPT] 비밀번호 재설정 인증 코드", body=body)
 
     async def confirm_password_reset(self, email: str, code: str, new_password: str) -> None:
-        from app.exceptions.common import BadRequestException
-
         redis_key = f"pw_reset:{email}"
         stored_code = await redis_client.get(redis_key)
-        if not stored_code or stored_code != code:
+        if not stored_code or not hmac.compare_digest(stored_code, code):
             raise BadRequestException(detail="인증 코드가 올바르지 않거나 만료되었습니다.")
         user = await User.get_or_none(email=email)
         if not user:
-            raise BadRequestException(detail="존재하지 않는 이메일입니다.")
+            raise BadRequestException(detail="인증 코드가 올바르지 않거나 만료되었습니다.")
         user.password_hash = hash_password(new_password)
         user.password_changed_at = datetime.now(UTC)
         await user.save()
