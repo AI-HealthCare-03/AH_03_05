@@ -33,6 +33,9 @@ PW_RESET_COOLDOWN_TTL = 60  # 1분
 PW_RESET_FAIL_KEY = "pw_reset_fail:{email}"
 PW_RESET_FAIL_LIMIT = 5
 
+EMAIL_VERIFY_FAIL_KEY = "email_verify_fail:{email}"
+EMAIL_VERIFY_FAIL_LIMIT = 5
+
 
 class AuthService:
     def __init__(self):
@@ -163,11 +166,11 @@ class AuthService:
         await redis_client.delete(redis_key)
 
     async def send_verification_code(self, email: str) -> None:
+        await self.check_email_exists(email)
         cooldown_key = f"email_verify_cooldown:{email}"
         if await redis_client.get(cooldown_key):
             retry_after = await redis_client.ttl(cooldown_key)
             raise TooManyRequestsException(detail="잠시 후 다시 시도해주세요.", retry_after=retry_after)
-        await self.check_email_exists(email)
         code = "".join(secrets.choice(string.digits) for _ in range(6))
         redis_key = f"email_verify:{email}"
         await redis_client.set(redis_key, code, ex=600)  # 10분 TTL
@@ -187,7 +190,7 @@ class AuthService:
         if not stored_code or not hmac.compare_digest(stored_code, code):
             fail_count = await redis_client.incr(fail_key)
             await redis_client.expire(fail_key, 600)
-            if fail_count >= PW_RESET_FAIL_LIMIT:
+            if fail_count >= EMAIL_VERIFY_FAIL_LIMIT:
                 await redis_client.delete(redis_key)
                 await redis_client.delete(fail_key)
             raise BadRequestException(detail="인증 코드가 올바르지 않거나 만료되었습니다.")
