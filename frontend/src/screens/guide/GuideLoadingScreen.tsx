@@ -94,10 +94,14 @@ export function GuideLoadingScreen({ navigation, route }: any) {
           </Text>
           <View style={{ flexDirection: 'row', gap: spacing.s12 }}>
             <Button variant="ghost" size="sm" onPress={() => {
+              navigation.goBack();
               if (recordId) {
-                navigation.getParent()?.navigate('RecordsTab', { screen: 'RecordDetail', params: { recordId } });
+                navigation.getParent()?.getParent()?.navigate('Main', {
+                  screen: 'RecordsTab',
+                  params: { screen: 'RecordDetail', params: { recordId } },
+                });
               } else {
-                navigation.navigate('Home');
+                navigation.getParent()?.getParent()?.navigate('Main', { screen: 'HomeTab', params: { screen: 'Home' } });
               }
             }}>뒤로가기</Button>
             <Button variant="primary" size="sm" onPress={startGuide}>다시 시도</Button>

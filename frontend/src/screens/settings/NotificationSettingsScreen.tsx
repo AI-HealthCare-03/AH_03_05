@@ -3,6 +3,7 @@ import { View, Text, Switch, TouchableOpacity, Platform, Modal, StyleSheet } fro
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { scheduleMedicationNotifications } from '../../utils/notifications';
 import { useApp } from '../../context/AppContext';
+import { getMedicationAlarms, updateMedicationAlarm } from '../../api/medications';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -122,6 +123,21 @@ export function NotificationSettingsScreen({ navigation }: any) {
     const next = { master, morning, lunch, dinner, newGuide, chatReply, marketing };
     setNotifSettings(next);
     await scheduleMedicationNotifications(next).catch(() => {});
+
+    try {
+      const meds = await getMedicationAlarms();
+      if (meds.length > 0) {
+        const alarm_times = master
+          ? [morning, lunch, dinner].filter(m => m.on).map(m => m.time)
+          : [];
+        await Promise.all(
+          meds.map(med => updateMedicationAlarm(med.id, { alarm_times, is_alarm_enabled: master }))
+        );
+      }
+    } catch {
+      // 로컬 설정은 이미 적용됨 — BE 동기화 실패는 무시
+    }
+
     flash('저장했어요');
     navigation.goBack();
   };

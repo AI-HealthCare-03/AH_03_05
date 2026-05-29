@@ -22,7 +22,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 100,
+    zIndex: 9999,
+    elevation: 9999,
   },
   pill: {
     backgroundColor: colors.ink,

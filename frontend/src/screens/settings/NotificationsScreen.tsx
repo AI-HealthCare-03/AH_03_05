@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useApp, type Notification } from '../../context/AppContext';
 import Icon from '../../components/Icon';
@@ -49,6 +49,7 @@ function mapNotifIcon(t: string): string {
 
 export function NotificationsScreen({ navigation }: any) {
   const { notifications, setNotifications, flash, markNotificationRead } = useApp();
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     notificationsApi.getNotifications().then(res => {
@@ -68,33 +69,45 @@ export function NotificationsScreen({ navigation }: any) {
         };
       });
       setNotifications(mapped);
-    }).catch(() => {});
+      setLoadError('');
+    }).catch(() => setLoadError('알림을 불러오지 못했어요. 잠시 후 다시 시도해주세요.'));
   }, []);
 
   const handleNotifPress = (n: Notification) => {
     const id = n.id;
     if (id != null && !Number.isNaN(Number(id))) {
       markNotificationRead(id);
-      notificationsApi.markNotificationRead(Number(id)).catch(() => {});
+      notificationsApi.markNotificationRead(Number(id))
+        .catch(() => flash('읽음 처리에 실패했어요'));
     }
     if (n.type === 'medication') {
       navigation.navigate('MedicationAlarm', {});
     }
   };
 
-  const markAll = () => {
-    notificationsApi.markAllNotificationsRead().catch(() => {});
-    setNotifications(notifications.map(n => ({ ...n, unread: false })));
-    flash('모두 읽음 처리했어요');
+  const markAll = async () => {
+    try {
+      await notificationsApi.markAllNotificationsRead();
+      setNotifications(notifications.map(n => ({ ...n, unread: false })));
+      flash('모두 읽음 처리했어요');
+    } catch {
+      flash('읽음 처리에 실패했어요. 다시 시도해주세요.');
+    }
   };
 
-  const clear = () => {
-    notifications.forEach(n => {
-      const numId = Number(n.id);
-      if (!Number.isNaN(numId)) notificationsApi.deleteNotification(numId).catch(() => {});
-    });
+  const clear = async () => {
+    const prev = notifications;
     setNotifications([]);
-    flash('알림을 모두 지웠어요');
+    try {
+      await Promise.all(
+        prev.filter(n => !Number.isNaN(Number(n.id)))
+            .map(n => notificationsApi.deleteNotification(Number(n.id)))
+      );
+      flash('알림을 모두 지웠어요');
+    } catch {
+      setNotifications(prev);
+      flash('알림 삭제에 실패했어요. 다시 시도해주세요.');
+    }
   };
 
   const todayStart = new Date();
@@ -103,16 +116,24 @@ export function NotificationsScreen({ navigation }: any) {
   const today   = notifications.filter(isToday);
   const earlier = notifications.filter(n => !isToday(n));
 
-  const right = (
+  const right = notifications.length > 0 ? (
     <View style={{ flexDirection: 'row', gap: spacing.s8 }}>
       <Button variant="ghost" size="sm" onPress={markAll}>모두 읽음</Button>
       <Button variant="ghost" size="sm" onPress={clear}>모두 지우기</Button>
     </View>
-  );
+  ) : null;
+
+  const errorBanner = loadError ? (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: 14 }}>
+      <Icon name="alert" size={14} color={colors.danger} />
+      <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{loadError}</Text>
+    </View>
+  ) : null;
 
   if (notifications.length === 0) {
     return (
       <ScreenLayout title="알림" back onBack={() => navigation.goBack()} right={right} scrollable>
+        {errorBanner}
         <Card shadow style={{ alignItems: 'center', paddingVertical: spacing.s56 }}>
           <Icon name="bell" size={36} color={colors.muted2} />
           <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, marginTop: 14 }}>알림이 없어요</Text>
@@ -123,6 +144,7 @@ export function NotificationsScreen({ navigation }: any) {
 
   return (
     <ScreenLayout title="알림" back onBack={() => navigation.goBack()} right={right} scrollable>
+      {errorBanner}
       {[{ label: '오늘', items: today }, { label: '이전', items: earlier }].map(g =>
         g.items.length > 0 ? (
           <View key={g.label} style={{ marginBottom: 18 }}>

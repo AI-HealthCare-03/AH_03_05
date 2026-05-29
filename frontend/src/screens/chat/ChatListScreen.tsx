@@ -25,11 +25,6 @@ function formatTime(iso?: string): string {
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
 
-const MOCK_SESSIONS: ChatSession[] = [
-  { session_id: 1, title: '혈압약 부작용 문의',  last_message: '혈압약 먹는데 사우나 가도 되나요?', status: 'active', updated_at: new Date(Date.now() - 2 * 60 * 60000).toISOString() },
-  { session_id: 2, title: '메트포르민과 음주',   last_message: '와인 한 잔 정도는 괜찮을까요?',     status: 'active', updated_at: new Date(Date.now() - 26 * 60 * 60000).toISOString() },
-  { session_id: 3, title: '고지혈증 식단',        last_message: '어떤 음식이 좋을까요?',             status: 'active', updated_at: new Date(Date.now() - 25 * 24 * 60 * 60000).toISOString() },
-];
 
 export function ChatListScreen({ navigation, route }: any) {
   const { top: safeTop } = useSafeAreaInsets();
@@ -47,15 +42,10 @@ export function ChatListScreen({ navigation, route }: any) {
       setLoading(true);
       setError('');
       try {
-        const res = await chatApi.getChatSessions({ page: 1, size: 20 });
+        const res = await chatApi.getChatSessions({ limit: 20, offset: 0 });
         setSessions(res.items);
       } catch (err: any) {
-        if (__DEV__) {
-          // TODO: [BE 대기] GET /chat/sessions 미구현 — 구현 완료 후 mock 제거
-          setSessions(MOCK_SESSIONS);
-        } else {
-          setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.');
-        }
+        setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.');
       } finally {
         setLoading(false);
       }
@@ -156,7 +146,7 @@ export function ChatListScreen({ navigation, route }: any) {
           <Button variant="ghost" size="sm" onPress={() => {
             setLoading(true);
             setError('');
-            chatApi.getChatSessions({ page: 1, size: 20 })
+            chatApi.getChatSessions({ limit: 20, offset: 0 })
               .then(res => setSessions(res.items))
               .catch(() => setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.'))
               .finally(() => setLoading(false));

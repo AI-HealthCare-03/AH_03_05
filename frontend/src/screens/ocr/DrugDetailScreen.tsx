@@ -45,20 +45,6 @@ export function DrugDetailScreen({ navigation, route }: any) {
           setDrug(cached.data);
           setLastFetched(cached.date);
           setUsingCache(true);
-        } else if (__DEV__) {
-          const dummy: DrugDetail = {
-            drug_ref_id: drugId!,
-            drug_name: '타이레놀정 500mg',
-            ingredient_name: 'Acetaminophen (아세트아미노펜)',
-            manufacturer: '한국얀센',
-            efficacy: '발열, 두통, 치통, 근육통, 생리통, 관절통, 신경통 등의 해열 및 진통에 쓰입니다.',
-            usage_method: '성인 및 15세 이상: 1회 1~2정, 1일 3~4회 필요 시 복용합니다. 복용 간격은 4~6시간 이상으로 유지하세요.',
-            caution: '간 질환, 신장 질환 환자는 복용 전 의사 또는 약사와 상의하세요. 알코올과의 병용을 피하세요. 다른 해열진통제와 동시 복용하지 마세요.',
-            side_effect: '드물게 피부 발진, 두드러기, 구역질이 나타날 수 있습니다. 이상 증상 발생 시 복용을 중단하고 의사와 상담하세요.',
-          };
-          cache.set(drugId!, { data: dummy, date: todayStr() });
-          setDrug(dummy);
-          setLastFetched(todayStr());
         } else {
           setFetchError(extractApiError(e));
         }

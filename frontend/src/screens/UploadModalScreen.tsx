@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, Platform, TextInput, ScrollView, Keyboard } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import Icon from '../components/Icon';
 import { colors, radii, spacing, typography } from '../theme';
-import { uploadRecord } from '../api/records';
+import { uploadRecord, createManualRecord } from '../api/records';
 import type { UploadFile } from '../api/records';
 import type { RecordType } from '../api/types';
 
@@ -52,15 +52,27 @@ export default function UploadModalScreen({ navigation }: any) {
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [manualMode, setManualMode] = useState(false);
+  const [manualText, setManualText] = useState('');
 
   const { isTabletOrAbove } = useBreakpoint();
   const { width } = useWindowDimensions();
   const cardWidth = isTabletOrAbove ? 520 : width - 40;
 
+  const [kbHeight, setKbHeight] = useState(0);
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    const show = Keyboard.addListener('keyboardDidShow', e => setKbHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
   const handleClose = () => {
     setUploading(false);
     setUploadDone(false);
     setUploadError('');
+    setManualMode(false);
+    setManualText('');
     navigation.goBack();
   };
 
@@ -104,9 +116,30 @@ export default function UploadModalScreen({ navigation }: any) {
     input.click();
   };
 
+  const doManualInput = async () => {
+    if (!manualText.trim()) return;
+    setUploadError('');
+    setUploading(true);
+    try {
+      const res = await createManualRecord(manualText.trim());
+      setUploadDone(true);
+      // TODO: BE manual-input 텍스트 파싱 미구현, medication_candidates 항상 빈 배열
+      setTimeout(() => {
+        (navigation as any).navigate('Main', {
+          screen: 'HomeTab',
+          params: { screen: 'OCRResult', params: { recordId: res.record_id, inputMethod: 'manual' } },
+        });
+      }, 700);
+    } catch (e: any) {
+      setUploading(false);
+      setUploadError(e?.response?.data?.detail ?? e?.message ?? '저장에 실패했습니다.');
+    }
+  };
+
   const handleSourcePress = async (srcId: string) => {
     if (srcId === 'manual') {
-      setUploadError('직접입력 기능은 준비 중입니다.');
+      setManualMode(true);
+      setUploadError('');
       return;
     }
 
@@ -169,41 +202,77 @@ export default function UploadModalScreen({ navigation }: any) {
             <View style={[s.progressFill, uploadDone && { width: '100%' as any }]} />
           </View>
         </View>
-      ) : (
-        <>
-          <View style={{ flexDirection: 'row', gap: spacing.s8, marginBottom: 14 }}>
-            {TYPES.map((t) => (
-              <TouchableOpacity key={t.id} style={[s.typeCard, type === t.id && s.typeCardActive]} onPress={() => setType(t.id)}>
-                <View style={[s.typeIcon, { backgroundColor: type === t.id ? colors.accent100 : colors.surface2 }]}>
-                  <Icon name={t.icon} size={14} color={type === t.id ? colors.accent700 : colors.muted} />
-                </View>
-                <Text style={[{ fontSize: typography.fz12, fontWeight: typography.fw6 }, type === t.id && { color: colors.accent700 }]}>{t.id}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <View style={{ gap: spacing.s8, marginBottom: 14 }}>
-            {[SOURCES.slice(0, 2), SOURCES.slice(2, 4)].map((row, ri) => (
-              <View key={ri} style={{ flexDirection: 'row', gap: spacing.s8 }}>
-                {row.map((src) => (
-                  <SourceCard key={src.id} src={src} onPress={handleSourcePress} />
-                ))}
+      ) : manualMode ? (
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            style={{ flexGrow: 0 }}
+            contentContainerStyle={{ paddingBottom: kbHeight }}
+          >
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}
+              onPress={() => { setManualMode(false); setManualText(''); setUploadError(''); }}
+            >
+              <Icon name="chevron-left" size={14} color={colors.accent} />
+              <Text style={{ fontSize: typography.fz13, color: colors.accent, marginLeft: 4 }}>뒤로</Text>
+            </TouchableOpacity>
+            <TextInput
+              multiline
+              placeholder="진료 내용, 처방 약품 등을 직접 입력해주세요."
+              placeholderTextColor={colors.muted}
+              value={manualText}
+              onChangeText={setManualText}
+              style={s.manualInput}
+            />
+            {uploadError ? (
+              <View style={s.errorBox}>
+                <Icon name="alert" size={13} color={colors.danger} />
+                <Text style={s.errorText}>{uploadError}</Text>
               </View>
-            ))}
-          </View>
-
-          {uploadError ? (
-            <View style={s.errorBox}>
-              <Icon name="alert" size={13} color={colors.danger} />
-              <Text style={s.errorText}>{uploadError}</Text>
+            ) : null}
+            <TouchableOpacity
+              style={[s.manualSubmit, !manualText.trim() && { opacity: 0.4 }]}
+              onPress={doManualInput}
+              disabled={!manualText.trim()}
+            >
+              <Text style={s.manualSubmitText}>분석 시작</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        ) : (
+          <>
+            <View style={{ flexDirection: 'row', gap: spacing.s8, marginBottom: 14 }}>
+              {TYPES.map((t) => (
+                <TouchableOpacity key={t.id} style={[s.typeCard, type === t.id && s.typeCardActive]} onPress={() => setType(t.id)}>
+                  <View style={[s.typeIcon, { backgroundColor: type === t.id ? colors.accent100 : colors.surface2 }]}>
+                    <Icon name={t.icon} size={14} color={type === t.id ? colors.accent700 : colors.muted} />
+                  </View>
+                  <Text style={[{ fontSize: typography.fz12, fontWeight: typography.fw6 }, type === t.id && { color: colors.accent700 }]}>{t.id}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          ) : null}
 
-          <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: 'center' }}>
-            JPG · PNG · PDF / 최대 10MB · 원본은 90일 후 자동 삭제
-          </Text>
-        </>
-      )}
+            <View style={{ gap: spacing.s8, marginBottom: 14 }}>
+              {[SOURCES.slice(0, 2), SOURCES.slice(2, 4)].map((row, ri) => (
+                <View key={ri} style={{ flexDirection: 'row', gap: spacing.s8 }}>
+                  {row.map((src) => (
+                    <SourceCard key={src.id} src={src} onPress={handleSourcePress} />
+                  ))}
+                </View>
+              ))}
+            </View>
+
+            {uploadError ? (
+              <View style={s.errorBox}>
+                <Icon name="alert" size={13} color={colors.danger} />
+                <Text style={s.errorText}>{uploadError}</Text>
+              </View>
+            ) : null}
+
+            <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: 'center' }}>
+              JPG · PNG · PDF / 최대 10MB · 원본은 90일 후 자동 삭제
+            </Text>
+          </>
+        )}
     </>
   );
 
@@ -245,4 +314,7 @@ const s = StyleSheet.create({
   progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3, width: '60%' },
   errorBox: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: spacing.s8 },
   errorText: { flex: 1, fontSize: typography.fz12, color: colors.danger, lineHeight: 18 },
+  manualInput: { borderWidth: 1, borderColor: colors.hairline, borderRadius: radii.md, padding: spacing.s12, fontSize: typography.fz14, color: colors.ink, minHeight: 140, textAlignVertical: 'top', marginBottom: 14 },
+  manualSubmit: { backgroundColor: colors.accent, borderRadius: radii.md, paddingVertical: spacing.s12, alignItems: 'center' },
+  manualSubmitText: { fontSize: typography.fz15, fontWeight: typography.fw6, color: '#fff' },
 });

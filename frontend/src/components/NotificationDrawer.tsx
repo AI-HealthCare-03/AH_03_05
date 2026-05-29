@@ -12,6 +12,7 @@ import Icon from './Icon';
 import Card from './Card';
 import Button from './Button';
 import { notificationsApi } from '../api';
+import Toast from './Toast';
 
 const DRAWER_WIDTH = 460;
 
@@ -136,6 +137,7 @@ export default function NotificationDrawer() {
   return (
     <Modal transparent visible={rendered} animationType="none" onRequestClose={close}>
       <View style={s.overlay} pointerEvents="box-none">
+        <Toast />
         {/* 스크림 */}
         <Animated.View style={[s.scrim, { opacity: fadeAnim }]} pointerEvents={notifDrawerOpen ? 'auto' : 'none'}>
           <TouchableOpacity style={{ flex: 1 }} onPress={close} activeOpacity={1} />
@@ -154,8 +156,8 @@ export default function NotificationDrawer() {
           <View style={[s.header, { paddingTop: insets.top + spacing.s16 }]}>
             <Text style={s.title}>알림</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8 }}>
-              <Button variant="ghost" size="sm" onPress={markAll}>모두 읽음</Button>
-              <Button variant="ghost" size="sm" onPress={clear}>모두 지우기</Button>
+              {notifications.length > 0 && <Button variant="ghost" size="sm" onPress={markAll}>모두 읽음</Button>}
+              {notifications.length > 0 && <Button variant="ghost" size="sm" onPress={clear}>모두 지우기</Button>}
               <TouchableOpacity onPress={close} style={s.closeBtn}>
                 <Icon name="x" size={15} color={colors.ink2} />
               </TouchableOpacity>

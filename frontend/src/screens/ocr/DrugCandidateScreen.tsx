@@ -16,16 +16,19 @@ export function DrugCandidateScreen({ navigation, route }: any) {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const doSearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
     setSearched(true);
+    setSearchError('');
     try {
       const res = await drugsApi.searchDrugs({ keyword: query.trim(), limit: 10 });
       setResults(res.results);
     } catch {
       setResults([]);
+      setSearchError('검색 중 오류가 발생했어요. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -53,7 +56,13 @@ export function DrugCandidateScreen({ navigation, route }: any) {
         </Button>
       </Card>
 
-      {searched && !loading && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: 10 }}>검색 결과 {results.length}건</Text>}
+      {searched && !loading && !searchError && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: 10 }}>검색 결과 {results.length}건</Text>}
+      {searchError ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: 10 }}>
+          <Icon name="alert" size={13} color={colors.danger} />
+          <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{searchError}</Text>
+        </View>
+      ) : null}
 
       {results.map((c, i) => (
         <Card shadow key={i} style={{ marginBottom: spacing.s12 }}>

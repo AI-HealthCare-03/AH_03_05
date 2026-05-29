@@ -98,7 +98,7 @@ export default function HomeScreen({ navigation }: any) {
     useCallback(() => {
       notificationsApi.getUnreadCount().then(res => {
         setUnreadCount(res.unread_count);
-      }).catch(() => {});
+      }).catch(() => flash('알림 개수를 불러오지 못했어요'));
 
       notificationsApi.getNotifications().then(res => {
         const mapped: Notification[] = res.items.map(item => {
@@ -115,15 +115,15 @@ export default function HomeScreen({ navigation }: any) {
           };
         });
         setNotifications(mapped);
-      }).catch(() => {});
+      }).catch(() => flash('알림 목록을 불러오지 못했어요'));
 
       recordsApi.getRecords({ size: 1 }).then(res => {
         const latestRecord = res.items[0];
         if (!latestRecord) return;
-        return recordsApi.getRecordGuide(latestRecord.record_id);
-      }).then(guide => {
-        if (guide) setRecentGuideId(guide.guide_id);
-      }).catch(() => {});
+        recordsApi.getRecordGuide(latestRecord.record_id)
+          .then(guide => { if (guide) setRecentGuideId(guide.guide_id); })
+          .catch(() => {});
+      }).catch(() => flash('최근 기록을 불러오지 못했어요'));
     }, [])
   );
 

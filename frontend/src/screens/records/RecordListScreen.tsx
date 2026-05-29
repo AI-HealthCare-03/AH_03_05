@@ -9,13 +9,20 @@ import { recordsApi, extractApiError } from "../../api";
 import type { RecordSummary } from "../../api";
 import { RECORD_LABEL, FILTER_TO_TYPE, iconFor, formatDate, getRecordColor, s } from "./_recordsShared";
 
-const devRecords: RecordSummary[] = [
-  { record_id: 1, record_type: "prescription",   status: "ocr_completed", uploaded_at: "2026-05-11T10:00:00", hospital_name: "서울 내과 의원",  medication_count: 3 },
-  { record_id: 2, record_type: "medicine_bag",    status: "ocr_completed", uploaded_at: "2026-04-22T14:00:00", hospital_name: "한양 약국",        medication_count: 2 },
-  { record_id: 3, record_type: "medical_record",  status: "uploaded",      uploaded_at: "2026-04-15T09:00:00", hospital_name: "서울대학교 병원",  medication_count: 0 },
-];
+function statusChip(status: string): { label: string; color: string; bg: string } {
+  if (status === 'ocr_completed')
+    return { label: '완료', color: colors.success, bg: colors.success50 };
+  if (status === 'ocr_failed')
+    return { label: '실패', color: colors.danger, bg: colors.danger50 };
+  if (status === 'ocr_pending')
+    return { label: '처리 중', color: colors.muted, bg: colors.surface2 };
+  if (status === 'uploaded')
+    return { label: '업로드됨', color: colors.accent700, bg: colors.accent50 };
+  return { label: status, color: colors.muted, bg: colors.surface2 };
+}
 
 function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
+  const chip = statusChip(r.status);
   return (
     <Card shadow noPadding onPress={onPress}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: spacing.s20 }}>
@@ -26,6 +33,9 @@ function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, marginBottom: spacing.s4 }}>
             <View style={{ paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 999, borderWidth: 0.5, borderColor: colors.hairline }}>
               <Text style={{ fontSize: typography.fz11, color: colors.ink2 }}>{RECORD_LABEL[r.record_type]}</Text>
+            </View>
+            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 999, backgroundColor: chip.bg }}>
+              <Text style={{ fontSize: typography.fz11, color: chip.color, fontWeight: typography.fw6 }}>{chip.label}</Text>
             </View>
             <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(r.uploaded_at)}</Text>
           </View>
@@ -61,19 +71,9 @@ export function RecordListScreen({ navigation }: any) {
           ...(recordType !== undefined && { record_type: recordType }),
           size: 50,
         });
-        if (res.items.length === 0 && __DEV__) {
-          if (filter === '전체') {
-          }
-          setRecords(devRecords);
-        } else {
-          setRecords(res.items);
-        }
+        setRecords(res.items);
       } catch (e) {
-        if (__DEV__) {
-          setRecords(devRecords);
-        } else {
-          setError(extractApiError(e));
-        }
+        setError(extractApiError(e));
       } finally {
         setLoading(false);
         setRefreshing(false);

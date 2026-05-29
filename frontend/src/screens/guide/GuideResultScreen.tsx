@@ -121,14 +121,16 @@ export function GuideResultScreen({ navigation, route }: any) {
   const guideId: number | undefined = route?.params?.guideId;
   const [guide, setGuide] = useState<GuideResponse | null>(null);
   const [guideLoading, setGuideLoading] = useState(!!guideId);
+  const [guideError, setGuideError] = useState('');
 
   useEffect(() => {
     if (!guideId) return;
     setGuideLoading(true);
+    setGuideError('');
     guidesApi
       .getGuide(guideId)
       .then(setGuide)
-      .catch(() => {})
+      .catch(e => setGuideError(extractApiError(e)))
       .finally(() => setGuideLoading(false));
   }, [guideId]);
 
@@ -168,6 +170,11 @@ export function GuideResultScreen({ navigation, route }: any) {
           {guideLoading ? (
             <View style={{ alignItems: "center", paddingVertical: spacing.s24 }}>
               <ActivityIndicator color={colors.accent} />
+            </View>
+          ) : guideError ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: 14, borderWidth: 1, borderColor: colors.danger }}>
+              <Icon name="alert" size={14} color={colors.danger} />
+              <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
             </View>
           ) : apiMedItems.length > 0 ? (
             apiMedItems.map((item, i) => <GuideItemCard key={i} item={item} />)
@@ -213,6 +220,11 @@ export function GuideResultScreen({ navigation, route }: any) {
           {guideLoading ? (
             <View style={{ alignItems: "center", paddingVertical: spacing.s24 }}>
               <ActivityIndicator color={colors.accent} />
+            </View>
+          ) : guideError ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: 14, borderWidth: 1, borderColor: colors.danger }}>
+              <Icon name="alert" size={14} color={colors.danger} />
+              <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
             </View>
           ) : apiLifeItems.length > 0 ? (
             apiLifeItems.map((item, i) => <GuideItemCard key={i} item={item} />)

@@ -8,7 +8,7 @@ import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { colors, spacing, typography } from '../../theme';
-import { recordsApi, extractApiError } from '../../api';
+import { recordsApi, medicationsApi, extractApiError } from '../../api';
 import type { MedicationCandidate } from '../../api';
 import { s } from './_ocrShared';
 
@@ -23,11 +23,13 @@ function buildCandidateTime(c: MedicationCandidate): string {
 
 export function OCRResultScreen({ navigation, route }: any) {
   const recordId: number | undefined = route?.params?.recordId;
+  const inputMethod: string | undefined = route?.params?.inputMethod;
   const { ocrSession, setOcrSession, flash } = useApp();
   const [candidates, setCandidates] = useState<MedicationCandidate[]>([]);
   const [loading, setLoading] = useState(!!recordId);
   const [error, setError] = useState('');
   const [imageRemoved, setImageRemoved] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (!recordId) return;
@@ -63,6 +65,28 @@ export function OCRResultScreen({ navigation, route }: any) {
       }))
     : ocrSession.drugs;
 
+  const handleGuideGenerate = async () => {
+    // TODO: BE에서 medication_candidates에 medication_id 추가 후 동작, 현재는 verify 스킵됨
+    if (recordId && candidates.length > 0 && candidates.some(c => c.medication_id !== undefined)) {
+      setVerifying(true);
+      try {
+        await medicationsApi.verifyMedications(
+          recordId,
+          candidates.map(c => ({
+            medication_id: c.medication_id!,
+            drug_ref_id: c.drug_ref_id != null ? String(c.drug_ref_id) : null,
+          })),
+        );
+      } catch (e) {
+        setVerifying(false);
+        setError(extractApiError(e));
+        return;
+      }
+      setVerifying(false);
+    }
+    navigation.navigate('GuideLoading', recordId ? { recordId } : undefined);
+  };
+
   if (loading) {
     return (
       <View style={[s.loadingRoot, { alignItems: 'center', justifyContent: 'center' }]}>
@@ -78,35 +102,37 @@ export function OCRResultScreen({ navigation, route }: any) {
       back
       onBack={() => navigation.goBack()}
       right={
-        <Button variant="primary" size="sm" leftIcon="wand" onPress={() => navigation.navigate('GuideLoading', recordId ? { recordId } : undefined)}>가이드 생성하기</Button>
+        <Button variant="primary" size="sm" leftIcon="wand" onPress={handleGuideGenerate} loading={verifying} disabled={verifying}>가이드 생성하기</Button>
       }
       scrollable
       scrollPadding={false}
       contentStyle={{ padding: spacing.s20 }}
     >
-      {!imageRemoved ? (
-        <Card shadow style={{ marginBottom: 14 }}>
-          <View style={s.docPreview}>
-            <Icon name="doc" size={72} color="rgba(8,145,178,0.3)" />
-            <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn}>
-              <Icon name="x" size={14} color={colors.ink} />
+      {inputMethod !== 'manual' && (
+        !imageRemoved ? (
+          <Card shadow style={{ marginBottom: 14 }}>
+            <View style={s.docPreview}>
+              <Icon name="doc" size={72} color="rgba(8,145,178,0.3)" />
+              <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn}>
+                <Icon name="x" size={14} color={colors.ink} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.s12 }}>
+              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>
+                {recordId ? `기록 #${recordId}` : ocrSession.fileName}
+              </Text>
+              <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{ocrSession.fileSize}</Text>
+            </View>
+          </Card>
+        ) : (
+          <Card shadow style={{ marginBottom: 14, alignItems: 'center', paddingVertical: spacing.s24 }}>
+            <Icon name="image" size={24} color={colors.muted2} />
+            <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s8 }}>원본 이미지를 제거했어요</Text>
+            <TouchableOpacity onPress={() => { setImageRemoved(false); flash('이미지를 복원했습니다'); }} style={{ marginTop: 4 }}>
+              <Text style={{ fontSize: typography.fz12, color: colors.accent }}>되돌리기</Text>
             </TouchableOpacity>
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.s12 }}>
-            <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>
-              {recordId ? `기록 #${recordId}` : ocrSession.fileName}
-            </Text>
-            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{ocrSession.fileSize}</Text>
-          </View>
-        </Card>
-      ) : (
-        <Card shadow style={{ marginBottom: 14, alignItems: 'center', paddingVertical: spacing.s24 }}>
-          <Icon name="image" size={24} color={colors.muted2} />
-          <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s8 }}>원본 이미지를 제거했어요</Text>
-          <TouchableOpacity onPress={() => { setImageRemoved(false); flash('이미지를 복원했습니다'); }} style={{ marginTop: 4 }}>
-            <Text style={{ fontSize: typography.fz12, color: colors.accent }}>되돌리기</Text>
-          </TouchableOpacity>
-        </Card>
+          </Card>
+        )
       )}
 
       {error ? (
