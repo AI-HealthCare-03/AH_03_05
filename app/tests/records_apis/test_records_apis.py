@@ -343,3 +343,76 @@ class TestMedicalRecordAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_manual_input_creates_medications(self):
+        """manual-input 텍스트 파싱 후 Medication 생성 검증"""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "manual_parse@example.com",
+                    "password": "Password123!",
+                    "name": "파싱테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "manual_parse@example.com", "password": "Password123!"},
+            )
+            headers = {"Authorization": f"Bearer {login_response.json()['access_token']}"}
+
+            response = await client.post(
+                "/api/v1/records/manual-input",
+                json={"ocr_edited_text": "타이레놀 500mg\n아스피린 100mg\n이부프로펜 200mg"},
+                headers=headers,
+            )
+            record_id = response.json()["record_id"]
+
+            # OCR 결과에서 medication_candidates 확인
+            ocr_response = await client.get(
+                f"/api/v1/records/{record_id}/ocr-result",
+                headers=headers,
+            )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert ocr_response.status_code == status.HTTP_200_OK
+        candidates = ocr_response.json()["medication_candidates"]
+        assert len(candidates) == 3
+        assert all("medication_id" in c for c in candidates)
+
+    async def test_get_ocr_result_includes_medication_id(self):
+        """OCR 결과 응답에 medication_id 포함 검증"""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "ocr_med_id@example.com",
+                    "password": "Password123!",
+                    "name": "약품ID테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "ocr_med_id@example.com", "password": "Password123!"},
+            )
+            headers = {"Authorization": f"Bearer {login_response.json()['access_token']}"}
+
+            record_response = await client.post(
+                "/api/v1/records/manual-input",
+                json={"ocr_edited_text": "타이레놀 500mg"},
+                headers=headers,
+            )
+            record_id = record_response.json()["record_id"]
+
+            response = await client.get(
+                f"/api/v1/records/{record_id}/ocr-result",
+                headers=headers,
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        candidates = response.json()["medication_candidates"]
+        assert len(candidates) == 1
+        assert "medication_id" in candidates[0]
+        assert candidates[0]["medication_id"] is not None

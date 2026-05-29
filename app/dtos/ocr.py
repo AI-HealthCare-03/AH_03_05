@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class MedicationCandidate(BaseModel):
+    medication_id: int | None = None
     drug_name: str
     manufacturer: str | None = None
     confidence: float | None = None
