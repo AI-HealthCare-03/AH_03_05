@@ -45,6 +45,7 @@ class ChatSessionListItem(BaseModel):
     guide_id: int | None
     title: str | None
     status: str
+    last_message_preview: str | None
     created_at: datetime
     updated_at: datetime
 

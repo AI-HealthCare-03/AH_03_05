@@ -121,6 +121,7 @@ async def list_chat_sessions(
                 guide_id=s.guide_id,
                 title=s.title,
                 status=s.status.value,
+                last_message_preview=s.last_message_preview,
                 created_at=s.created_at,
                 updated_at=s.updated_at,
             )
