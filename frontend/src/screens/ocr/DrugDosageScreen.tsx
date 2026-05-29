@@ -21,6 +21,10 @@ export function DrugDosageScreen({ navigation, route }: any) {
   const [time, setTime] = useState(savedParts[1] || '식후 30분');
   const [duration, setDuration] = useState(savedParts[2] || '14일');
 
+  // TODO: 복용법 수정 내용이 서버에 저장되지 않음
+  // 현재 setOcrSession(로컬 context)만 업데이트, BE 저장 API 미연결
+  // BE에서 약품별 복용법 수정 API (예: PATCH /medications/{medication_id}) 구현 후 연결 필요
+  // 연결 전까지 DrugDosageScreen에서 수정한 복용법은 가이드 생성 시 반영되지 않음
   const save = () => {
     const timeStr = `1일 ${freq} · ${time} · ${duration}`; // B11: duration 포함
     if (fromSearch && drugIndex === undefined) {
