@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, Platform, TextInput, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, Platform, TextInput, ScrollView, Keyboard } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -58,6 +58,14 @@ export default function UploadModalScreen({ navigation }: any) {
   const { isTabletOrAbove } = useBreakpoint();
   const { width } = useWindowDimensions();
   const cardWidth = isTabletOrAbove ? 520 : width - 40;
+
+  const [kbHeight, setKbHeight] = useState(0);
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    const show = Keyboard.addListener('keyboardDidShow', e => setKbHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   const handleClose = () => {
     setUploading(false);
@@ -119,7 +127,7 @@ export default function UploadModalScreen({ navigation }: any) {
       setTimeout(() => {
         (navigation as any).navigate('Main', {
           screen: 'HomeTab',
-          params: { screen: 'OCRResult', params: { recordId: res.record_id } },
+          params: { screen: 'OCRResult', params: { recordId: res.record_id, inputMethod: 'manual' } },
         });
       }, 700);
     } catch (e: any) {
@@ -195,7 +203,12 @@ export default function UploadModalScreen({ navigation }: any) {
           </View>
         </View>
       ) : manualMode ? (
-          <>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            style={{ flexGrow: 0 }}
+            contentContainerStyle={{ paddingBottom: kbHeight }}
+          >
             <TouchableOpacity
               style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}
               onPress={() => { setManualMode(false); setManualText(''); setUploadError(''); }}
@@ -224,7 +237,7 @@ export default function UploadModalScreen({ navigation }: any) {
             >
               <Text style={s.manualSubmitText}>분석 시작</Text>
             </TouchableOpacity>
-          </>
+          </ScrollView>
         ) : (
           <>
             <View style={{ flexDirection: 'row', gap: spacing.s8, marginBottom: 14 }}>

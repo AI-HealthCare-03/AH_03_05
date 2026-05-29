@@ -9,8 +9,20 @@ import { recordsApi, extractApiError } from "../../api";
 import type { RecordSummary } from "../../api";
 import { RECORD_LABEL, FILTER_TO_TYPE, iconFor, formatDate, getRecordColor, s } from "./_recordsShared";
 
+function statusChip(status: string): { label: string; color: string; bg: string } {
+  if (status === 'ocr_completed')
+    return { label: '완료', color: colors.success, bg: colors.success50 };
+  if (status === 'ocr_failed')
+    return { label: '실패', color: colors.danger, bg: colors.danger50 };
+  if (status === 'ocr_pending')
+    return { label: '처리 중', color: colors.muted, bg: colors.surface2 };
+  if (status === 'uploaded')
+    return { label: '업로드됨', color: colors.accent700, bg: colors.accent50 };
+  return { label: status, color: colors.muted, bg: colors.surface2 };
+}
 
 function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
+  const chip = statusChip(r.status);
   return (
     <Card shadow noPadding onPress={onPress}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: spacing.s20 }}>
@@ -21,6 +33,9 @@ function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, marginBottom: spacing.s4 }}>
             <View style={{ paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 999, borderWidth: 0.5, borderColor: colors.hairline }}>
               <Text style={{ fontSize: typography.fz11, color: colors.ink2 }}>{RECORD_LABEL[r.record_type]}</Text>
+            </View>
+            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 999, backgroundColor: chip.bg }}>
+              <Text style={{ fontSize: typography.fz11, color: chip.color, fontWeight: typography.fw6 }}>{chip.label}</Text>
             </View>
             <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(r.uploaded_at)}</Text>
           </View>

@@ -64,17 +64,23 @@ export function OCRProcessingScreen({ navigation, route }: any) {
     if (!recordId) return;
 
     let pollTimer: ReturnType<typeof setInterval>;
+    let progressTimer: ReturnType<typeof setInterval>;
     let pollCount = 0;
     const MAX_POLLS = 30;
+
+    // 3초마다 step 1씩 증가, 최대 STEPS.length - 1(75%)에서 대기
+    progressTimer = setInterval(() => {
+      setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    }, 3000);
 
     ocrApi
       .createOcrJob({ record_id: recordId })
       .then((job) => {
-        setStep(1);
         pollTimer = setInterval(async () => {
           pollCount++;
           if (pollCount > MAX_POLLS) {
             clearInterval(pollTimer);
+            clearInterval(progressTimer);
             setError("처리 시간이 초과됐어요. 다시 시도해주세요.");
             return;
           }
@@ -82,22 +88,25 @@ export function OCRProcessingScreen({ navigation, route }: any) {
             const status = await jobsApi.getProcessingJob(job.job_id);
             if (status.status === "completed") {
               clearInterval(pollTimer);
+              clearInterval(progressTimer);
               setStep(STEPS.length);
               setTimeout(() => navigation.replace("OCRResult", { recordId }), 400);
             } else if (status.status === "failed" || status.status === "timeout") {
               clearInterval(pollTimer);
+              clearInterval(progressTimer);
               setError("OCR 처리에 실패했어요. 다시 시도해주세요.");
-            } else {
-              setStep((s) => Math.min(s + 1, STEPS.length - 1));
             }
           } catch {
             /* silent */
           }
         }, 2000);
       })
-      .catch((e) => setError(extractApiError(e)));
+      .catch((e) => {
+        clearInterval(progressTimer);
+        setError(extractApiError(e));
+      });
 
-    return () => clearInterval(pollTimer);
+    return () => { clearInterval(pollTimer); clearInterval(progressTimer); };
   }, [recordId]);
 
   const progress = Math.min(100, (step / STEPS.length) * 100);

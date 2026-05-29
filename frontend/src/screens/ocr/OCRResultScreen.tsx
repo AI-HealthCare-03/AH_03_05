@@ -23,6 +23,7 @@ function buildCandidateTime(c: MedicationCandidate): string {
 
 export function OCRResultScreen({ navigation, route }: any) {
   const recordId: number | undefined = route?.params?.recordId;
+  const inputMethod: string | undefined = route?.params?.inputMethod;
   const { ocrSession, setOcrSession, flash } = useApp();
   const [candidates, setCandidates] = useState<MedicationCandidate[]>([]);
   const [loading, setLoading] = useState(!!recordId);
@@ -107,30 +108,31 @@ export function OCRResultScreen({ navigation, route }: any) {
       scrollPadding={false}
       contentStyle={{ padding: spacing.s20 }}
     >
-      {/* TODO: manual-input record는 이미지 없음, BE fix 후 조건부 렌더링 필요 */}
-      {!imageRemoved ? (
-        <Card shadow style={{ marginBottom: 14 }}>
-          <View style={s.docPreview}>
-            <Icon name="doc" size={72} color="rgba(8,145,178,0.3)" />
-            <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn}>
-              <Icon name="x" size={14} color={colors.ink} />
+      {inputMethod !== 'manual' && (
+        !imageRemoved ? (
+          <Card shadow style={{ marginBottom: 14 }}>
+            <View style={s.docPreview}>
+              <Icon name="doc" size={72} color="rgba(8,145,178,0.3)" />
+              <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn}>
+                <Icon name="x" size={14} color={colors.ink} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.s12 }}>
+              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>
+                {recordId ? `기록 #${recordId}` : ocrSession.fileName}
+              </Text>
+              <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{ocrSession.fileSize}</Text>
+            </View>
+          </Card>
+        ) : (
+          <Card shadow style={{ marginBottom: 14, alignItems: 'center', paddingVertical: spacing.s24 }}>
+            <Icon name="image" size={24} color={colors.muted2} />
+            <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s8 }}>원본 이미지를 제거했어요</Text>
+            <TouchableOpacity onPress={() => { setImageRemoved(false); flash('이미지를 복원했습니다'); }} style={{ marginTop: 4 }}>
+              <Text style={{ fontSize: typography.fz12, color: colors.accent }}>되돌리기</Text>
             </TouchableOpacity>
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.s12 }}>
-            <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>
-              {recordId ? `기록 #${recordId}` : ocrSession.fileName}
-            </Text>
-            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{ocrSession.fileSize}</Text>
-          </View>
-        </Card>
-      ) : (
-        <Card shadow style={{ marginBottom: 14, alignItems: 'center', paddingVertical: spacing.s24 }}>
-          <Icon name="image" size={24} color={colors.muted2} />
-          <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s8 }}>원본 이미지를 제거했어요</Text>
-          <TouchableOpacity onPress={() => { setImageRemoved(false); flash('이미지를 복원했습니다'); }} style={{ marginTop: 4 }}>
-            <Text style={{ fontSize: typography.fz12, color: colors.accent }}>되돌리기</Text>
-          </TouchableOpacity>
-        </Card>
+          </Card>
+        )
       )}
 
       {error ? (
