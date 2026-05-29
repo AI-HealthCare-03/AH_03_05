@@ -11,6 +11,7 @@ import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
 import MediPTLogo from '../../components/MediPTLogo';
+import { authApi, extractApiError } from '../../api';
 
 // ─── ForgotPasswordScreen ─────────────────────────────────────────────────────
 
@@ -23,24 +24,77 @@ const BRAND_PANEL_FEATURES = [
 
 export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }) {
   const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+  const [step, setStep] = useState<'email' | 'confirm'>('email');
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [confirmError, setConfirmError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { isTabletOrAbove } = useBreakpoint();
   const { top: safeTop } = useSafeAreaInsets();
 
-  const formContent = sent ? (
+  const handleRequestCode = async () => {
+    if (!EMAIL_RE.test(email)) { setEmailError('올바른 이메일 형식이 아닙니다'); return; }
+    setLoading(true);
+    setEmailError('');
+    try {
+      await authApi.requestPasswordReset(email);
+      setStep('confirm');
+    } catch (e) {
+      setEmailError(extractApiError(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!code.trim()) { setConfirmError('인증 코드를 입력해주세요'); return; }
+    if (newPassword.length < 8) { setConfirmError('비밀번호는 8자 이상이어야 합니다'); return; }
+    setLoading(true);
+    setConfirmError('');
+    try {
+      await authApi.confirmPasswordReset(email, code.trim(), newPassword);
+      navigation.navigate('Login');
+    } catch (e) {
+      setConfirmError(extractApiError(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formContent = step === 'confirm' ? (
     <>
       <View style={[styles.banner, styles.bannerSuccess, { marginBottom: 18 }]}>
         <Icon name="check-circle" size={16} color={colors.success} />
         <View style={{ marginLeft: 10, flex: 1 }}>
-          <Text style={{ fontWeight: typography.fw7, fontSize: typography.fz14 }}>메일을 보냈어요</Text>
-          <Text style={{ fontSize: typography.fz12, marginTop: 2, color: colors.ink2 }}>{email} 로 재설정 링크를 보냈어요. 스팸함도 확인해주세요.</Text>
+          <Text style={{ fontWeight: typography.fw7, fontSize: typography.fz14 }}>인증 코드를 보냈어요</Text>
+          <Text style={{ fontSize: typography.fz12, marginTop: 2, color: colors.ink2 }}>{email} 로 발송됐어요. 스팸함도 확인해주세요.</Text>
         </View>
       </View>
-      <Button variant="ghost" size="lg" onPress={() => setSent(false)} fullWidth>다른 이메일로 다시 보내기</Button>
-      <TouchableOpacity onPress={() => navigation.navigate('Login')} style={{ alignSelf: 'center', marginTop: spacing.s16 }}>
-        <Text style={{ fontSize: typography.fz13, color: colors.accent }}>로그인으로 돌아가기</Text>
-      </TouchableOpacity>
+      <View style={styles.field}>
+        <Input
+          label="인증 코드"
+          icon="shield"
+          placeholder="이메일로 받은 6자리 코드"
+          value={code}
+          onChangeText={v => { setCode(v); setConfirmError(''); }}
+          keyboardType="number-pad"
+          autoFocus
+        />
+      </View>
+      <View style={styles.field}>
+        <Input
+          label="새 비밀번호"
+          icon="lock"
+          placeholder="8자 이상"
+          value={newPassword}
+          onChangeText={v => { setNewPassword(v); setConfirmError(''); }}
+          secureTextEntry
+        />
+      </View>
+      {confirmError ? <Text style={[styles.fieldError, { marginBottom: spacing.s8 }]}>{confirmError}</Text> : null}
+      <Button variant="primary" size="lg" onPress={handleConfirm} loading={loading} fullWidth>비밀번호 변경</Button>
+      <Button variant="ghost" size="lg" onPress={() => { setStep('email'); setCode(''); setNewPassword(''); setConfirmError(''); }} fullWidth style={{ marginTop: spacing.s8 }}>다른 이메일로 다시 보내기</Button>
     </>
   ) : (
     <>
@@ -61,15 +115,10 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
         variant="primary"
         size="lg"
         disabled={!email || !EMAIL_RE.test(email)}
-        onPress={() => {
-          if (!EMAIL_RE.test(email)) {
-            setEmailError('올바른 이메일 형식이 아닙니다');
-            return;
-          }
-          setSent(true);
-        }}
+        onPress={handleRequestCode}
+        loading={loading}
         fullWidth
-      >재설정 링크 받기</Button>
+      >인증 코드 받기</Button>
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: spacing.s16 }}>
         <Text style={{ fontSize: typography.fz13, color: colors.muted }}>기억나셨나요? </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
