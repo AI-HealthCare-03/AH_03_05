@@ -1,3 +1,4 @@
+import re
 from datetime import UTC, datetime, timedelta
 
 from app.models.medical_records import InputMethod, MedicalRecord, RecordStatus, RecordType
@@ -53,6 +54,7 @@ class MedicalRecordService:
         medications = await Medication.filter(record=record).all()
         candidates = [
             {
+                "medication_id": m.id,
                 "drug_name": m.drug_name,
                 "manufacturer": m.manufacturer,
                 "confidence": float(m.ocr_confidence) if m.ocr_confidence else None,
@@ -89,6 +91,16 @@ class MedicalRecordService:
             input_method=InputMethod.MANUAL,
             ocr_edited_text=ocr_edited_text,
         )
+        # 줄바꿈/쉼표 기준으로 약품명 파싱 후 Medication 생성
+        raw_names = re.split(r"[,\n]+", ocr_edited_text)
+        drug_names = [name.strip() for name in raw_names if name.strip()]
+        for drug_name in drug_names:
+            await Medication.create(
+                user=user,
+                record=record,
+                drug_name=drug_name,
+                input_method=InputMethod.MANUAL,
+            )
         return record
 
     async def delete_record(self, user: User, record_id: int) -> MedicalRecord | None:
