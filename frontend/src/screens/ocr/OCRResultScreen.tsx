@@ -66,7 +66,6 @@ export function OCRResultScreen({ navigation, route }: any) {
     : ocrSession.drugs;
 
   const handleGuideGenerate = async () => {
-    // TODO: BE에서 medication_candidates에 medication_id 추가 후 동작, 현재는 verify 스킵됨
     if (recordId && candidates.length > 0 && candidates.some(c => c.medication_id !== undefined)) {
       setVerifying(true);
       try {
