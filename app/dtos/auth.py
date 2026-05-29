@@ -56,3 +56,21 @@ class LogoutRequest(BaseModel):
 
 class LogoutResponse(BaseModel):
     detail: str
+
+
+class PasswordResetRequestRequest(BaseModel):
+    email: str
+
+
+class PasswordResetRequestResponse(BaseModel):
+    detail: str
+
+
+class PasswordResetConfirmRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
+
+class PasswordResetConfirmResponse(BaseModel):
+    detail: str

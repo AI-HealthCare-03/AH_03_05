@@ -7,6 +7,10 @@ from app.dtos.auth import (
     LoginResponse,
     LogoutRequest,
     LogoutResponse,
+    PasswordResetConfirmRequest,
+    PasswordResetConfirmResponse,
+    PasswordResetRequestRequest,
+    PasswordResetRequestResponse,
     SignUpRequest,
     SignUpResponse,
     TokenRefreshRequest,
@@ -64,3 +68,25 @@ async def refresh_token(
         access_token=str(tokens["access_token"]),
         refresh_token=str(tokens["refresh_token"]),
     )
+
+
+@auth_router.post(
+    "/password-reset/request", response_model=PasswordResetRequestResponse, status_code=status.HTTP_200_OK
+)
+async def request_password_reset(
+    request: PasswordResetRequestRequest,
+    auth_service: Annotated[AuthService, Depends(AuthService)],
+) -> PasswordResetRequestResponse:
+    await auth_service.request_password_reset(request.email)
+    return PasswordResetRequestResponse(detail="인증 코드가 이메일로 발송되었습니다.")
+
+
+@auth_router.post(
+    "/password-reset/confirm", response_model=PasswordResetConfirmResponse, status_code=status.HTTP_200_OK
+)
+async def confirm_password_reset(
+    request: PasswordResetConfirmRequest,
+    auth_service: Annotated[AuthService, Depends(AuthService)],
+) -> PasswordResetConfirmResponse:
+    await auth_service.confirm_password_reset(request.email, request.code, request.new_password)
+    return PasswordResetConfirmResponse(detail="비밀번호가 변경되었습니다.")
