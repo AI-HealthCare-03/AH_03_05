@@ -3,6 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.dtos.auth import (
+    EmailVerifyConfirmRequest,
+    EmailVerifyConfirmResponse,
+    EmailVerifySendRequest,
+    EmailVerifySendResponse,
     LoginRequest,
     LoginResponse,
     LogoutRequest,
@@ -90,3 +94,23 @@ async def confirm_password_reset(
 ) -> PasswordResetConfirmResponse:
     await auth_service.confirm_password_reset(request.email, request.code, request.new_password)
     return PasswordResetConfirmResponse(detail="비밀번호가 변경되었습니다.")
+
+
+@auth_router.post("/email-verify/send-code", response_model=EmailVerifySendResponse, status_code=status.HTTP_200_OK)
+async def send_verification_code(
+    request: EmailVerifySendRequest,
+    auth_service: Annotated[AuthService, Depends(AuthService)],
+) -> EmailVerifySendResponse:
+    await auth_service.send_verification_code(str(request.email))
+    return EmailVerifySendResponse(detail="인증 코드가 이메일로 발송되었습니다.")
+
+
+@auth_router.post(
+    "/email-verify/verify-code", response_model=EmailVerifyConfirmResponse, status_code=status.HTTP_200_OK
+)
+async def verify_email_code(
+    request: EmailVerifyConfirmRequest,
+    auth_service: Annotated[AuthService, Depends(AuthService)],
+) -> EmailVerifyConfirmResponse:
+    await auth_service.verify_email_code(str(request.email), request.code)
+    return EmailVerifyConfirmResponse(detail="이메일 인증이 완료되었습니다.")

@@ -74,3 +74,21 @@ class PasswordResetConfirmRequest(BaseModel):
 
 class PasswordResetConfirmResponse(BaseModel):
     detail: str
+
+
+class EmailVerifySendRequest(BaseModel):
+    email: EmailStr
+
+
+class EmailVerifySendResponse(BaseModel):
+    detail: str
+    retry_after: int | None = None
+
+
+class EmailVerifyConfirmRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
+class EmailVerifyConfirmResponse(BaseModel):
+    detail: str

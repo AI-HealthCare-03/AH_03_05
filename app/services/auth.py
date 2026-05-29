@@ -162,6 +162,38 @@ class AuthService:
         await user.save()
         await redis_client.delete(redis_key)
 
+    async def send_verification_code(self, email: str) -> None:
+        cooldown_key = f"email_verify_cooldown:{email}"
+        if await redis_client.get(cooldown_key):
+            retry_after = await redis_client.ttl(cooldown_key)
+            raise TooManyRequestsException(detail="잠시 후 다시 시도해주세요.", retry_after=retry_after)
+        await self.check_email_exists(email)
+        code = "".join(secrets.choice(string.digits) for _ in range(6))
+        redis_key = f"email_verify:{email}"
+        await redis_client.set(redis_key, code, ex=600)  # 10분 TTL
+        await redis_client.set(cooldown_key, "1", ex=PW_RESET_COOLDOWN_TTL)
+        body = f"""
+        <h2>MediPT 이메일 인증</h2>
+        <p>아래 인증 코드를 입력해주세요. (10분 내 유효)</p>
+        <h1 style="letter-spacing: 4px;">{code}</h1>
+        <p>본인이 요청하지 않은 경우 이 이메일을 무시해주세요.</p>
+        """
+        await send_email(to=email, subject="[MediPT] 이메일 인증 코드", body=body)
+
+    async def verify_email_code(self, email: str, code: str) -> None:
+        redis_key = f"email_verify:{email}"
+        fail_key = f"email_verify_fail:{email}"
+        stored_code = await redis_client.get(redis_key)
+        if not stored_code or not hmac.compare_digest(stored_code, code):
+            fail_count = await redis_client.incr(fail_key)
+            await redis_client.expire(fail_key, 600)
+            if fail_count >= PW_RESET_FAIL_LIMIT:
+                await redis_client.delete(redis_key)
+                await redis_client.delete(fail_key)
+            raise BadRequestException(detail="인증 코드가 올바르지 않거나 만료되었습니다.")
+        await redis_client.delete(redis_key)
+        await redis_client.delete(fail_key)
+
     async def check_email_exists(self, email: str | EmailStr) -> None:
         if await User.exists(email=email):
             raise DuplicateEmailException()

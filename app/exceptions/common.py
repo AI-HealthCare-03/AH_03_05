@@ -28,8 +28,13 @@ class ConflictException(HTTPException):
 
 
 class TooManyRequestsException(HTTPException):
-    def __init__(self, detail: str = "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."):
-        super().__init__(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail)
+    def __init__(
+        self, detail: str = "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", retry_after: int | None = None
+    ):
+        detail_body = {"detail": detail}
+        if retry_after is not None:
+            detail_body["retry_after"] = retry_after
+        super().__init__(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail_body)
 
 
 class NicknameTooSoonException(HTTPException):
