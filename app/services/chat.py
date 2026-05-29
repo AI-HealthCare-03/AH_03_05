@@ -85,7 +85,7 @@ class ChatService:
                 safety_flag=is_risky,
                 safety_notice=RISK_SAFETY_REPLY if is_risky else None,
             )
-            await ChatMessage.create(
+            assistant_msg = await ChatMessage.create(
                 session=session,
                 user=user,
                 sender_type=SenderType.ASSISTANT,
@@ -93,6 +93,10 @@ class ChatService:
                 safety_flag=False,
                 safety_notice=None,
             )
+            # 세션 메타 업데이트 (last_message_at, last_message_preview, updated_at 자동 갱신)
+            session.last_message_at = assistant_msg.created_at
+            session.last_message_preview = assistant_text[:100]
+            await session.save()
 
         return {
             "session_id": session.id,

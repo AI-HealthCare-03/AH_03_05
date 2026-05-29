@@ -26,6 +26,8 @@ class ChatSession(models.Model):
     )
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
+    last_message_at = fields.DatetimeField(null=True)
+    last_message_preview = fields.CharField(max_length=100, null=True)
 
     class Meta:
         table = "chat_sessions"

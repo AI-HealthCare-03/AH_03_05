@@ -211,6 +211,50 @@ class TestChatSessionListAPI(TestCase):
         assert body["total"] == 0
         assert body["items"] == []
 
+    async def test_list_sessions_includes_last_message_preview(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "preview_ok@example.com")
+            record = await _create_record("preview_ok@example.com")
+
+            create_response = await client.post(
+                "/api/v1/chat/sessions",
+                json={"record_id": record.id},
+                headers=headers,
+            )
+            session_id = create_response.json()["session_id"]
+
+            await client.post(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                json={"message": "약을 언제 먹어야 하나요?"},
+                headers=headers,
+            )
+
+            response = await client.get("/api/v1/chat/sessions", headers=headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert len(body["items"]) == 1
+        assert body["items"][0]["last_message_preview"] is not None
+        assert len(body["items"][0]["last_message_preview"]) > 0
+
+    async def test_list_sessions_empty_session_has_null_preview(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "preview_empty@example.com")
+            record = await _create_record("preview_empty@example.com")
+
+            await client.post(
+                "/api/v1/chat/sessions",
+                json={"record_id": record.id},
+                headers=headers,
+            )
+
+            response = await client.get("/api/v1/chat/sessions", headers=headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert len(body["items"]) == 1
+        assert body["items"][0]["last_message_preview"] is None
+
 
 class TestChatMessageListAPI(TestCase):
     async def test_list_messages_without_auth_returns_401(self):
