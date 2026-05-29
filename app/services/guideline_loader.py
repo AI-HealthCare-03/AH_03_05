@@ -38,7 +38,6 @@ LORE_DIR = "docs/guidelines/lore"
 # 두 형태 모두 지원 ("30s" / "30대")
 # 60대는 65로 매핑 → old 로어북 적용 (의료 안전 기준 보수적 처리)
 AGE_GROUP_MAP = {
-    # 영문 형태 (명세서 기준)
     "10s": 15,
     "20s": 25,
     "30s": 35,
@@ -47,7 +46,6 @@ AGE_GROUP_MAP = {
     "60s": 65,
     "70s": 75,
     "80s": 85,
-    # 한글 형태 (프론트 기준)
     "10대": 15,
     "20대": 25,
     "30대": 35,
@@ -63,7 +61,6 @@ def parse_age(age_group: str | int) -> int:
     """
     age_group 문자열 또는 숫자를 정수로 변환
     "30대" / "30s" / 55 모두 처리 가능
-    60대는 65로 매핑하여 old 로어북 적용 (안전 기준 보수적 처리)
     """
     if isinstance(age_group, int):
         return age_group
