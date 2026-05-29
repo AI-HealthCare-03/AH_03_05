@@ -165,7 +165,9 @@ class AuthService:
     async def send_verification_code(self, email: str) -> None:
         cooldown_key = f"email_verify_cooldown:{email}"
         if await redis_client.get(cooldown_key):
-            raise TooManyRequestsException(detail="잠시 후 다시 시도해주세요. (1분 cooldown)")
+            retry_after = await redis_client.ttl(cooldown_key)
+            raise TooManyRequestsException(detail="잠시 후 다시 시도해주세요.", retry_after=retry_after)
+        await self.check_email_exists(email)
         code = "".join(secrets.choice(string.digits) for _ in range(6))
         redis_key = f"email_verify:{email}"
         await redis_client.set(redis_key, code, ex=600)  # 10분 TTL

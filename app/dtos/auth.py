@@ -82,6 +82,7 @@ class EmailVerifySendRequest(BaseModel):
 
 class EmailVerifySendResponse(BaseModel):
     detail: str
+    retry_after: int | None = None
 
 
 class EmailVerifyConfirmRequest(BaseModel):

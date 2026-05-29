@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import AsyncMock, patch
 
 from httpx import ASGITransport, AsyncClient
@@ -16,20 +17,12 @@ CONSENTS = [
 
 
 class TestEmailVerifyAPI(TestCase):
-    async def tearDown(self):
-        from app.core.redis import redis_client
-
-        emails = [
-            "verify1@example.com",
-            "verify2@example.com",
-            "verify3@example.com",
-            "verify4@example.com",
-            "verify5@example.com",
-        ]
-        for email in emails:
-            await redis_client.delete(f"email_verify:{email}")
-            await redis_client.delete(f"email_verify_cooldown:{email}")
-            await redis_client.delete(f"email_verify_fail:{email}")
+    def setUp(self):
+        self.email1 = f"verify_{uuid.uuid4().hex[:8]}@example.com"
+        self.email2 = f"verify_{uuid.uuid4().hex[:8]}@example.com"
+        self.email3 = f"verify_{uuid.uuid4().hex[:8]}@example.com"
+        self.email4 = f"verify_{uuid.uuid4().hex[:8]}@example.com"
+        self.email5 = f"verify_{uuid.uuid4().hex[:8]}@example.com"
 
     async def test_send_verification_code_success(self):
         # Given & When
@@ -37,7 +30,7 @@ class TestEmailVerifyAPI(TestCase):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/email-verify/send-code",
-                    json={"email": "verify1@example.com"},
+                    json={"email": self.email1},
                 )
                 assert mock_email.called
 
@@ -51,11 +44,11 @@ class TestEmailVerifyAPI(TestCase):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
                 first = await client.post(
                     "/api/v1/auth/email-verify/send-code",
-                    json={"email": "verify2@example.com"},
+                    json={"email": self.email2},
                 )
                 second = await client.post(
                     "/api/v1/auth/email-verify/send-code",
-                    json={"email": "verify2@example.com"},
+                    json={"email": self.email2},
                 )
 
         assert first.status_code == status.HTTP_200_OK
@@ -67,16 +60,16 @@ class TestEmailVerifyAPI(TestCase):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
                 await client.post(
                     "/api/v1/auth/email-verify/send-code",
-                    json={"email": "verify3@example.com"},
+                    json={"email": self.email3},
                 )
                 from app.core.redis import redis_client
 
-                code = await redis_client.get("email_verify:verify3@example.com")
+                code = await redis_client.get(f"email_verify:{self.email3}")
 
                 # When
                 response = await client.post(
                     "/api/v1/auth/email-verify/verify-code",
-                    json={"email": "verify3@example.com", "code": code},
+                    json={"email": self.email3, "code": code},
                 )
 
         # Then
@@ -89,12 +82,12 @@ class TestEmailVerifyAPI(TestCase):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
                 await client.post(
                     "/api/v1/auth/email-verify/send-code",
-                    json={"email": "verify4@example.com"},
+                    json={"email": self.email4},
                 )
                 # When
                 response = await client.post(
                     "/api/v1/auth/email-verify/verify-code",
-                    json={"email": "verify4@example.com", "code": "000000"},
+                    json={"email": self.email4, "code": "000000"},
                 )
 
         # Then
@@ -106,15 +99,15 @@ class TestEmailVerifyAPI(TestCase):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
                 await client.post(
                     "/api/v1/auth/email-verify/send-code",
-                    json={"email": "verify5@example.com"},
+                    json={"email": self.email5},
                 )
                 for _ in range(5):
                     await client.post(
                         "/api/v1/auth/email-verify/verify-code",
-                        json={"email": "verify5@example.com", "code": "000000"},
+                        json={"email": self.email5, "code": "000000"},
                     )
 
                 from app.core.redis import redis_client
 
-                code = await redis_client.get("email_verify:verify5@example.com")
+                code = await redis_client.get(f"email_verify:{self.email5}")
                 assert code is None
