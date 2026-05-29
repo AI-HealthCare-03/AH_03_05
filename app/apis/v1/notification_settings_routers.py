@@ -10,8 +10,21 @@ from app.services.notification_settings import NotificationSettingsService
 notification_settings_router = APIRouter(prefix="/notification-settings", tags=["notification-settings"])
 
 
+@notification_settings_router.get(
+    "/",
+    response_model=NotificationSettingsResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_notification_settings(
+    user: Annotated[User, Depends(get_request_user)],
+    notification_settings_service: Annotated[NotificationSettingsService, Depends(NotificationSettingsService)],
+) -> NotificationSettingsResponse:
+    settings = await notification_settings_service.get_notification_settings(user)
+    return NotificationSettingsResponse.model_validate(settings)
+
+
 @notification_settings_router.put(
-    "",
+    "/",
     response_model=NotificationSettingsResponse,
     status_code=status.HTTP_200_OK,
 )

@@ -42,7 +42,7 @@ class TestNotificationSettingsAPI(TestCase):
 
             # When
             response = await client.put(
-                "/api/v1/notification-settings",
+                "/api/v1/notification-settings/",
                 json={
                     "guide_complete_alarm": False,
                     "ocr_complete_alarm": True,
@@ -66,7 +66,7 @@ class TestNotificationSettingsAPI(TestCase):
             headers = {"Authorization": f"Bearer {token}"}
 
             await client.put(
-                "/api/v1/notification-settings",
+                "/api/v1/notification-settings/",
                 json={
                     "guide_complete_alarm": True,
                     "ocr_complete_alarm": True,
@@ -77,7 +77,7 @@ class TestNotificationSettingsAPI(TestCase):
 
             # When
             response = await client.put(
-                "/api/v1/notification-settings",
+                "/api/v1/notification-settings/",
                 json={
                     "guide_complete_alarm": False,
                     "ocr_complete_alarm": False,
@@ -98,13 +98,42 @@ class TestNotificationSettingsAPI(TestCase):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             # When
             response = await client.put(
-                "/api/v1/notification-settings",
+                "/api/v1/notification-settings/",
                 json={
                     "guide_complete_alarm": True,
                     "ocr_complete_alarm": True,
                     "system_alarm": True,
                 },
             )
+
+        # Then
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_get_notification_settings_success(self):
+        # Given
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "notiset4@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+
+            # When
+            response = await client.get(
+                "/api/v1/notification-settings/",
+                headers=headers,
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "guide_complete_alarm" in data
+        assert "ocr_complete_alarm" in data
+        assert "system_alarm" in data
+        assert "updated_at" in data
+
+    async def test_get_notification_settings_unauthorized(self):
+        # Given
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            # When
+            response = await client.get("/api/v1/notification-settings/")
 
         # Then
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
