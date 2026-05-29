@@ -117,6 +117,12 @@ export interface RecordUploadResponse {
   image_expires_at: string;
 }
 
+export interface ManualInputResponse {
+  record_id: number;
+  input_method: string;
+  status: string;
+}
+
 export interface RecordSummary {
   record_id: number;
   record_type: RecordType;
@@ -184,6 +190,7 @@ export interface OcrJobResponse {
 }
 
 export interface MedicationCandidate {
+  medication_id?: number;
   drug_name: string;
   confidence: number;
   is_verified: boolean;
@@ -257,13 +264,33 @@ export interface DrugDetail {
 
 export interface MedicationVerifyItem {
   medication_id: number;
-  drug_ref_id: number;
+  drug_ref_id: string | null;
 }
 
 export interface VerifyMedicationResponse {
   medication_id: number;
   drug_name: string;
   is_verified: boolean;
+}
+
+export interface MedicationsBatchVerifyResponse {
+  record_id: number;
+  record_status: string;
+  verified_count: number;
+  total_count: number;
+  medications: Record<string, unknown>[];
+}
+
+export interface MedicationAlarm {
+  id: number;
+  drug_name: string;
+  alarm_times: string[] | null;
+  is_alarm_enabled: boolean;
+}
+
+export interface MedicationAlarmUpdateRequest {
+  alarm_times: string[];
+  is_alarm_enabled: boolean;
 }
 
 // ─── Guides ───────────────────────────────────────────────────────────────────

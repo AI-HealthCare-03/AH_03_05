@@ -1,6 +1,6 @@
 import { apiClient } from './client';
 import type {
-  RecordUploadResponse, RecordType,
+  RecordUploadResponse, ManualInputResponse, RecordType,
   RecordListResponse, RecordDetail,
   RecordMedicationsResponse, RecordGuideResponse,
   OcrResultResponse, OcrTextUpdateRequest, OcrTextUpdateResponse,
@@ -25,6 +25,14 @@ export async function uploadRecord(
   form.append('record_type', record_type);
   const res = await apiClient.post<RecordUploadResponse>('/records', form, {
     headers: { 'Content-Type': undefined },
+  });
+  return res.data;
+}
+
+export async function createManualRecord(ocr_edited_text: string): Promise<ManualInputResponse> {
+  const res = await apiClient.post<ManualInputResponse>('/records/manual-input', {
+    record_type: 'manual',
+    ocr_edited_text,
   });
   return res.data;
 }

@@ -8,7 +8,7 @@ import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { colors, spacing, typography } from '../../theme';
-import { recordsApi, extractApiError } from '../../api';
+import { recordsApi, medicationsApi, extractApiError } from '../../api';
 import type { MedicationCandidate } from '../../api';
 import { s } from './_ocrShared';
 
@@ -28,6 +28,7 @@ export function OCRResultScreen({ navigation, route }: any) {
   const [loading, setLoading] = useState(!!recordId);
   const [error, setError] = useState('');
   const [imageRemoved, setImageRemoved] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (!recordId) return;
@@ -63,6 +64,27 @@ export function OCRResultScreen({ navigation, route }: any) {
       }))
     : ocrSession.drugs;
 
+  const handleGuideGenerate = async () => {
+    if (recordId && candidates.length > 0 && candidates.some(c => c.medication_id !== undefined)) {
+      setVerifying(true);
+      try {
+        await medicationsApi.verifyMedications(
+          recordId,
+          candidates.map(c => ({
+            medication_id: c.medication_id!,
+            drug_ref_id: c.drug_ref_id != null ? String(c.drug_ref_id) : null,
+          })),
+        );
+      } catch (e) {
+        setVerifying(false);
+        setError(extractApiError(e));
+        return;
+      }
+      setVerifying(false);
+    }
+    navigation.navigate('GuideLoading', recordId ? { recordId } : undefined);
+  };
+
   if (loading) {
     return (
       <View style={[s.loadingRoot, { alignItems: 'center', justifyContent: 'center' }]}>
@@ -78,7 +100,7 @@ export function OCRResultScreen({ navigation, route }: any) {
       back
       onBack={() => navigation.goBack()}
       right={
-        <Button variant="primary" size="sm" leftIcon="wand" onPress={() => navigation.navigate('GuideLoading', recordId ? { recordId } : undefined)}>가이드 생성하기</Button>
+        <Button variant="primary" size="sm" leftIcon="wand" onPress={handleGuideGenerate} loading={verifying} disabled={verifying}>가이드 생성하기</Button>
       }
       scrollable
       scrollPadding={false}
