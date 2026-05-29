@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Animated, LayoutChangeEvent } from "react-native";
+import { View, Text, Animated, LayoutChangeEvent, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
@@ -106,9 +106,14 @@ export function OCRProcessingScreen({ navigation, route }: any) {
 
   return (
     <ScreenLayout noHeader contentStyle={{ justifyContent: "flex-start" }}>
-      <View style={{ paddingHorizontal: spacing.s20, paddingTop: Math.max(safeTop + spacing.s16, spacing.safeTop), paddingBottom: spacing.s20 }}>
-        <Text style={{ fontSize: typography.fz24, fontWeight: typography.fw7, color: colors.ink, marginBottom: 6 }}>처방전 분석 중</Text>
-        <Text style={{ fontSize: typography.fz14, color: colors.muted }}>잠시만 기다려 주세요...</Text>
+      <View style={{ paddingHorizontal: spacing.s20, paddingTop: Math.max(safeTop + spacing.s16, spacing.safeTop), paddingBottom: spacing.s24 }}>
+        <Text style={{ fontSize: typography.fz24, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>처방전 분석 중</Text>
+        <Text style={{ fontSize: typography.fz14, color: colors.ink2 }}>잠시만 기다려 주세요...</Text>
+        {Platform.OS === 'web' && (
+          <Text style={{ fontSize: typography.fz12, color: colors.warning, marginTop: spacing.s12 }}>
+            ⚠ 분석 중 브라우저 창 크기를 조정하면 화면이 새로 고침될 수 있어요.
+          </Text>
+        )}
       </View>
 
       <View style={{ paddingHorizontal: spacing.s20 }}>
@@ -145,6 +150,7 @@ export function OCRProcessingScreen({ navigation, route }: any) {
               {recordId ? `기록 #${recordId}` : "처방전.jpg"}
             </Text>
             <Text style={{ fontSize: typography.fz12, color: colors.muted }}>OCR 처리 중</Text>
+            {!error && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s4, textAlign: "center" }}>분석에 최대 60초가 소요될 수 있습니다.</Text>}
           </View>
 
           {/* 진행 바 — onLayout으로 실측 너비 캡처 후 픽셀 값 사용 */}
@@ -168,7 +174,13 @@ export function OCRProcessingScreen({ navigation, route }: any) {
           {error ? (
             <View style={{ alignItems: "center", gap: spacing.s12 }}>
               <Text style={{ fontSize: typography.fz14, color: colors.danger, textAlign: "center" }}>{error}</Text>
-              <Button variant="primary" onPress={() => navigation.goBack()}>
+              <Button
+                variant="primary"
+                onPress={() => {
+                  if (navigation.canGoBack()) navigation.goBack();
+                  else navigation.navigate('Main');
+                }}
+              >
                 돌아가기
               </Button>
             </View>

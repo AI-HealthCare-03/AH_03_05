@@ -116,12 +116,12 @@ export function NotificationsScreen({ navigation }: any) {
   const today   = notifications.filter(isToday);
   const earlier = notifications.filter(n => !isToday(n));
 
-  const right = (
+  const right = notifications.length > 0 ? (
     <View style={{ flexDirection: 'row', gap: spacing.s8 }}>
       <Button variant="ghost" size="sm" onPress={markAll}>모두 읽음</Button>
       <Button variant="ghost" size="sm" onPress={clear}>모두 지우기</Button>
     </View>
-  );
+  ) : null;
 
   const errorBanner = loadError ? (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: 14 }}>

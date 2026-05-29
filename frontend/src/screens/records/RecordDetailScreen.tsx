@@ -241,7 +241,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
                   borderRadius={radii.pill}
                   disabled={!med.drug_ref_id}
                   onPress={() => med.drug_ref_id && navigation.navigate("DrugDetail", { drugId: med.drug_ref_id })}
-                >복용법</Button>
+                >약품 상세</Button>
               </TouchableOpacity>
             ))
           )}
