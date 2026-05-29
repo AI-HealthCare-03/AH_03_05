@@ -18,6 +18,7 @@ CONSENTS = [
 class TestPasswordResetAPI(TestCase):
     async def tearDown(self):
         from app.core.redis import redis_client
+
         emails = [
             "reset_test@example.com",
             "nonexistent@example.com",
@@ -30,6 +31,7 @@ class TestPasswordResetAPI(TestCase):
             await redis_client.delete(f"pw_reset:{email}")
             await redis_client.delete(f"pw_reset_cooldown:{email}")
             await redis_client.delete(f"pw_reset_fail:{email}")
+
     async def test_request_password_reset_success(self):
         # Given
         email = "reset_test@example.com"
@@ -182,5 +184,6 @@ class TestPasswordResetAPI(TestCase):
 
             # 코드 무효화 후 올바른 코드로 시도해도 실패
             from app.core.redis import redis_client
+
             code = await redis_client.get(f"pw_reset:{email}")
             assert code is None  # 코드가 삭제되었는지 확인
