@@ -60,17 +60,16 @@ export function ChatListScreen({ navigation, route }: any) {
 
   const startNew = async () => {
     try {
-      // TODO: BE standalone 세션 지원 후 createChatSession() 활성화
-      // PR 코멘트 참고: record_id optional 지원 요청 필요
-      const newId = String(Date.now());
-      const tempSession: ChatSession = { session_id: Number(newId), title: '새 상담', status: 'active' };
-      setSessions(prev => [tempSession, ...prev]);
+      const session = await chatApi.createChatSession({ title: '새 상담' });
+      setSessions(prev => [session, ...prev]);
+      const sid = String(session.session_id);
       if (isDesktop) {
-        setSelectedId(newId);
+        setSelectedId(sid);
       } else {
-        navigation.navigate('ChatSession', { sessionId: newId, title: '새 상담' });
+        navigation.navigate('ChatSession', { sessionId: sid, title: session.title });
       }
     } catch (err: any) {
+      setError('새 상담을 시작하지 못했어요. 다시 시도해주세요.');
     }
   };
 
@@ -78,7 +77,7 @@ export function ChatListScreen({ navigation, route }: any) {
     if (isDesktop) {
       setSelectedId(String(c.session_id));
     } else {
-      navigation.navigate('ChatSession', { sessionId: String(c.session_id), title: c.title, subtitle: c.last_message });
+      navigation.navigate('ChatSession', { sessionId: String(c.session_id), title: c.title, subtitle: c.last_message_preview });
     }
   };
 
@@ -86,7 +85,7 @@ export function ChatListScreen({ navigation, route }: any) {
     const title = text.slice(0, 15);
     setSessions(prev => prev.map(s =>
       String(s.session_id) === selectedId
-        ? { ...s, title, last_message: text, updated_at: new Date().toISOString() }
+        ? { ...s, title, last_message_preview: text, updated_at: new Date().toISOString() }
         : s
     ));
   };
@@ -94,7 +93,7 @@ export function ChatListScreen({ navigation, route }: any) {
   const handleMessageSent = (text: string) => {
     setSessions(prev => prev.map(s =>
       String(s.session_id) === selectedId
-        ? { ...s, last_message: text, updated_at: new Date().toISOString() }
+        ? { ...s, last_message_preview: text, updated_at: new Date().toISOString() }
         : s
     ));
   };
@@ -176,8 +175,8 @@ export function ChatListScreen({ navigation, route }: any) {
                 <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, flex: 1 }} numberOfLines={1}>{c.title}</Text>
                 <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s8 }}>{formatTime(c.updated_at)}</Text>
               </View>
-              {c.last_message ? (
-                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: 2 }} numberOfLines={1}>{c.last_message}</Text>
+              {c.last_message_preview ? (
+                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: 2 }} numberOfLines={1}>{c.last_message_preview}</Text>
               ) : null}
             </TouchableOpacity>
           );
@@ -221,8 +220,8 @@ export function ChatListScreen({ navigation, route }: any) {
                 </TouchableOpacity>
                 <View style={{ flex: 1, marginLeft: spacing.s8 }}>
                   <Text style={ds.paneTitle} numberOfLines={1}>{selectedSession?.title ?? '상담'}</Text>
-                  {selectedSession?.last_message ? (
-                    <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message}</Text>
+                  {selectedSession?.last_message_preview ? (
+                    <Text style={ds.paneSubtitle} numberOfLines={1}>{selectedSession.last_message_preview}</Text>
                   ) : null}
                 </View>
               </View>
