@@ -6,13 +6,15 @@ from app.dependencies.security import get_request_user
 from app.dtos.medications import (
     MedicationAlarmResponse,  # 스프린트 3 DTO
     MedicationAlarmUpdateRequest,  # 스프린트 3 DTO
+    MedicationDosageUpdateRequest,
+    MedicationDosageUpdateResponse,
     MedicationVerifyRequest,
     MedicationVerifyResponse,
 )
 from app.exceptions.common import NotFoundException
 from app.models.medications import Medication  # 스프린트 3 ORM 모델
 from app.models.users import User
-from app.services.medications import MedicationVerifyService
+from app.services.medications import MedicationDosageService, MedicationVerifyService
 
 medication_router = APIRouter(prefix="/medications", tags=["Medications"])
 
@@ -99,3 +101,37 @@ async def verify_medications_batch(
     if result is None:
         raise NotFoundException(detail="해당 record를 찾을 수 없습니다.")
     return MedicationVerifyResponse(**result)
+
+
+@medication_router.patch(
+    "/{medication_id}",
+    response_model=MedicationDosageUpdateResponse,
+    status_code=200,
+)
+async def update_medication_dosage(
+    medication_id: int,
+    request: MedicationDosageUpdateRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[MedicationDosageService, Depends(MedicationDosageService)],
+) -> MedicationDosageUpdateResponse:
+    """
+    약품 복용법 수정 API.
+    dosage, frequency, timing, duration 필드를 수정한다.
+    """
+    medication = await service.update_dosage(
+        user=user,
+        medication_id=medication_id,
+        dosage=request.dosage,
+        frequency=request.frequency,
+        timing=request.timing,
+        duration=request.duration,
+    )
+    if medication is None:
+        raise NotFoundException(detail="해당 약품을 찾을 수 없습니다.")
+    return MedicationDosageUpdateResponse(
+        medication_id=medication.id,
+        dosage=medication.dosage,
+        frequency=medication.frequency,
+        timing=medication.timing,
+        duration=medication.duration,
+    )
