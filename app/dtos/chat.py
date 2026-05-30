@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class CreateChatSessionRequest(BaseModel):
-    record_id: int = Field(description="대화 컨텍스트가 되는 medical_records PK")
+    record_id: int | None = Field(default=None, description="대화 컨텍스트가 되는 medical_records PK (선택)")
     guide_id: int | None = Field(
         default=None,
         description="대화 컨텍스트가 되는 guides PK (선택)",

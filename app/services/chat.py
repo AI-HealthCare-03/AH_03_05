@@ -23,13 +23,13 @@ class ChatService:
     async def create_session(
         self,
         user: User,
-        record_id: int,
+        record_id: int | None = None,
         guide_id: int | None = None,
     ) -> ChatSession | None:
-        record = await MedicalRecord.get_or_none(id=record_id, user=user, deleted_at=None)
-        if record is None:
-            return None
-
+        if record_id is not None:
+            record = await MedicalRecord.get_or_none(id=record_id, user=user, deleted_at=None)
+            if record is None:
+                return None
         session = await ChatSession.create(
             user=user,
             record_id=record_id,

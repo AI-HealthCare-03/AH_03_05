@@ -324,3 +324,18 @@ class TestChatMessageListAPI(TestCase):
         assert body["items"][1]["sender_type"] == "ASSISTANT"
         assert body["items"][2]["sender_type"] == "USER"
         assert body["items"][2]["content"] == "두번째 질문"
+
+    async def test_create_session_without_record_id_returns_201(self):
+        """standalone 세션 생성 - record_id 없이도 201 반환"""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "chat_standalone@example.com")
+            response = await client.post(
+                "/api/v1/chat/sessions",
+                json={},
+                headers=headers,
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["record_id"] is None
+        assert body["status"] == "ACTIVE"
+        assert body["session_id"] is not None

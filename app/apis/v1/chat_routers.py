@@ -45,7 +45,7 @@ async def create_chat_session(
         record_id=request.record_id,
         guide_id=request.guide_id,
     )
-    if session is None:
+    if session is None and request.record_id is not None:
         raise NotFoundException(detail="해당 record를 찾을 수 없습니다.")
 
     return ChatSessionResponse(
