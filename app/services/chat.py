@@ -3,7 +3,9 @@ from tortoise.transactions import in_transaction
 from app.models.chat_messages import ChatMessage, SenderType
 from app.models.chat_sessions import ChatSession, ChatSessionStatus
 from app.models.medical_records import MedicalRecord
+from app.models.user_health_profiles import UserHealthProfile
 from app.models.users import User
+from app.services.chatbot_service import chat as llm_chat
 from app.services.safety import detect_risk_question
 
 # 기본 안전 안내 문구
@@ -12,12 +14,6 @@ DEFAULT_SAFETY_NOTICE = "이 챗봇은 전문의의 진료를 대체할 수 없�
 # 위험 질문이 감지됐을 때의 안전 안내 응답
 RISK_SAFETY_REPLY = (
     "이 질문은 의료 전문가의 진단·처방이 필요한 영역으로 보입니다. 정확한 판단은 의사·약사와 상담해 주세요."
-)
-
-# LLM 연동 전 임시 응답 (정훈님 LLM 가이드 PR 머지 후 실제 호출로 교체 예정)
-MOCK_ASSISTANT_REPLY = (
-    "복약 정보와 공식 가이드라인을 참고해 답변을 생성할 예정입니다. "
-    "현재는 임시 응답이며, LLM 연동 후 실제 답변이 제공됩니다."
 )
 
 
@@ -30,13 +26,6 @@ class ChatService:
         record_id: int,
         guide_id: int | None = None,
     ) -> ChatSession | None:
-        """
-        새 챗봇 세션을 생성한다.
-
-        반환값:
-            - ChatSession: 정상 생성된 세션
-            - None: record_id가 존재하지 않거나 다른 사용자 소유 (404)
-        """
         record = await MedicalRecord.get_or_none(id=record_id, user=user, deleted_at=None)
         if record is None:
             return None
@@ -55,35 +44,60 @@ class ChatService:
         session_id: int,
         message: str,
     ) -> dict | None:
-        """
-        세션에 사용자 메시지를 보내고, 안전 검사 후 챗봇 응답을 저장·반환한다.
-
-        반환값:
-            - dict: 응답 데이터
-            - None: 세션이 존재하지 않거나 다른 사용자 소유 (404)
-        """
         session = await ChatSession.get_or_none(id=session_id, user=user)
         if session is None:
             return None
 
-        # 위험 질문 감지 (bool 반환)
+        # 위험 질문 1차 감지
         is_risky = detect_risk_question(message)
 
-        # 위험 질문이면 안전 안내문을 응답으로, 그 외엔 임시 mock 응답
         if is_risky:
             assistant_text = RISK_SAFETY_REPLY
+            safety_flag = True
+            disclaimer = DEFAULT_SAFETY_NOTICE
         else:
-            assistant_text = MOCK_ASSISTANT_REPLY
+            # health_profile 구성
+            health_profile_obj = await UserHealthProfile.get_or_none(user=user)
+            health_profile = {}
+            if health_profile_obj:
+                health_profile = {
+                    "age_group": health_profile_obj.age_group,
+                    "chronic_diseases": health_profile_obj.chronic_diseases or [],
+                    "current_medications": health_profile_obj.current_medications or [],
+                    "doctor_opinion": health_profile_obj.doctor_opinion or "",
+                }
 
-        # user 메시지 + assistant 응답을 한 트랜잭션에 저장
+            # 이전 대화 히스토리 (최근 10개)
+            prev_messages = await ChatMessage.filter(session=session).order_by("-created_at").limit(10)
+            conversation_history = [
+                {"role": "user" if m.sender_type == SenderType.USER else "assistant", "content": m.content}
+                for m in reversed(prev_messages)
+            ]
+
+            # LLM 호출
+            result = llm_chat(
+                user_input=message,
+                health_profile=health_profile,
+                conversation_history=conversation_history,
+            )
+
+            if result.get("safety_flag"):
+                assistant_text = RISK_SAFETY_REPLY
+                safety_flag = True
+            else:
+                assistant_text = result.get("answer", "")
+                safety_flag = False
+
+            disclaimer = result.get("disclaimer", DEFAULT_SAFETY_NOTICE)
+
         async with in_transaction():
             await ChatMessage.create(
                 session=session,
                 user=user,
                 sender_type=SenderType.USER,
                 content=message,
-                safety_flag=is_risky,
-                safety_notice=RISK_SAFETY_REPLY if is_risky else None,
+                safety_flag=safety_flag,
+                safety_notice=RISK_SAFETY_REPLY if safety_flag else None,
             )
             assistant_msg = await ChatMessage.create(
                 session=session,
@@ -93,7 +107,6 @@ class ChatService:
                 safety_flag=False,
                 safety_notice=None,
             )
-            # 세션 메타 업데이트 (last_message_at, last_message_preview, updated_at 자동 갱신)
             session.last_message_at = assistant_msg.created_at
             session.last_message_preview = assistant_text[:100]
             await session.save()
@@ -102,8 +115,8 @@ class ChatService:
             "session_id": session.id,
             "user_message": message,
             "assistant_message": assistant_text,
-            "safety_flag": is_risky,
-            "safety_notice": DEFAULT_SAFETY_NOTICE,
+            "safety_flag": safety_flag,
+            "safety_notice": disclaimer,
         }
 
     async def list_sessions(
@@ -112,12 +125,6 @@ class ChatService:
         limit: int = 20,
         offset: int = 0,
     ) -> tuple[list[ChatSession], int]:
-        """
-        사용자의 채팅 세션 목록을 조회한다 (updated_at 최신순).
-
-        반환값:
-            - tuple: (세션 리스트, 전체 개수)
-        """
         query = ChatSession.filter(user=user)
         total = await query.count()
         sessions = await query.order_by("-updated_at").offset(offset).limit(limit)
@@ -130,13 +137,6 @@ class ChatService:
         limit: int = 50,
         offset: int = 0,
     ) -> tuple[list[ChatMessage], int] | None:
-        """
-        세션의 메시지 목록을 조회한다 (created_at 오름차순).
-
-        반환값:
-            - tuple: (메시지 리스트, 전체 개수)
-            - None: 세션이 존재하지 않거나 다른 사용자 소유 (404)
-        """
         session = await ChatSession.get_or_none(id=session_id, user=user)
         if session is None:
             return None
