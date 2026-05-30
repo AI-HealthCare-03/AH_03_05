@@ -110,9 +110,7 @@ SAFETY_RESPONSE = (
     "혼자 감당하지 않으셔도 돼요."
 )
 
-SAFETY_DISCLAIMER = (
-    "본 응답은 사용자 안전을 위한 자동 안내입니다. 전문 상담사와 연결을 원하시면 109로 연락해 주세요."
-)
+SAFETY_DISCLAIMER = "본 응답은 사용자 안전을 위한 자동 안내입니다. 전문 상담사와 연결을 원하시면 109로 연락해 주세요."
 
 
 def _normalize(text: str) -> str:

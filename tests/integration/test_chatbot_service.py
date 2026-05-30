@@ -61,7 +61,7 @@ class TestChatSafetyResponse:
         # safety_filter 키워드 필터가 LLM 호출 전에 차단하므로 mock 불필요
         result = chat("죽고 싶어요", health_profile)
         assert result["safety_flag"] is True
-        assert "1577-0199" in result["answer"]
+        assert "109" in result["answer"]
 
     def test_keyword_filter_triggered_2(self, health_profile):
         # safety_filter 키워드 필터가 차단
@@ -72,7 +72,7 @@ class TestChatSafetyResponse:
         # 키워드 필터 통과 후 LLM이 safety_flag=true로 판단하는 케이스
         result = chat("고통스러워서 끝내고 싶어요", health_profile)
         assert result["safety_flag"] is True
-        assert "1577-0199" in result["answer"]
+        assert "109" in result["answer"]
 
     def test_safety_response_has_guide_items(self, health_profile):
         # safety_filter 키워드 차단

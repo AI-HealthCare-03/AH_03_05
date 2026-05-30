@@ -47,6 +47,6 @@ class TestGetSafetyResponse:
     def test_safety_response_format(self):
         result = get_safety_response()
         assert result["safety_flag"] is True
-        assert "1577-0199" in result["answer"]
+        assert "109" in result["answer"]
         assert "disclaimer" in result
         assert result["guide_items"] == []
