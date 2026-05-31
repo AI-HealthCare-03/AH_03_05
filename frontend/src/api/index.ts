@@ -14,4 +14,5 @@ export * as guidesApi from './guides';
 export * as chatApi from './chat';
 export * as ragApi from './rag';
 export * as notificationsApi from './notifications';
+export * as notificationSettingsApi from './notificationSettings';
 export * as feedbacksApi from './feedbacks';

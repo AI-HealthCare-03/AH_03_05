@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   ScrollView, KeyboardAvoidingView, Platform, Modal,
@@ -69,6 +69,24 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   const [emailVerified, setEmailVerified] = useState(false);
   const [codeError, setCodeError] = useState('');
   const [emailFocused, setEmailFocused] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
+  }, []);
+
+  const startCooldown = (seconds: number) => {
+    setCooldown(seconds);
+    cooldownRef.current = setInterval(() => {
+      setCooldown(prev => {
+        if (prev <= 1) { clearInterval(cooldownRef.current!); cooldownRef.current = null; return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   // 비밀번호/확인 touched 상태
   const [passwordTouched, setPasswordTouched] = useState(false);
@@ -92,29 +110,53 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
   const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
 
-  // TODO: [다음 브랜치] POST /auth/email/send-code 연결 시 409 → fieldErrors.email = '이미 사용 중인 이메일입니다' 후 return 처리 필요
-  const sendCode = () => {
-    if (!form.email) return;
+  const sendCode = async () => {
+    if (!form.email || cooldown > 0) return;
     if (!EMAIL_RE.test(form.email)) {
       setFieldErrors(prev => ({ ...prev, email: '올바른 이메일 형식이 아닙니다' }));
       return;
     }
     setFieldErrors(prev => ({ ...prev, email: '' }));
-    // TODO: [BE 대기] POST /auth/email-verify/send 연결 필요 — 현재 데모 목업
-    // 실제 연결 시: 409 응답 → setFieldErrors(prev => ({ ...prev, email: '이미 사용 중인 이메일입니다' })) 후 return
-    setCodeSent(true);
-    setEmailVerified(false);
-    setCode('');
-    setCodeError('');
+    setSendingCode(true);
+    try {
+      await authApi.sendVerificationCode({ email: form.email });
+      setCodeSent(true);
+      setEmailVerified(false);
+      setCode('');
+      setCodeError('');
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 409) {
+        setFieldErrors(prev => ({ ...prev, email: '이미 가입된 이메일입니다.' }));
+      } else if (status === 429) {
+        const retryAfter = e?.response?.data?.detail?.retry_after ?? e?.response?.data?.retry_after ?? 60;
+        startCooldown(retryAfter);
+        setCodeSent(true);
+        setCodeError('');
+      } else {
+        setFieldErrors(prev => ({ ...prev, email: extractApiError(e) }));
+      }
+    } finally {
+      setSendingCode(false);
+    }
   };
 
-  const verifyCode = () => {
-    // TODO: [BE 대기] POST /auth/email-verify/confirm 연결 필요 — 현재 데모 목업
-    if (code === '123456') {
+  const verifyCode = async () => {
+    if (!code.trim()) return;
+    setVerifyingCode(true);
+    try {
+      await authApi.verifyEmailCode({ email: form.email, code: code.trim() });
       setEmailVerified(true);
       setCodeError('');
-    } else {
-      setCodeError('인증 코드가 일치하지 않습니다.');
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 400) {
+        setCodeError('인증 코드가 올바르지 않습니다.');
+      } else {
+        setCodeError(extractApiError(e));
+      }
+    } finally {
+      setVerifyingCode(false);
     }
   };
 
@@ -241,11 +283,12 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
           <Button
             variant="primary"
             size="sm"
-            disabled={!form.email || emailVerified}
+            disabled={!form.email || emailVerified || cooldown > 0 || sendingCode}
+            loading={sendingCode}
             onPress={sendCode}
             style={{ alignSelf: 'center', height: 44 }}
           >
-            {codeSent && !emailVerified ? '재발송' : '인증코드 발송'}
+            {cooldown > 0 ? `재발송 (${cooldown}초)` : codeSent && !emailVerified ? '재발송' : '인증코드 발송'}
           </Button>
         </View>
 
@@ -271,7 +314,8 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
               <Button
                 variant="primary"
                 size="sm"
-                disabled={code.length !== 6}
+                disabled={code.length !== 6 || verifyingCode}
+                loading={verifyingCode}
                 onPress={verifyCode}
                 style={{ alignSelf: 'flex-start', height: 44 }}
               >

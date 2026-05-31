@@ -41,6 +41,24 @@ export interface LogoutResponse {
   detail: string;
 }
 
+export interface EmailVerifySendRequest {
+  email: string;
+}
+
+export interface EmailVerifySendResponse {
+  detail: string;
+  retry_after?: number;
+}
+
+export interface EmailVerifyConfirmRequest {
+  email: string;
+  code: string;
+}
+
+export interface EmailVerifyConfirmResponse {
+  detail: string;
+}
+
 // ─── Users ────────────────────────────────────────────────────────────────────
 
 export interface UserInfo {
@@ -347,6 +365,20 @@ export interface ChatSession {
   status: 'active' | 'closed';
   updated_at?: string;
   last_message?: string;
+  last_message_preview?: string | null;
+}
+
+export interface NotificationSettingsResponse {
+  guide_complete_alarm: boolean;
+  ocr_complete_alarm: boolean;
+  system_alarm: boolean;
+  updated_at: string;
+}
+
+export interface NotificationSettingsUpdate {
+  guide_complete_alarm: boolean;
+  ocr_complete_alarm: boolean;
+  system_alarm: boolean;
 }
 
 export interface ChatSessionListResponse {

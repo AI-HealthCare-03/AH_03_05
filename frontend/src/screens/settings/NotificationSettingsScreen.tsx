@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, TouchableOpacity, Platform, Modal, StyleSheet } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { scheduleMedicationNotifications } from '../../utils/notifications';
 import { useApp } from '../../context/AppContext';
 import { getMedicationAlarms, updateMedicationAlarm } from '../../api/medications';
+import { notificationSettingsApi } from '../../api';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -100,10 +101,22 @@ export function NotificationSettingsScreen({ navigation }: any) {
   const [morning, setMorning] = useState<MealState>(notifSettings.morning);
   const [lunch,   setLunch]   = useState<MealState>(notifSettings.lunch);
   const [dinner,  setDinner]  = useState<MealState>(notifSettings.dinner);
-  const [newGuide,   setNewGuide]   = useState(notifSettings.newGuide);
-  const [chatReply,  setChatReply]  = useState(notifSettings.chatReply);
-  const [marketing,  setMarketing]  = useState(notifSettings.marketing);
+  const [newGuide,    setNewGuide]    = useState(notifSettings.newGuide);
+  const [ocrComplete, setOcrComplete] = useState(false);
+  const [systemAlarm, setSystemAlarm] = useState(false);
+  const [chatReply,   setChatReply]   = useState(notifSettings.chatReply);
+  const [marketing,   setMarketing]   = useState(notifSettings.marketing);
   const [pickerOpen, setPickerOpen] = useState<MealKey | null>(null);
+
+  useEffect(() => {
+    notificationSettingsApi.getNotificationSettings()
+      .then(res => {
+        setNewGuide(res.guide_complete_alarm);
+        setOcrComplete(res.ocr_complete_alarm);
+        setSystemAlarm(res.system_alarm);
+      })
+      .catch(() => {});
+  }, []);
 
   const getMealState = (key: MealKey): MealState =>
     key === 'morning' ? morning : key === 'lunch' ? lunch : dinner;
@@ -123,6 +136,12 @@ export function NotificationSettingsScreen({ navigation }: any) {
     const next = { master, morning, lunch, dinner, newGuide, chatReply, marketing };
     setNotifSettings(next);
     await scheduleMedicationNotifications(next).catch(() => {});
+
+    notificationSettingsApi.updateNotificationSettings({
+      guide_complete_alarm: newGuide,
+      ocr_complete_alarm: ocrComplete,
+      system_alarm: systemAlarm,
+    }).catch(() => flash('설정 저장에 실패했습니다.'));
 
     try {
       const meds = await getMedicationAlarms();
@@ -160,9 +179,11 @@ export function NotificationSettingsScreen({ navigation }: any) {
       </Card>
 
       <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 14 }}>
-        <ToggleRow label="새 가이드 생성 알림" sub="처방전 분석이 완료되었을 때" val={newGuide}  onChange={setNewGuide} />
-        <ToggleRow label="상담 답변 알림"       sub="AI 상담 응답이 도착했을 때"   val={chatReply} onChange={setChatReply} />
-        <ToggleRow label="마케팅 정보 수신"                                         val={marketing} onChange={setMarketing} />
+        <ToggleRow label="새 가이드 생성 알림"  sub="처방전 분석이 완료되었을 때"  val={newGuide}    onChange={setNewGuide} />
+        <ToggleRow label="OCR 처리 완료 알림"  sub="문서 OCR 분석이 완료됐을 때"  val={ocrComplete} onChange={setOcrComplete} />
+        <ToggleRow label="시스템 알림"         sub="서비스 공지 및 중요 안내"      val={systemAlarm} onChange={setSystemAlarm} />
+        <ToggleRow label="상담 답변 알림"      sub="AI 상담 응답이 도착했을 때"   val={chatReply}   onChange={setChatReply} />
+        <ToggleRow label="마케팅 정보 수신"                                         val={marketing}   onChange={setMarketing} />
       </Card>
 
       <Button variant="primary" size="lg" borderRadius={radii.pill} onPress={save} fullWidth>저장하기</Button>
