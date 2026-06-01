@@ -124,3 +124,30 @@ class MedicationVerifyService:
                 for m in medications
             ],
         }
+
+
+class MedicationDosageService:
+    """복용법 수정 서비스."""
+
+    async def update_dosage(
+        self,
+        user: User,
+        medication_id: int,
+        dosage: str | None,
+        frequency: str | None,
+        timing: str | None,
+        duration: str | None,
+    ) -> "Medication | None":
+        medication = await Medication.get_or_none(id=medication_id, user=user)
+        if medication is None:
+            return None
+        if dosage is not None:
+            medication.dosage = dosage
+        if frequency is not None:
+            medication.frequency = frequency
+        if timing is not None:
+            medication.timing = timing
+        if duration is not None:
+            medication.duration = duration
+        await medication.save()
+        return medication

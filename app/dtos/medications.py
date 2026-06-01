@@ -51,3 +51,21 @@ class MedicationAlarmResponse(BaseModel):
     is_alarm_enabled: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ─── [신규] 복용법 수정 DTO ───
+class MedicationDosageUpdateRequest(BaseModel):
+    dosage: str | None = Field(None, description="복용량 (예: 1정)")
+    frequency: str | None = Field(None, description="복용 빈도 (예: 1일 3회)")
+    timing: str | None = Field(None, description="복용 시점 (예: 식후 30분)")
+    duration: str | None = Field(None, description="복용 기간 (예: 14일)")
+
+
+class MedicationDosageUpdateResponse(BaseModel):
+    medication_id: int
+    dosage: str | None
+    frequency: str | None
+    timing: str | None
+    duration: str | None
+
+    model_config = ConfigDict(from_attributes=True)
