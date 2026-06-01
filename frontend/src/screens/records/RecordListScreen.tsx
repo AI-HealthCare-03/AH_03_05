@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
@@ -7,7 +7,6 @@ import ScreenLayout from "../../components/ScreenLayout";
 import { colors, spacing, typography } from "../../theme";
 import { recordsApi, extractApiError } from "../../api";
 import type { RecordSummary } from "../../api";
-import { useApp } from "../../context/AppContext";
 import { RECORD_LABEL, FILTER_TO_TYPE, iconFor, formatDate, getRecordColor, s } from "./_recordsShared";
 
 function statusChip(status: string): { label: string; color: string; bg: string } {
@@ -22,7 +21,12 @@ function statusChip(status: string): { label: string; color: string; bg: string 
   return { label: status, color: colors.muted, bg: colors.surface2 };
 }
 
-function RecordRow({ r, onPress, onDelete }: { r: RecordSummary; onPress: () => void; onDelete: () => void }) {
+function cardTitle(r: RecordSummary): string {
+  if (r.record_type === 'manual') return '직접 입력';
+  return r.hospital_name ?? RECORD_LABEL[r.record_type];
+}
+
+function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
   const chip = statusChip(r.status);
   return (
     <Card shadow noPadding onPress={onPress}>
@@ -41,32 +45,25 @@ function RecordRow({ r, onPress, onDelete }: { r: RecordSummary; onPress: () => 
             <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(r.uploaded_at)}</Text>
           </View>
           <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>
-            {r.hospital_name ?? "병원 정보 없음"}
+            {cardTitle(r)}
           </Text>
           {r.medication_count != null ? (
             <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>약품 {r.medication_count}개</Text>
           ) : null}
         </View>
-        <TouchableOpacity
-          onPress={onDelete}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={{ padding: spacing.s8 }}
-        >
-          <Icon name="trash" size={16} color={colors.muted2} />
-        </TouchableOpacity>
+        <Icon name="chevron-right" size={16} color={colors.muted2} />
       </View>
     </Card>
   );
 }
 
 export function RecordListScreen({ navigation }: any) {
-  const { flash } = useApp();
   const [filter, setFilter] = useState("전체");
   const [records, setRecords] = useState<RecordSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const tabs = ["전체", "처방전", "약봉투", "진료기록"];
+  const tabs = ["전체", "처방전", "약봉투", "진료기록", "직접입력"];
 
   const fetchRecords = useCallback(
     async (isRefresh = false) => {
@@ -93,28 +90,6 @@ export function RecordListScreen({ navigation }: any) {
   useEffect(() => {
     fetchRecords();
   }, [fetchRecords]);
-
-  const handleDelete = (recordId: number) => {
-    Alert.alert(
-      "진료기록 삭제",
-      "이 진료기록을 삭제하시겠어요?",
-      [
-        { text: "취소", style: "cancel" },
-        {
-          text: "삭제",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await recordsApi.deleteRecord(recordId);
-              setRecords(prev => prev.filter(r => r.record_id !== recordId));
-            } catch (e) {
-              flash("진료기록 삭제에 실패했습니다.");
-            }
-          },
-        },
-      ],
-    );
-  };
 
   const headerProps = {
     title: "진료기록",
@@ -189,7 +164,6 @@ export function RecordListScreen({ navigation }: any) {
           key={r.record_id}
           r={r}
           onPress={() => navigation.navigate("RecordDetail", { recordId: r.record_id })}
-          onDelete={() => handleDelete(r.record_id)}
         />
       ))}
     </ScreenLayout>

@@ -1,7 +1,7 @@
 // ─── Common ───────────────────────────────────────────────────────────────────
 
 export type AsyncJobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'timeout';
-export type RecordType = 'prescription' | 'medicine_bag' | 'medical_record';
+export type RecordType = 'prescription' | 'medicine_bag' | 'medical_record' | 'manual';
 export type ConsentType = 'terms' | 'privacy' | 'sensitive_health' | 'ai_analysis' | 'marketing';
 
 export interface ApiError {
