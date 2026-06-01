@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
@@ -8,6 +8,7 @@ import { colors, spacing, typography } from "../../theme";
 import { recordsApi, extractApiError } from "../../api";
 import type { RecordSummary } from "../../api";
 import { RECORD_LABEL, FILTER_TO_TYPE, iconFor, formatDate, getRecordColor, s } from "./_recordsShared";
+import EmptyState from "../../components/EmptyState";
 
 function statusChip(status: string): { label: string; color: string; bg: string } {
   if (status === 'ocr_completed')
@@ -105,13 +106,13 @@ export function RecordListScreen({ navigation }: any) {
       </Button>
     ),
     headerExtra: (
-      <View style={{ flexDirection: "row", gap: 6 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 6 }}>
         {tabs.map((t) => (
           <TouchableOpacity key={t} style={[s.chip, filter === t && s.chipActive]} onPress={() => setFilter(t)}>
             <Text style={[{ fontSize: typography.fz12 }, filter === t && { color: colors.accent700, fontWeight: typography.fw6 }]}>{t}</Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     ),
     refreshing,
     onRefresh: () => fetchRecords(true),
@@ -130,13 +131,12 @@ export function RecordListScreen({ navigation }: any) {
   if (error) {
     return (
       <ScreenLayout {...headerProps} scrollable={false}>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.s20 }}>
-          <Icon name="alert" size={32} color={colors.muted2} />
-          <Text style={{ fontSize: typography.fz14, color: colors.muted, marginTop: spacing.s12, textAlign: "center" }}>{error}</Text>
-          <Button variant="primary" style={{ marginTop: spacing.s16 }} onPress={() => fetchRecords()}>
-            다시 시도
-          </Button>
-        </View>
+        <EmptyState
+          icon="alert"
+          title="목록을 불러오지 못했어요"
+          message={error}
+          action={{ label: '다시 시도', onPress: () => fetchRecords() }}
+        />
       </ScreenLayout>
     );
   }
@@ -144,10 +144,7 @@ export function RecordListScreen({ navigation }: any) {
   if (records.length === 0) {
     return (
       <ScreenLayout {...headerProps} scrollable={false}>
-        <View style={{ alignItems: "center", paddingTop: 60 }}>
-          <Icon name="doc" size={40} color={colors.muted2} />
-          <Text style={{ fontSize: typography.fz14, color: colors.muted, marginTop: spacing.s12 }}>아직 업로드된 기록이 없어요.</Text>
-        </View>
+        <EmptyState icon="doc" message="아직 업로드된 기록이 없어요." />
       </ScreenLayout>
     );
   }

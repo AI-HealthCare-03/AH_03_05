@@ -7,7 +7,16 @@ export const colors = {
   accent50: "#ECFCFE",
   accent100: "#CFFAFE",
   accentAlpha30: "rgba(8,145,178,0.3)",
+  accentAlpha25: "rgba(8,145,178,0.25)",
   accentOn: "#ffffff",
+
+  // On-accent (white-alpha — text/elements on accent-colored backgrounds)
+  onAccent85: "rgba(255,255,255,0.85)",
+  onAccent80: "rgba(255,255,255,0.8)",
+  onAccent75: "rgba(255,255,255,0.75)",
+  onAccent60: "rgba(255,255,255,0.6)",
+  onAccent25: "rgba(255,255,255,0.25)",
+  onAccent20: "rgba(255,255,255,0.2)",
 
   // Canvas / Surface
   canvas: "#F0F9FF",
@@ -92,6 +101,7 @@ export const typography = {
   fz24: 24,
   fz26: 26,
   fz36: 36,
+  fz48: 48,
   fw4: "400" as const,
   fw5: "500" as const,
   fw6: "600" as const,

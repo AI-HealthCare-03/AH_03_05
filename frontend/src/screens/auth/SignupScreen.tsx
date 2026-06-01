@@ -386,7 +386,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
       {/* 약관 모달 */}
       <Modal visible={termsModal !== null} transparent animationType="fade" onRequestClose={() => setTermsModal(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: isTabletOrAbove ? 'center' : 'flex-end', alignItems: isTabletOrAbove ? 'center' : 'stretch' }}>
+        <View style={{ flex: 1, backgroundColor: colors.scrim, justifyContent: isTabletOrAbove ? 'center' : 'flex-end', alignItems: isTabletOrAbove ? 'center' : 'stretch' }}>
           <View style={[{ backgroundColor: colors.surface, maxHeight: '72%' }, isTabletOrAbove ? { borderRadius: 16, width: '90%', maxWidth: 560 } : { borderTopLeftRadius: 20, borderTopRightRadius: 20 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.s20, borderBottomWidth: 0.5, borderBottomColor: colors.hairline }}>
               <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink, flex: 1 }}>

@@ -6,6 +6,7 @@ import Icon from '../../components/Icon';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ScreenLayout from '../../components/ScreenLayout';
+import ProgressBar from '../../components/ProgressBar';
 import { guidesApi, jobsApi, extractApiError } from '../../api';
 import type { AsyncJobStatus } from '../../api';
 
@@ -123,9 +124,10 @@ export function GuideLoadingScreen({ navigation, route }: any) {
         <Text style={{ fontSize: typography.fz13, color: colors.muted, marginBottom: spacing.s20 }}>
           {statusText}
         </Text>
-        <View style={[s.progressBg, { alignSelf: 'stretch', marginBottom: spacing.s20 }]}>
-          <View style={[s.progressFill, { width: statusText.includes('분석') ? '60%' : '20%' }]} />
-        </View>
+        <ProgressBar
+          progress={statusText.includes('분석') ? 60 : 20}
+          style={{ alignSelf: 'stretch', marginBottom: spacing.s20 }}
+        />
         <Text style={{ fontSize: typography.fz12, color: colors.muted2 }}>최대 90초가 소요될 수 있어요</Text>
       </Card>
     </ScreenLayout>
@@ -139,6 +141,4 @@ export default GuideLoadingScreen;
 const s = StyleSheet.create({
   loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   spinner:       { width: 84, height: 84, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  progressBg:    { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: 'hidden' },
-  progressFill:  { height: '100%', backgroundColor: colors.accent, borderRadius: 3 },
 });

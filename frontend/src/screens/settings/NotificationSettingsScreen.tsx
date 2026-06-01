@@ -228,14 +228,17 @@ export function NotificationSettingsScreen({ navigation }: any) {
 
 export default NotificationSettingsScreen;
 
+const TIME_INPUT_HEIGHT = 36;
+const TIME_INPUT_WIDTH = 80;
+
 function webTimeInput(active: boolean): object {
   return {
     border: `1px solid ${colors.hairlineStrong}`,
     borderRadius: radii.md,
     paddingLeft: spacing.s8,
     paddingRight: spacing.s8,
-    height: 36,
-    width: 80,
+    height: TIME_INPUT_HEIGHT,
+    width: TIME_INPUT_WIDTH,
     fontSize: typography.fz13,
     color: active ? colors.ink : colors.muted,
     background: 'transparent',
@@ -248,7 +251,7 @@ function webTimeInput(active: boolean): object {
 const ps = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.scrim,
     justifyContent: 'flex-end',
   },
   sheet: {

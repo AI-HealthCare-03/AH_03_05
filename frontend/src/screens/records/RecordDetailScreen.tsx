@@ -10,6 +10,7 @@ import { colors, radii, spacing, typography } from "../../theme";
 import { recordsApi, extractApiError } from "../../api";
 import type { RecordDetail, MedicationItem, RecordGuideResponse } from "../../api";
 import { RECORD_LABEL, formatDate, getRecordColor, iconFor } from "./_recordsShared";
+import EmptyState from "../../components/EmptyState";
 
 function mapApiError(err: any): string {
   const status = err?.response?.status;
@@ -266,21 +267,15 @@ export function RecordDetailScreen({ navigation, route }: any) {
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>복약 가이드</Text>
           </View>
           {!guide ? (
-            <View style={{ alignItems: "center", paddingVertical: spacing.s12 }}>
-              <Icon name="doc" size={32} color={colors.muted2} />
-              <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink, marginTop: spacing.s8, marginBottom: spacing.s4 }}>
-                아직 가이드가 없어요
-              </Text>
-              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s16, textAlign: "center" }}>
-                AI가 처방 내용을 분석해 복약 가이드를 생성해드려요.
-              </Text>
-              <Button
-                variant="primary"
-                size="sm"
-                leftIcon="wand"
-                onPress={() => navigation.getParent()?.navigate("GuideTab", { screen: "GuideLoading", params: { recordId } })}
-              >가이드 생성하기</Button>
-            </View>
+            <EmptyState
+              icon="doc"
+              title="아직 가이드가 없어요"
+              message="AI가 처방 내용을 분석해 복약 가이드를 생성해드려요."
+              action={{
+                label: '가이드 생성하기',
+                onPress: () => navigation.getParent()?.navigate("GuideTab", { screen: "GuideLoading", params: { recordId } }),
+              }}
+            />
           ) : !guideReady ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s12, paddingVertical: spacing.s8 }}>
               <ActivityIndicator color={colors.accent} size="small" />
@@ -329,7 +324,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
             </TouchableOpacity>
           </View>
           <View style={{ height: 200, backgroundColor: colors.accent50, borderRadius: radii.md, alignItems: "center", justifyContent: "center", marginBottom: spacing.s12 }}>
-            <Icon name="doc" size={72} color="rgba(8,145,178,0.25)" />
+            <Icon name="doc" size={72} color={colors.accentAlpha25} />
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{record.file_name ?? "파일명 없음"}</Text>

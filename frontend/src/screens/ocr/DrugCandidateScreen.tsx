@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { View, Text, TextInput } from "react-native";
-import Icon from "../../components/Icon";
+import { View, Text } from "react-native";
 import Button from "../../components/Button";
+import Icon from "../../components/Icon";
 import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
+import SearchBar from "../../components/SearchBar";
 import { colors, radii, spacing, typography } from "../../theme";
 import { drugsApi } from "../../api";
 import type { DrugSearchResult } from "../../api";
+import EmptyState from "../../components/EmptyState";
 
 
 export function DrugCandidateScreen({ navigation, route }: any) {
@@ -15,7 +17,6 @@ export function DrugCandidateScreen({ navigation, route }: any) {
   const [results, setResults] = useState<DrugSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [focused, setFocused] = useState(false);
   const [searchError, setSearchError] = useState('');
 
   const doSearch = async () => {
@@ -36,25 +37,15 @@ export function DrugCandidateScreen({ navigation, route }: any) {
 
   return (
     <ScreenLayout title="식약처 약품 검색" back onBack={() => navigation.goBack()} scrollable scrollPadding={false} contentStyle={{ padding: spacing.s20 }}>
-      <Card
-        shadow
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.s8,
-          marginBottom: 14,
-          borderColor: focused ? colors.accent : colors.hairline,
-          borderWidth: focused ? 1.5 : 0.5,
-          height: 50,
-          paddingVertical: spacing.s2,
-        }}
-      >
-        <Icon name="search" size={16} color={focused ? colors.accent : colors.muted} />
-        <TextInput style={{ flex: 1, fontSize: typography.fz14, color: colors.ink, outlineStyle: "none" } as any} placeholderTextColor={colors.muted2} value={query} onChangeText={setQuery} onSubmitEditing={doSearch} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} returnKeyType="search" autoFocus />
-        <Button variant="primary" onPress={doSearch} loading={loading} size="sm">
-          검색
-        </Button>
-      </Card>
+      <SearchBar
+        value={query}
+        onChangeText={setQuery}
+        placeholder="약품명으로 검색"
+        onSubmit={doSearch}
+        autoFocus
+        action={{ label: '검색', onPress: doSearch, loading }}
+        style={{ marginBottom: spacing.s14 }}
+      />
 
       {searched && !loading && !searchError && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: 10 }}>검색 결과 {results.length}건</Text>}
       {searchError ? (
@@ -76,11 +67,7 @@ export function DrugCandidateScreen({ navigation, route }: any) {
       ))}
 
       {searched && !loading && results.length === 0 && (
-        <View style={{ alignItems: "center", paddingTop: spacing.s40 }}>
-          <Icon name="search" size={32} color={colors.muted2} />
-          <Text style={{ fontSize: typography.fz14, color: colors.muted, marginTop: spacing.s12 }}>검색 결과가 없어요.</Text>
-          <Text style={{ fontSize: typography.fz12, color: colors.muted2, marginTop: spacing.s4 }}>다른 이름으로 검색해보세요.</Text>
-        </View>
+        <EmptyState icon="search" title="검색 결과가 없어요" message="다른 이름으로 검색해보세요." />
       )}
     </ScreenLayout>
   );

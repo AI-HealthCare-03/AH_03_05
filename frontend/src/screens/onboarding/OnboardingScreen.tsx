@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   infoText: { fontSize: typography.fz13, color: colors.accent700, flex: 1 },
   fieldLabel: { fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s8 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.s8, marginBottom: spacing.s16 },
-  chip: { paddingHorizontal: spacing.s16, paddingVertical: spacing.s8, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.surface },
+  chip: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.surface },
   chipGrow: { flex: 1, alignItems: 'center' },
   chipActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
   chipText: { fontSize: typography.fz13, color: colors.ink2 },

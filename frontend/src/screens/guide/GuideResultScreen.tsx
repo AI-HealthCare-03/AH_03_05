@@ -8,6 +8,7 @@ import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
 import { guidesApi, feedbacksApi, extractApiError } from "../../api";
 import type { GuideResponse } from "../../api";
+import EmptyState from "../../components/EmptyState";
 
 // ─── 헬퍼 ─────────────────────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ type GuideItem = GuideResponse["guide_items"][number];
 
 function GuideItemCard({ item }: { item: GuideItem }) {
   return (
-    <Card shadow style={{ marginBottom: 14 }}>
+    <Card shadow style={{ marginBottom: spacing.s14 }}>
       {item.title ? (
         <View style={s.cardHeader}>
           <Icon name="link" size={14} color={colors.ink2} />
@@ -101,21 +102,18 @@ export function GuideResultScreen({ navigation, route }: any) {
               <ActivityIndicator color={colors.accent} />
             </View>
           ) : guideError ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: 14, borderWidth: 1, borderColor: colors.danger }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.danger }}>
               <Icon name="alert" size={14} color={colors.danger} />
               <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
             </View>
           ) : apiMedItems.length > 0 ? (
             apiMedItems.map((item, i) => <GuideItemCard key={i} item={item} />)
           ) : guide?.medication_guide ? (
-            <Card shadow style={{ marginBottom: 14 }}>
+            <Card shadow style={{ marginBottom: spacing.s14 }}>
               <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{guide.medication_guide}</Text>
             </Card>
           ) : (
-            <View style={{ alignItems: "center", paddingVertical: spacing.s24 }}>
-              <Icon name="doc" size={32} color={colors.muted2} />
-              <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s12 }}>가이드 정보를 불러오지 못했습니다.</Text>
-            </View>
+            <EmptyState icon="doc" message="가이드 정보를 불러오지 못했습니다." />
           )}
         </>
       )}
@@ -128,21 +126,18 @@ export function GuideResultScreen({ navigation, route }: any) {
               <ActivityIndicator color={colors.accent} />
             </View>
           ) : guideError ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: 14, borderWidth: 1, borderColor: colors.danger }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.danger }}>
               <Icon name="alert" size={14} color={colors.danger} />
               <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
             </View>
           ) : apiLifeItems.length > 0 ? (
             apiLifeItems.map((item, i) => <GuideItemCard key={i} item={item} />)
           ) : guide?.lifestyle_guide ? (
-            <Card shadow style={{ marginBottom: 14 }}>
+            <Card shadow style={{ marginBottom: spacing.s14 }}>
               <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{guide.lifestyle_guide}</Text>
             </Card>
           ) : (
-            <View style={{ alignItems: "center", paddingVertical: spacing.s24 }}>
-              <Icon name="doc" size={32} color={colors.muted2} />
-              <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s12 }}>가이드 정보를 불러오지 못했습니다.</Text>
-            </View>
+            <EmptyState icon="doc" message="가이드 정보를 불러오지 못했습니다." />
           )}
         </>
       )}
@@ -154,7 +149,7 @@ export function GuideResultScreen({ navigation, route }: any) {
       </View>
 
       {/* 피드백 (REQ-FB-001) — guideId 없을 때 숨김 */}
-      {guideId != null && <Card shadow style={{ alignItems: "center", gap: 10 }}>
+      {guideId != null && <Card shadow style={{ alignItems: "center", gap: spacing.s10 }}>
         <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2 }}>이 가이드가 도움이 됐나요?</Text>
         <View style={{ flexDirection: "row", gap: spacing.s12 }}>
           <TouchableOpacity
@@ -188,7 +183,7 @@ export function GuideResultScreen({ navigation, route }: any) {
 
       {/* 👎 코멘트 모달 */}
       <Modal transparent visible={commentVisible} animationType="fade" onRequestClose={() => { setCommentVisible(false); setCommentText(''); }}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "center", alignItems: "center", padding: spacing.s24 }}>
+        <View style={{ flex: 1, backgroundColor: colors.scrim, justifyContent: "center", alignItems: "center", padding: spacing.s24 }}>
           <View style={{ backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s20, width: "100%", maxWidth: 400, gap: spacing.s12 }}>
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>아쉬웠던 점을 알려주세요</Text>
             <TextInput
@@ -227,25 +222,25 @@ export default GuideResultScreen;
 
 const s = StyleSheet.create({
   // 안전 배너
-  safetyBanner: { backgroundColor: colors.accent50, borderRadius: radii.md, padding: 14, flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 14, borderWidth: 1, borderColor: colors.accent100 },
+  safetyBanner: { backgroundColor: colors.accent50, borderRadius: radii.md, padding: spacing.s12, flexDirection: "row", alignItems: "flex-start", gap: spacing.s10, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.accent100 },
   safetyText: { fontSize: typography.fz13, color: colors.accent700, flex: 1, lineHeight: 20 },
 
   // 탭 바
-  tabBar: { flexDirection: "row", alignSelf: "flex-start", backgroundColor: colors.surface2, borderRadius: radii.md, padding: spacing.s4, gap: spacing.s4, marginBottom: 14, borderWidth: 0.5, borderColor: colors.hairline },
+  tabBar: { flexDirection: "row", alignSelf: "flex-start", backgroundColor: colors.surface2, borderRadius: radii.md, padding: spacing.s4, gap: spacing.s4, marginBottom: spacing.s14, borderWidth: 0.5, borderColor: colors.hairline },
   tabBtn: { paddingVertical: 5, paddingHorizontal: spacing.s12, alignItems: "center", justifyContent: "center", borderRadius: 10 },
   tabBtnActive: { backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
   tabText: { fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink2 },
   tabTextActive: { color: colors.accent700 },
 
   // 카드 헤더
-  cardHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.s12 },
+  cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.s6, marginBottom: spacing.s12 },
   cardHeaderText: { fontSize: typography.fz13, fontWeight: typography.fw6 },
 
   // 응급 배너
-  emergencyBanner: { backgroundColor: colors.danger50, borderRadius: radii.md, padding: 14, borderWidth: 1, borderColor: colors.danger, marginTop: spacing.s8, marginBottom: 14 },
-  emergencyTitle: { fontSize: typography.fz13, fontWeight: typography.fw7, color: colors.danger, marginBottom: 6 },
+  emergencyBanner: { backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, borderWidth: 1, borderColor: colors.danger, marginTop: spacing.s8, marginBottom: spacing.s14 },
+  emergencyTitle: { fontSize: typography.fz13, fontWeight: typography.fw7, color: colors.danger, marginBottom: spacing.s6 },
   emergencyBody: { fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 },
 
   // 피드백 버튼
-  feedbackBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: spacing.s20, paddingVertical: spacing.s10, borderRadius: radii.pill, borderWidth: 1 },
+  feedbackBtn: { flexDirection: "row", alignItems: "center", gap: spacing.s6, paddingHorizontal: spacing.s20, paddingVertical: spacing.s10, borderRadius: radii.pill, borderWidth: 1 },
 });

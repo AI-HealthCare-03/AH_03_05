@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography, radii } from '../../theme';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
+import SearchBar from '../../components/SearchBar';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { ChatSessionPane } from './ChatSessionPane';
 import { chatApi } from '../../api';
 import type { ChatSession, ChatMessageItem } from '../../api';
+import EmptyState from '../../components/EmptyState';
 function formatTime(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -29,7 +31,6 @@ export function ChatListScreen({ navigation, route }: any) {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [searchFocused, setSearchFocused] = useState(false);
   const [messagesCache, setMessagesCache] = useState<Record<string, ChatMessageItem[]>>({});
   const { isDesktop } = useBreakpoint();
 
@@ -120,34 +121,7 @@ export function ChatListScreen({ navigation, route }: any) {
 
   const selectedSession = sessions.find(c => String(c.session_id) === selectedId);
 
-  const searchBar = (
-    <Card
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.s8,
-        borderColor: searchFocused ? colors.accent : colors.hairline,
-        borderWidth: searchFocused ? 1.5 : 0.5,
-        height: 44,
-        paddingVertical: 0,
-        paddingHorizontal: spacing.s12,
-      }}
-    >
-      <Icon name="search" size={16} color={searchFocused ? colors.accent : colors.muted} />
-      <TextInput
-        style={{ flex: 1, fontSize: typography.fz14, color: colors.ink, outlineStyle: 'none' } as any}
-        placeholder="검색"
-        placeholderTextColor={colors.muted2}
-        value={query}
-        onChangeText={setQuery}
-        onFocus={() => setSearchFocused(true)}
-        onBlur={() => setSearchFocused(false)}
-        onKeyPress={({ nativeEvent }: any) => {
-          if (nativeEvent.key === 'Enter') setSearchFocused(false);
-        }}
-      />
-    </Card>
-  );
+  const searchBar = <SearchBar value={query} onChangeText={setQuery} />;
 
   const sessionList = (
     <>
@@ -168,14 +142,14 @@ export function ChatListScreen({ navigation, route }: any) {
           }}>다시 시도</Button>
         </View>
       ) : sessions.length === 0 ? (
-        <View style={{ alignItems: 'center', padding: 48 }}>
-          <Icon name="chat" size={36} color={colors.muted2} />
-          <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink, marginTop: 14, marginBottom: 6 }}>아직 상담 내역이 없어요</Text>
-          <Text style={{ fontSize: typography.fz13, color: colors.muted, marginBottom: spacing.s20, textAlign: 'center' }}>복약·생활습관 관련 궁금한 점을 물어보세요.</Text>
-          <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>
-        </View>
+        <EmptyState
+          icon="chat"
+          title="아직 상담 내역이 없어요"
+          message="복약·생활습관 관련 궁금한 점을 물어보세요."
+          action={{ label: '새 상담 시작하기', onPress: startNew }}
+        />
       ) : filtered.length === 0 ? (
-        <Text style={{ fontSize: typography.fz13, color: colors.muted, textAlign: 'center', padding: spacing.s24 }}>검색 결과가 없어요</Text>
+        <EmptyState icon="search" message="검색 결과가 없어요." />
       ) : (
         filtered.map(c => {
           const sid = String(c.session_id);

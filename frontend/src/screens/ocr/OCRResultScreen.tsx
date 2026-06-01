@@ -114,7 +114,7 @@ export function OCRResultScreen({ navigation, route }: any) {
         !imageRemoved ? (
           <Card shadow style={{ marginBottom: 14 }}>
             <View style={s.docPreview}>
-              <Icon name="doc" size={72} color="rgba(8,145,178,0.3)" />
+              <Icon name="doc" size={72} color={colors.accentAlpha30} />
               <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn}>
                 <Icon name="x" size={14} color={colors.ink} />
               </TouchableOpacity>
