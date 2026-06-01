@@ -377,7 +377,7 @@ export interface CreateSessionRequest {
 export interface ChatSession {
   session_id: number;
   title: string;
-  status: 'active' | 'closed';
+  status: 'ACTIVE' | 'CLOSED';
   updated_at?: string;
   last_message?: string;
   last_message_preview?: string | null;
@@ -418,6 +418,7 @@ export interface ChatMessageItem {
   sender_type: 'user' | 'assistant';
   content: string;
   safety_flag?: boolean;
+  safety_notice?: string;
   created_at?: string;
   // TODO: [BE 대기] message.category — POST /chat/.../messages 응답에 category 필드 추가 요청 필요
   category?: string;
