@@ -1,9 +1,5 @@
-// TODO: 채팅 삭제 기능 미구현
-//   - 백엔드 엔드포인트 확인 필요: DELETE /chat/sessions/{id}
-//   - chat.ts에 deleteChatSession() 함수 추가 필요
-//   - ChatListScreen에 스와이프 삭제 UI 구현 필요 (react-native-gesture-handler Swipeable 또는 커스텀)
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography, radii } from '../../theme';
@@ -79,6 +75,26 @@ export function ChatListScreen({ navigation, route }: any) {
     } else {
       navigation.navigate('ChatSession', { sessionId: String(c.session_id), title: c.title, subtitle: c.last_message_preview });
     }
+  };
+
+  const handleDelete = (sessionId: number) => {
+    Alert.alert(
+      '상담 삭제',
+      '이 상담을 삭제하시겠어요?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: () => {
+            setSessions(prev => prev.filter(s => s.session_id !== sessionId));
+            if (selectedId === String(sessionId)) setSelectedId(null);
+            // TODO: BE DELETE /chat/sessions/{session_id} 구현 후 연결
+            // await chatApi.deleteSession(sessionId);
+          },
+        },
+      ],
+    );
   };
 
   const handleFirstMessage = (text: string) => {
@@ -169,6 +185,8 @@ export function ChatListScreen({ navigation, route }: any) {
               key={sid}
               style={[ds.sessionRow, selected && { backgroundColor: colors.accent50, borderRadius: radii.lg }]}
               onPress={() => openSession(c)}
+              onLongPress={() => handleDelete(c.session_id)}
+              delayLongPress={400}
               activeOpacity={0.7}
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
