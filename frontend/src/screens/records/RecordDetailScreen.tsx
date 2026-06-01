@@ -27,6 +27,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
   const [guide, setGuide] = useState<RecordGuideResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [medsError, setMedsError] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
@@ -69,15 +70,10 @@ export function RecordDetailScreen({ navigation, route }: any) {
           setError(mapApiError((rec as PromiseRejectedResult).reason));
         }
 
-        // TODO: [BE 대기] GET /records/{record_id}/medications 미구현 — 구현 완료 후 __DEV__ 분기 제거
         if (meds.status === "fulfilled") {
           setMedications(meds.value.medications);
-        } else if (__DEV__) {
-          setMedications([
-            { medication_id: 30, drug_ref_id: 1, drug_name: "암로디핀정 5mg",      frequency: "1일 1회", dosage: "아침 식후", is_verified: true },
-            { medication_id: 31, drug_ref_id: 2, drug_name: "로수바스타틴 10mg",   frequency: "1일 1회", dosage: "저녁 식후", is_verified: true },
-            { medication_id: 32, drug_ref_id: 3, drug_name: "메트포르민 500mg",    frequency: "1일 2회", dosage: "식후",      is_verified: true },
-          ]);
+        } else {
+          setMedsError(true);
         }
 
         // TODO: [BE 대기] GET /records/{record_id}/guide 미구현 — 구현 완료 후 __DEV__ 분기 제거
@@ -222,9 +218,13 @@ export function RecordDetailScreen({ navigation, route }: any) {
             ) : null}
           </View>
 
-          {medications.length === 0 ? (
+          {medsError ? (
             <Text style={{ fontSize: typography.fz13, color: colors.muted, textAlign: "center", paddingVertical: spacing.s12 }}>
-              약품 정보를 불러오는 중이에요.
+              약품 정보를 불러오지 못했어요.
+            </Text>
+          ) : medications.length === 0 ? (
+            <Text style={{ fontSize: typography.fz13, color: colors.muted, textAlign: "center", paddingVertical: spacing.s12 }}>
+              처방된 약품이 없어요.
             </Text>
           ) : (
             medications.map((med, i) => (
@@ -255,6 +255,55 @@ export function RecordDetailScreen({ navigation, route }: any) {
                 >약품 상세</Button>
               </TouchableOpacity>
             ))
+          )}
+        </Card>
+
+        {/* ── 가이드 상태 ── */}
+        {/* TODO: [BE 대기] GET /records/{record_id}/guide 미구현 — 구현 완료 후 __DEV__ 분기 제거 */}
+        <Card shadow style={{ marginBottom: 14 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.s12 }}>
+            <Icon name="wand" size={14} color={colors.accent700} />
+            <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>복약 가이드</Text>
+          </View>
+          {!guide ? (
+            <View style={{ alignItems: "center", paddingVertical: spacing.s12 }}>
+              <Icon name="doc" size={32} color={colors.muted2} />
+              <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink, marginTop: spacing.s8, marginBottom: spacing.s4 }}>
+                아직 가이드가 없어요
+              </Text>
+              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s16, textAlign: "center" }}>
+                AI가 처방 내용을 분석해 복약 가이드를 생성해드려요.
+              </Text>
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon="wand"
+                onPress={() => navigation.getParent()?.navigate("GuideTab", { screen: "GuideLoading", params: { recordId } })}
+              >가이드 생성하기</Button>
+            </View>
+          ) : !guideReady ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s12, paddingVertical: spacing.s8 }}>
+              <ActivityIndicator color={colors.accent} size="small" />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>가이드를 분석하고 있어요...</Text>
+                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>분석이 완료되면 알림으로 알려드려요.</Text>
+              </View>
+            </View>
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s12 }}>
+              <View style={{ width: 40, height: 40, borderRadius: radii.pill, backgroundColor: colors.success50, alignItems: "center", justifyContent: "center" }}>
+                <Icon name="check" size={18} color={colors.success} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>가이드가 준비됐어요</Text>
+                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>복약 방법, 주의사항, 생활습관 안내를 확인하세요.</Text>
+              </View>
+              <Button
+                variant="primary"
+                size="sm"
+                onPress={() => navigation.getParent()?.navigate("GuideTab", { screen: "GuideResult", params: { guideId: guide.guide_id } })}
+              >바로가기</Button>
+            </View>
           )}
         </Card>
 
