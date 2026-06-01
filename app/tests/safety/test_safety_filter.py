@@ -74,6 +74,6 @@ def test_none_like_whitespace():
 def test_safety_response_structure():
     resp = get_safety_response()
     assert resp["safety_flag"] is True
-    assert "1577-0199" in resp["answer"]
+    assert "109" in resp["answer"]
     assert "disclaimer" in resp
     assert resp["guide_items"] == []
