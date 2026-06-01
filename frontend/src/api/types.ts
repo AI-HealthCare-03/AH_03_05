@@ -311,6 +311,21 @@ export interface MedicationAlarmUpdateRequest {
   is_alarm_enabled: boolean;
 }
 
+export interface MedicationDosageUpdateRequest {
+  dosage?: string;
+  frequency?: string;
+  timing?: string;
+  duration?: string;
+}
+
+export interface MedicationDosageUpdateResponse {
+  medication_id: number;
+  dosage?: string;
+  frequency?: string;
+  timing?: string;
+  duration?: string;
+}
+
 // ─── Guides ───────────────────────────────────────────────────────────────────
 
 export interface CreateGuideRequest {

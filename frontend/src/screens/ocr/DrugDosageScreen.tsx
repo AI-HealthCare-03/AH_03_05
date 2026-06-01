@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useApp } from "../../context/AppContext";
+import { updateMedicationDosage } from "../../api/medications";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
@@ -11,6 +12,7 @@ import { s } from "./_ocrShared";
 export function DrugDosageScreen({ navigation, route }: any) {
   const { flash, ocrSession, setOcrSession } = useApp();
   const drugIndex: number | undefined = route?.params?.drugIndex;
+  const medicationId: number | undefined = route?.params?.medicationId;
   const selectedDrug = route?.params?.selectedDrug;
   const fromSearch = !!selectedDrug;
 
@@ -21,11 +23,7 @@ export function DrugDosageScreen({ navigation, route }: any) {
   const [time, setTime] = useState(savedParts[1] || '식후 30분');
   const [duration, setDuration] = useState(savedParts[2] || '14일');
 
-  // TODO: 복용법 수정 내용이 서버에 저장되지 않음
-  // 현재 setOcrSession(로컬 context)만 업데이트, BE 저장 API 미연결
-  // BE에서 약품별 복용법 수정 API (예: PATCH /medications/{medication_id}) 구현 후 연결 필요
-  // 연결 전까지 DrugDosageScreen에서 수정한 복용법은 가이드 생성 시 반영되지 않음
-  const save = () => {
+  const save = async () => {
     const timeStr = `1일 ${freq} · ${time} · ${duration}`; // B11: duration 포함
     if (fromSearch && drugIndex === undefined) {
       // B13: 직접 추가 플로우 — 신규 약품 push
@@ -42,6 +40,20 @@ export function DrugDosageScreen({ navigation, route }: any) {
         drugs: ocrSession.drugs.map((d, i) => (i === drugIndex ? { ...d, status: 'ok', time: timeStr, confidence: 100 } : d)),
       });
     }
+
+    if (medicationId != null) {
+      try {
+        await updateMedicationDosage(medicationId, {
+          frequency: `1일 ${freq}`,
+          timing: time,
+          duration,
+        });
+      } catch {
+        flash("복용법 저장에 실패했습니다.");
+        return;
+      }
+    }
+
     flash("복용법을 저장했어요");
     if (fromSearch) {
       navigation.pop(2);

@@ -123,7 +123,6 @@ export default function UploadModalScreen({ navigation }: any) {
     try {
       const res = await createManualRecord(manualText.trim());
       setUploadDone(true);
-      // TODO: BE manual-input 텍스트 파싱 미구현, medication_candidates 항상 빈 배열
       setTimeout(() => {
         (navigation as any).navigate('Main', {
           screen: 'HomeTab',

@@ -55,13 +55,16 @@ export function OCRResultScreen({ navigation, route }: any) {
     })();
   }, [recordId]);
 
+  const isManualInput = inputMethod === 'manual';
+
   const displayDrugs = recordId
     ? candidates.map(c => ({
         name: c.drug_name,
         maker: '',
         time: buildCandidateTime(c),
-        confidence: Math.round(c.confidence * 100),
-        status: (!c.is_verified && c.confidence < 0.7) ? 'needsCheck' : 'ok' as 'ok' | 'needsCheck',
+        confidence: c.confidence != null ? Math.round(c.confidence * 100) : null,
+        status: (!isManualInput && !c.is_verified && (c.confidence ?? 1) < 0.7) ? 'needsCheck' : 'ok' as 'ok' | 'needsCheck',
+        isManual: isManualInput,
       }))
     : ocrSession.drugs;
 
@@ -159,29 +162,37 @@ export function OCRResultScreen({ navigation, route }: any) {
 
         {displayDrugs.map((d, i) => {
           const warn = d.status === 'needsCheck';
+          const manual = (d as any).isManual as boolean | undefined;
+          const bgColor = manual ? colors.accent50 : warn ? colors.warning50 : colors.success50;
+          const dotColor = manual ? colors.accent700 : warn ? colors.warning : colors.success;
           return (
             <TouchableOpacity key={i}
-              style={[s.drugCard, { backgroundColor: warn ? colors.warning50 : colors.success50 }]}
-              onPress={() => warn
+              style={[s.drugCard, { backgroundColor: bgColor }]}
+              onPress={() => (warn || manual)
                 ? navigation.navigate('DrugCandidate', { medicationName: d.name, drugIndex: i })
-                : navigation.navigate('DrugDosage', { drugIndex: i })
+                : navigation.navigate('DrugDosage', { drugIndex: i, medicationId: recordId ? candidates[i]?.medication_id : undefined })
               }
             >
-              <View style={[s.drugDot, { backgroundColor: warn ? colors.warning : colors.success }]}>
-                {warn ? <Icon name="alert" size={14} color="#fff" /> : <Icon name="check" size={14} color="#fff" />}
+              <View style={[s.drugDot, { backgroundColor: dotColor }]}>
+                {manual
+                  ? <Icon name="edit" size={14} color="#fff" />
+                  : warn
+                    ? <Icon name="alert" size={14} color="#fff" />
+                    : <Icon name="check" size={14} color="#fff" />
+                }
               </View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, flex: 1 }} numberOfLines={1}>{d.name}</Text>
                   {d.maker ? <Text style={{ fontSize: typography.fz12, color: colors.muted }}>({d.maker})</Text> : null}
                 </View>
-                <Text style={{ fontSize: typography.fz12, color: warn ? '#92400E' : '#065F46', marginTop: 2 }}>
-                  {warn ? `인식률 ${d.confidence}% — 확인이 필요해요` : d.time || `인식률 ${d.confidence}%`}
+                <Text style={{ fontSize: typography.fz12, color: manual ? colors.accent700 : warn ? '#92400E' : '#065F46', marginTop: 2 }}>
+                  {manual ? '직접 입력된 약품' : warn ? `인식률 ${d.confidence}% — 확인이 필요해요` : d.time || `인식률 ${d.confidence}%`}
                 </Text>
               </View>
-              <View style={[s.chip, { backgroundColor: warn ? colors.warning : colors.white }]}>
-                <Text style={{ fontSize: typography.fz11, color: warn ? colors.white : '#065F46', fontWeight: typography.fw6 }}>
-                  {warn ? '검색/확인' : '수정'}
+              <View style={[s.chip, { backgroundColor: manual ? colors.accent100 : warn ? colors.warning : colors.white }]}>
+                <Text style={{ fontSize: typography.fz11, color: manual ? colors.accent700 : warn ? colors.white : '#065F46', fontWeight: typography.fw6 }}>
+                  {manual ? '직접 입력' : warn ? '검색/확인' : '수정'}
                 </Text>
               </View>
             </TouchableOpacity>

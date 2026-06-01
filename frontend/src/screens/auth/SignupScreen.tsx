@@ -129,7 +129,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       if (status === 409) {
         setFieldErrors(prev => ({ ...prev, email: '이미 가입된 이메일입니다.' }));
       } else if (status === 429) {
-        const retryAfter = e?.response?.data?.detail?.retry_after ?? e?.response?.data?.retry_after ?? 60;
+        const retryAfter = e?.response?.data?.retry_after ?? 60;
         startCooldown(retryAfter);
         setCodeSent(true);
         setCodeError('');
