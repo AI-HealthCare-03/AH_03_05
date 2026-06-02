@@ -6,6 +6,9 @@ import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 
+const ICON_CIRCLE_SIZE = 140;
+const SNOOZE_CIRCLE_SIZE = 80;
+
 type MealKey = 'morning' | 'lunch' | 'dinner';
 
 const MEAL_LABELS: Record<MealKey, string> = {
@@ -144,16 +147,16 @@ const s = StyleSheet.create({
     marginTop: -spacing.s48,
   },
   iconCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: ICON_CIRCLE_SIZE,
+    height: ICON_CIRCLE_SIZE,
+    borderRadius: ICON_CIRCLE_SIZE / 2,
     backgroundColor: colors.accent100,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.s32,
   },
   timeText: {
-    fontSize: 48,
+    fontSize: typography.fz48,
     fontWeight: typography.fw7,
     color: colors.ink,
     letterSpacing: -1,
@@ -179,9 +182,9 @@ const s = StyleSheet.create({
     gap: spacing.s24,
   },
   snoozeCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: SNOOZE_CIRCLE_SIZE,
+    height: SNOOZE_CIRCLE_SIZE,
+    borderRadius: SNOOZE_CIRCLE_SIZE / 2,
     backgroundColor: colors.accent50,
     alignItems: 'center',
     justifyContent: 'center',

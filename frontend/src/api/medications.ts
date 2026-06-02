@@ -3,6 +3,7 @@ import type {
   MedicationVerifyItem, VerifyMedicationResponse,
   MedicationsBatchVerifyResponse,
   MedicationAlarm, MedicationAlarmUpdateRequest,
+  MedicationDosageUpdateRequest, MedicationDosageUpdateResponse,
 } from './types';
 
 export async function verifyMedication(
@@ -23,6 +24,17 @@ export async function verifyMedications(
   const res = await apiClient.post<MedicationsBatchVerifyResponse>(
     `/records/${recordId}/medications/verify`,
     { verifications },
+  );
+  return res.data;
+}
+
+export async function updateMedicationDosage(
+  medicationId: number,
+  data: MedicationDosageUpdateRequest,
+): Promise<MedicationDosageUpdateResponse> {
+  const res = await apiClient.patch<MedicationDosageUpdateResponse>(
+    `/medications/${medicationId}`,
+    data,
   );
   return res.data;
 }

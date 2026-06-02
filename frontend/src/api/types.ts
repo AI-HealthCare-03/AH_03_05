@@ -1,7 +1,7 @@
 // ─── Common ───────────────────────────────────────────────────────────────────
 
 export type AsyncJobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'timeout';
-export type RecordType = 'prescription' | 'medicine_bag' | 'medical_record';
+export type RecordType = 'prescription' | 'medicine_bag' | 'medical_record' | 'manual';
 export type ConsentType = 'terms' | 'privacy' | 'sensitive_health' | 'ai_analysis' | 'marketing';
 
 export interface ApiError {
@@ -311,6 +311,21 @@ export interface MedicationAlarmUpdateRequest {
   is_alarm_enabled: boolean;
 }
 
+export interface MedicationDosageUpdateRequest {
+  dosage?: string;
+  frequency?: string;
+  timing?: string;
+  duration?: string;
+}
+
+export interface MedicationDosageUpdateResponse {
+  medication_id: number;
+  dosage?: string;
+  frequency?: string;
+  timing?: string;
+  duration?: string;
+}
+
 // ─── Guides ───────────────────────────────────────────────────────────────────
 
 export interface CreateGuideRequest {
@@ -362,7 +377,7 @@ export interface CreateSessionRequest {
 export interface ChatSession {
   session_id: number;
   title: string;
-  status: 'active' | 'closed';
+  status: 'ACTIVE' | 'CLOSED';
   updated_at?: string;
   last_message?: string;
   last_message_preview?: string | null;
@@ -403,6 +418,7 @@ export interface ChatMessageItem {
   sender_type: 'user' | 'assistant';
   content: string;
   safety_flag?: boolean;
+  safety_notice?: string;
   created_at?: string;
   // TODO: [BE 대기] message.category — POST /chat/.../messages 응답에 category 필드 추가 요청 필요
   category?: string;

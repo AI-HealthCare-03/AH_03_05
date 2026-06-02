@@ -18,7 +18,7 @@ export async function createChatSession(data: CreateSessionRequest): Promise<Cha
   return {
     session_id: res.data.session_id,
     title: data.title ?? '새 상담',
-    status: res.data.status as 'active' | 'closed',
+    status: res.data.status as 'ACTIVE' | 'CLOSED',
     updated_at: res.data.created_at,
   };
 }

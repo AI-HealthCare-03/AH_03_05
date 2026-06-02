@@ -94,6 +94,7 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
         sender_type: 'assistant',
         content: res.assistant_message,
         safety_flag: res.safety_flag,
+        safety_notice: res.safety_notice,
         created_at: new Date().toISOString(),
         rag_sources: ragSources.length > 0 ? ragSources : undefined,
       };
@@ -201,9 +202,16 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
             </View>
           )}
           {isSafe && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: spacing.s4 }}>
-              <Icon name="alert-circle" size={13} color={colors.danger} />
-              <Text style={{ fontSize: typography.fz11, color: colors.danger, fontWeight: typography.fw6 }}>주의가 필요한 답변입니다</Text>
+            <View style={{ marginBottom: spacing.s8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: spacing.s4 }}>
+                <Icon name="alert-circle" size={13} color={colors.danger} />
+                <Text style={{ fontSize: typography.fz11, color: colors.danger, fontWeight: typography.fw6 }}>주의가 필요한 답변입니다</Text>
+              </View>
+              {msg.safety_notice && (
+                <View style={{ backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s8 }}>
+                  <Text style={{ fontSize: typography.fz12, color: colors.danger, lineHeight: 18 }}>{msg.safety_notice}</Text>
+                </View>
+              )}
             </View>
           )}
           <Text style={{ fontSize: typography.fz13, lineHeight: 20, color: isUser ? colors.white : colors.ink }}>{msg.content}</Text>

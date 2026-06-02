@@ -8,6 +8,7 @@ import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
 import { notificationsApi } from '../../api';
+import EmptyState from '../../components/EmptyState';
 
 type NotificationRowProps = {
   item: Notification;
@@ -134,9 +135,8 @@ export function NotificationsScreen({ navigation }: any) {
     return (
       <ScreenLayout title="알림" back onBack={() => navigation.goBack()} right={right} scrollable>
         {errorBanner}
-        <Card shadow style={{ alignItems: 'center', paddingVertical: spacing.s56 }}>
-          <Icon name="bell" size={36} color={colors.muted2} />
-          <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, marginTop: 14 }}>알림이 없어요</Text>
+        <Card shadow>
+          <EmptyState icon="bell" title="알림이 없어요" />
         </Card>
       </ScreenLayout>
     );

@@ -43,11 +43,11 @@ const bp = StyleSheet.create({
     padding: spacing.s40,
   },
   tagline: { fontSize: typography.fz26, fontWeight: typography.fw7, color: colors.white, lineHeight: 36, marginBottom: 14 },
-  desc: { fontSize: typography.fz14, color: "rgba(255,255,255,0.8)", lineHeight: 22, marginBottom: 28 },
+  desc: { fontSize: typography.fz14, color: colors.onAccent80, lineHeight: 22, marginBottom: 28 },
   feat: { flexDirection: "row", alignItems: "flex-start", gap: spacing.s12, marginBottom: 16 },
-  featIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" },
+  featIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: colors.onAccent20, alignItems: "center", justifyContent: "center" },
   featTitle: { fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.white, marginBottom: 2 },
-  featSub: { fontSize: typography.fz12, color: "rgba(255,255,255,0.75)" },
+  featSub: { fontSize: typography.fz12, color: colors.onAccent75 },
 });
 
 // ─── Shared styles ────────────────────────────────────────────────────────────

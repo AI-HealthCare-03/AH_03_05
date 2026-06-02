@@ -123,7 +123,6 @@ export default function UploadModalScreen({ navigation }: any) {
     try {
       const res = await createManualRecord(manualText.trim());
       setUploadDone(true);
-      // TODO: BE manual-input 텍스트 파싱 미구현, medication_candidates 항상 빈 배열
       setTimeout(() => {
         (navigation as any).navigate('Main', {
           screen: 'HomeTab',
@@ -296,8 +295,8 @@ export default function UploadModalScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  scrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  scrimCenter: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
+  scrim: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'flex-end' },
+  scrimCenter: { flex: 1, backgroundColor: colors.scrim, alignItems: 'center', justifyContent: 'center' },
   modal: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: spacing.s20 },
   modalCenter: { backgroundColor: colors.surface, borderRadius: 20, padding: spacing.s20 },
   modalHandle: { width: 36, height: 4, backgroundColor: colors.hairlineStrong, borderRadius: 2, alignSelf: 'center', marginBottom: spacing.s16 },

@@ -100,9 +100,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
             </View>
             <View style={styles.field}>
               <Input label="비밀번호" icon="lock" placeholder="8~20자, 영문/숫자/특수문자 3종류 이상" value={pw} onChangeText={setPw} secureTextEntry autoComplete="current-password" />
-              <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: 6 }}>
-                <Text style={{ fontSize: typography.fz12, color: colors.accent }}>비밀번호 찾기</Text>
-              </TouchableOpacity>
+              <Button variant="ghost" size="sm" style={{ borderWidth: 0, alignSelf: 'flex-end', marginTop: spacing.s6 }} onPress={() => navigation.navigate('ForgotPassword')}>비밀번호 찾기</Button>
             </View>
             <Button variant="primary" size="lg" loading={loading} disabled={!email || !pw} onPress={submit} fullWidth>로그인</Button>
             {fieldErrors.form ? <Text style={styles.formError}>{fieldErrors.form}</Text> : null}

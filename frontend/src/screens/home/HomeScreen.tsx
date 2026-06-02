@@ -6,12 +6,14 @@ import { useApp } from "../../context/AppContext";
 import { notificationsApi, recordsApi } from "../../api";
 import type { Notification } from "../../context/AppContext";
 import Icon from "../../components/Icon";
+import Button from "../../components/Button";
 import { colors, radii, spacing, typography } from "../../theme";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import Card from "../../components/Card";
 import Badge from "../../components/Badge";
 import ScreenLayout from "../../components/ScreenLayout";
 import BellButton from "../../components/BellButton";
+import ProgressBar from "../../components/ProgressBar";
 
 // ─── Month calendar helpers ───────────────────────────────────────────────────
 
@@ -78,7 +80,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
           return (
             <TouchableOpacity key={day} style={[s.calCell, isToday && s.calToday, isSelected && !isToday && s.calSelected]} onPress={() => onDayClick(day)}>
               <Text style={[s.calDayText, isToday && { color: colors.white }, isSelected && !isToday && { color: colors.accent700, fontWeight: typography.fw7 }, dow === 0 && !isToday && { color: colors.danger }, dow === 6 && !isToday && { color: colors.accent700 }]}>{day}</Text>
-              <View style={{ width: status === "missed" ? 4 : 16, height: 3, borderRadius: 999, marginTop: spacing.s4, backgroundColor: isToday ? "rgba(255,255,255,0.6)" : colorFor(status) }} />
+              <View style={{ width: status === "missed" ? 4 : 16, height: 3, borderRadius: 999, marginTop: spacing.s4, backgroundColor: isToday ? colors.onAccent60 : colorFor(status) }} />
             </TouchableOpacity>
           );
         })}
@@ -87,12 +89,38 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
   );
 }
 
+// ─── 오늘의 복약 더미 데이터 ─────────────────────────────────────────────────
+// TODO: BE GET /medication-schedules 구현 후 연결
+
+const DUMMY_TODAY_SCHEDULES = [
+  { id: 's1', drug_name: '암로디핀 5mg',    dosage: '1정', timing: '아침 식후', color: colors.accent },
+  { id: 's2', drug_name: '메트포르민 500mg', dosage: '2정', timing: '점심 식후', color: colors.success },
+  { id: 's3', drug_name: '아스피린 100mg',  dosage: '1정', timing: '저녁 식후', color: colors.warning },
+];
+
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export default function HomeScreen({ navigation }: any) {
   const { user, drugs, setDrugs, adherence, streak, chats, flash, setNotifications, setUnreadCount } = useApp();
   const { isDesktop, isTabletOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
+  const [checkedSchedules, setCheckedSchedules] = useState<Set<string>>(new Set());
+
+  const toggleSchedule = (id: string) => {
+    setCheckedSchedules(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+        flash('복약 체크 취소했어요');
+      } else {
+        next.add(id);
+        flash('복약 체크 완료 🎉');
+      }
+      // TODO: BE POST /medication-checkins 구현 후 연결
+      // await checkinApi.createCheckin(id);
+      return next;
+    });
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -209,9 +237,7 @@ export default function HomeScreen({ navigation }: any) {
                 <Text style={{ fontSize: typography.fz12, color: colors.muted }}>건강 정보를 입력할수록 맞춤형 가이드 정확도가 높아져요.</Text>
               </View>
             </View>
-            <TouchableOpacity onPress={() => (navigation as any).navigate("Onboarding")} style={{ marginTop: spacing.s12, backgroundColor: colors.accent, borderRadius: radii.md, paddingVertical: spacing.s8, alignItems: "center" }}>
-              <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.white }}>건강 정보 입력하기</Text>
-            </TouchableOpacity>
+            <Button variant="primary" fullWidth style={{ marginTop: spacing.s12 }} onPress={() => (navigation as any).navigate("Onboarding")}>건강 정보 입력하기</Button>
           </Card>
         )}
 
@@ -220,19 +246,17 @@ export default function HomeScreen({ navigation }: any) {
           <View style={isTabletOrAbove ? { flex: 2 } : undefined}>
             <Card style={{ backgroundColor: colors.accent, borderColor: "transparent", flex: 1 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <Text style={{ fontSize: typography.fz13, color: "rgba(255,255,255,0.85)" }}>{viewM}월 복약 달성률</Text>
+                <Text style={{ fontSize: typography.fz13, color: colors.onAccent85 }}>{viewM}월 복약 달성률</Text>
                 <View style={s.streakBadge}>
                   <Text style={{ fontSize: typography.fz12 }}>🔥</Text>
                   <Text style={{ fontSize: typography.fz12, color: "#92400E", marginLeft: 3 }}>{streak}일 연속 달성 중</Text>
                 </View>
               </View>
               <Text style={{ fontSize: 36, fontWeight: typography.fw7, color: colors.white, marginBottom: spacing.s4 }}>{computedAdherence}%</Text>
-              <Text style={{ fontSize: typography.fz12, color: "rgba(255,255,255,0.75)", marginBottom: 10 }}>
+              <Text style={{ fontSize: typography.fz12, color: colors.onAccent75, marginBottom: 10 }}>
                 총 {doneDays.length}일 완료 · 미복용 {pastDays.length - doneDays.length}일
               </Text>
-              <View style={[s.progressBg, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
-                <View style={[s.progressFill, { width: `${computedAdherence}%` as any, backgroundColor: colors.white }]} />
-              </View>
+              <ProgressBar progress={computedAdherence} color={colors.white} trackColor={colors.onAccent25} />
             </Card>
           </View>
 
@@ -297,6 +321,40 @@ export default function HomeScreen({ navigation }: any) {
             </Card>
           </View>
         </View>
+
+        {/* 오늘의 복약 */}
+        <Card shadow style={{ marginBottom: 14 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Icon name="bell" size={14} color={colors.accent700} />
+              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>오늘의 복약</Text>
+            </View>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+              {checkedSchedules.size}/{DUMMY_TODAY_SCHEDULES.length} 완료
+            </Text>
+          </View>
+          {DUMMY_TODAY_SCHEDULES.map((item, i) => {
+            const checked = checkedSchedules.has(item.id);
+            return (
+              <View key={item.id} style={[s.drugRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
+                <View style={{ width: 4, height: 32, borderRadius: 2, backgroundColor: item.color }} />
+                <View style={{ flex: 1, marginLeft: spacing.s12 }}>
+                  <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>{item.drug_name}</Text>
+                  <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{item.dosage} · {item.timing}</Text>
+                </View>
+                <TouchableOpacity
+                  style={checked ? undefined : s.chipBtn}
+                  onPress={() => toggleSchedule(item.id)}
+                  activeOpacity={0.7}
+                >
+                  {checked
+                    ? <Badge variant="success">완료</Badge>
+                    : <Text style={{ fontSize: typography.fz12, color: colors.accent700 }}>복약 체크</Text>}
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </Card>
 
         {/* 달력 */}
         <Card shadow style={{ marginBottom: 14 }}>
@@ -389,13 +447,11 @@ export default function HomeScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  conditionChip: { paddingHorizontal: spacing.s10, paddingVertical: 5, borderRadius: radii.pill, backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
+  conditionChip: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: radii.pill, backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
   streakBadge: { flexDirection: "row", alignItems: "center", backgroundColor: colors.warning50, borderRadius: radii.pill, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4 },
-  progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: "hidden" },
-  progressFill: { height: "100%", backgroundColor: colors.accent, borderRadius: 3 },
   quickIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: colors.accent100, alignItems: "center", justifyContent: "center", marginBottom: spacing.s12 },
   drugRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14 },
-  chipBtn: { borderWidth: 1, borderColor: colors.accent100, borderRadius: radii.pill, paddingHorizontal: spacing.s10, paddingVertical: 5 },
+  chipBtn: { borderWidth: 1, borderColor: colors.accent100, borderRadius: radii.pill, paddingHorizontal: spacing.s10, paddingVertical: spacing.s6 },
   calHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
   iconBtn: { width: 32, height: 32, borderRadius: radii.sm, alignItems: "center", justifyContent: "center" },
   chipSmall: { paddingHorizontal: spacing.s10, paddingVertical: 3, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.accent100 },
