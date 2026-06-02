@@ -56,11 +56,8 @@ const VARIANTS: Record<BannerVariant, VariantConfig> = {
  * <Banner variant="info" body="참고용 안내입니다." icon={null} />
  */
 interface BannerProps {
-  /** 배너 스타일 — success / danger / warning / info */
   variant: BannerVariant;
-  /** 볼드 제목 텍스트 (선택) */
   title?: string;
-  /** 본문 텍스트 (선택) */
   body?: string;
   /**
    * 아이콘 이름.

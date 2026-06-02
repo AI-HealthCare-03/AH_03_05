@@ -12,15 +12,10 @@ import { colors, spacing, typography } from '../theme';
  * <EmptyState icon="alert" title="불러오지 못했어요" message={error} action={{ label: '다시 시도', onPress: retry }} />
  */
 interface EmptyStateProps {
-  /** 중앙에 표시할 아이콘 이름 */
   icon: string;
-  /** 볼드 제목 (선택) */
   title?: string;
-  /** 보조 설명 텍스트 (선택) */
   message?: string;
-  /** 하단 액션 버튼 (선택) */
   action?: {
-    /** 버튼 레이블 */
     label: string;
     onPress: () => void;
   };

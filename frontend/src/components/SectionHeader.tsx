@@ -13,13 +13,11 @@ import { colors, spacing, typography } from '../theme';
  * <SectionHeader label="오늘 복약 현황" action={<Badge variant="success">완료</Badge>} mb={spacing.s14} />
  */
 interface SectionHeaderProps {
-  /** 레이블 왼쪽 아이콘 이름 (선택) */
   icon?: string;
-  /** 아이콘 색상 — 기본값 `colors.ink2` */
+  /** 기본값 `colors.ink2` */
   iconColor?: string;
-  /** 섹션 제목 — 문자열은 자동 스타일 적용, ReactNode 그대로 렌더링 */
+  /** 문자열이면 자동 스타일 적용, ReactNode는 그대로 렌더링 */
   label: React.ReactNode;
-  /** 오른쪽 영역에 배치되는 액션 요소 (선택) */
   action?: React.ReactNode;
   /** 하단 여백 — 기본값 `spacing.s12` */
   mb?: number;
