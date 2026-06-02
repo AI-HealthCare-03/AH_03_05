@@ -189,7 +189,7 @@ export function ChatListScreen({ navigation, route }: Props) {
             <Text style={ds.sidebarTitle}>상담 목록</Text>
             <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담</Button>
           </View>
-          <View style={{ paddingHorizontal: spacing.s12, marginBottom: spacing.s8 }}>
+          <View style={{ paddingHorizontal: spacing.s16, marginBottom: spacing.s8 }}>
             {searchBar}
           </View>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>

@@ -136,7 +136,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
+    alignSelf: "stretch",
   },
   contentOuter: {
     flex: 1,
