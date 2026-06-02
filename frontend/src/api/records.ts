@@ -55,13 +55,13 @@ export async function deleteRecord(recordId: number): Promise<void> {
   await apiClient.delete(`/records/${recordId}`);
 }
 
-// ⚠ Backend TODO: GET /records/{record_id}/medications
+// TODO: [BE 대기] GET /records/{record_id}/medications — 구현 완료 후 RecordDetailScreen __DEV__ 분기 제거
 export async function getRecordMedications(recordId: number): Promise<RecordMedicationsResponse> {
   const res = await apiClient.get<RecordMedicationsResponse>(`/records/${recordId}/medications`);
   return res.data;
 }
 
-// ⚠ Backend TODO: GET /records/{record_id}/guide
+// TODO: [BE 대기] GET /records/{record_id}/guide — 구현 완료 후 RecordDetailScreen __DEV__ 분기 제거
 export async function getRecordGuide(recordId: number): Promise<RecordGuideResponse> {
   const res = await apiClient.get<RecordGuideResponse>(`/records/${recordId}/guide`);
   return res.data;

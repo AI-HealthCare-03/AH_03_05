@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useApp } from "../../context/AppContext";
 import { notificationsApi, recordsApi } from "../../api";
@@ -14,6 +14,7 @@ import Badge from "../../components/Badge";
 import ScreenLayout from "../../components/ScreenLayout";
 import BellButton from "../../components/BellButton";
 import ProgressBar from "../../components/ProgressBar";
+import EmptyState from "../../components/EmptyState";
 
 // ─── Month calendar helpers ───────────────────────────────────────────────────
 
@@ -105,6 +106,7 @@ export default function HomeScreen({ navigation }: any) {
   const { isDesktop, isTabletOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
   const [checkedSchedules, setCheckedSchedules] = useState<Set<string>>(new Set());
+  const [drugsLoading, setDrugsLoading] = useState(false);
 
   const toggleSchedule = (id: string) => {
     setCheckedSchedules(prev => {
@@ -417,28 +419,40 @@ export default function HomeScreen({ navigation }: any) {
             {selectedStatus === "done" && <Badge variant="success">모두 복약</Badge>}
           </View>
 
-          {drugsForDay.map((d, i) => (
-            <View key={d.id} style={[s.drugRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-              <View style={{ width: 4, height: 32, borderRadius: 2, backgroundColor: d.color }} />
-              <View style={{ flex: 1, marginLeft: spacing.s12 }}>
-                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>{d.name}</Text>
-                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{d.freq} · {d.time}</Text>
-              </View>
-              {d.status === "완료" ? (
-                <TouchableOpacity disabled={selectedStatus !== "today"} onPress={() => markDose(d.id)} activeOpacity={0.6}>
-                  <Badge variant="success">완료</Badge>
-                </TouchableOpacity>
-              ) : d.status === "미복용" ? (
-                <Badge variant="danger">미복용</Badge>
-              ) : d.status === "예정" ? (
-                <Text style={{ fontSize: typography.fz12, color: colors.muted }}>예정</Text>
-              ) : (
-                <TouchableOpacity style={s.chipBtn} onPress={() => markDose(d.id)}>
-                  <Text style={{ fontSize: typography.fz12, color: colors.accent700 }}>복약 체크</Text>
-                </TouchableOpacity>
-              )}
+          {drugsLoading ? (
+            <View style={{ alignItems: "center", paddingVertical: spacing.s24 }}>
+              <ActivityIndicator color={colors.accent} />
             </View>
-          ))}
+          ) : drugsForDay.length === 0 ? (
+            <EmptyState
+              icon="link"
+              message="복약 정보가 없어요. 처방전을 업로드하면 복약 현황을 확인할 수 있어요."
+              action={{ label: '처방전 업로드', onPress: () => (navigation as any).navigate('UploadModal') }}
+            />
+          ) : (
+            drugsForDay.map((d, i) => (
+              <View key={d.id} style={[s.drugRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
+                <View style={{ width: 4, height: 32, borderRadius: 2, backgroundColor: d.color }} />
+                <View style={{ flex: 1, marginLeft: spacing.s12 }}>
+                  <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>{d.name}</Text>
+                  <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{d.freq} · {d.time}</Text>
+                </View>
+                {d.status === "완료" ? (
+                  <TouchableOpacity disabled={selectedStatus !== "today"} onPress={() => markDose(d.id)} activeOpacity={0.6}>
+                    <Badge variant="success">완료</Badge>
+                  </TouchableOpacity>
+                ) : d.status === "미복용" ? (
+                  <Badge variant="danger">미복용</Badge>
+                ) : d.status === "예정" ? (
+                  <Text style={{ fontSize: typography.fz12, color: colors.muted }}>예정</Text>
+                ) : (
+                  <TouchableOpacity style={s.chipBtn} onPress={() => markDose(d.id)}>
+                    <Text style={{ fontSize: typography.fz12, color: colors.accent700 }}>복약 체크</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))
+          )}
         </Card>
     </ScreenLayout>
     <BellButton />

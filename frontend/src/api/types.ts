@@ -486,6 +486,7 @@ export interface CreateFeedbackRequest {
   rating: number;
   comment?: string;
   report_type?: string;
+  is_safety_report?: boolean;
 }
 
 export interface CreateFeedbackResponse {

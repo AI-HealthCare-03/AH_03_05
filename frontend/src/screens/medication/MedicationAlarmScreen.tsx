@@ -75,7 +75,7 @@ export function MedicationAlarmScreen({ navigation, route }: any) {
   };
 
   return (
-    <View style={[s.root, { paddingTop: insets.top }]}>
+    <View style={[s.root, { paddingTop: spacing.safeTop }]}>
       <View style={s.center}>
         <View style={s.iconCircle}>
           <Icon name="pill" size={56} color={colors.accent} />
