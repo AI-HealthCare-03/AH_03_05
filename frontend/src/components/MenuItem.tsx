@@ -3,13 +3,27 @@ import { TouchableOpacity, Text } from 'react-native';
 import Icon from './Icon';
 import { colors, spacing, typography } from '../theme';
 
+/**
+ * 설정/메뉴 목록의 단일 행. 아이콘 + 레이블 + 선택적 chevron으로 구성됩니다.
+ *
+ * @example
+ * <MenuItem icon="bell" label="알림 설정" onPress={() => navigation.navigate('NotificationSettings')} />
+ * <MenuItem icon="logout" label="로그아웃" iconColor={colors.ink2} chevron={false} onPress={handleLogout} />
+ */
 interface MenuItemProps {
+  /** 왼쪽 아이콘 이름 */
   icon: string;
+  /** 표시 레이블 */
   label: string;
+  /** 탭 핸들러 */
   onPress: () => void;
+  /** 오른쪽 chevron 표시 여부 — 기본값 `true` */
   chevron?: boolean;
+  /** 아이콘 색상 — 기본값 `colors.accent700` */
   iconColor?: string;
+  /** 레이블 색상 — 기본값 `colors.ink` */
   labelColor?: string;
+  /** 상단 구분선 표시 여부 — 기본값 `false` */
   separator?: boolean;
 }
 

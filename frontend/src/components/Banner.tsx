@@ -47,11 +47,27 @@ const VARIANTS: Record<BannerVariant, VariantConfig> = {
   },
 };
 
+/**
+ * 상태 메시지 배너. variant에 따라 배경색·아이콘·텍스트 색상이 자동 결정됩니다.
+ *
+ * @example
+ * <Banner variant="danger" title="오류" body="요청에 실패했어요." />
+ * <Banner variant="success" title="완료" />
+ * <Banner variant="info" body="참고용 안내입니다." icon={null} />
+ */
 interface BannerProps {
+  /** 배너 스타일 — success / danger / warning / info */
   variant: BannerVariant;
+  /** 볼드 제목 텍스트 (선택) */
   title?: string;
+  /** 본문 텍스트 (선택) */
   body?: string;
-  icon?: string | null; // null = 아이콘 없음, undefined = variant 기본 아이콘
+  /**
+   * 아이콘 이름.
+   * - `undefined`: variant 기본 아이콘 사용
+   * - `null`: 아이콘 숨김
+   */
+  icon?: string | null;
   style?: ViewStyle;
 }
 
