@@ -68,3 +68,23 @@ async def get_guide(
     if result is None:
         raise NotFoundException(detail="해당 가이드를 찾을 수 없습니다.")
     return GenerateGuideResponse(**result)
+
+
+records_guide_router = APIRouter(prefix="/records", tags=["Guides"])
+
+
+@records_guide_router.get(
+    "/{record_id}/guide",
+    response_model=GenerateGuideResponse,
+    status_code=200,
+)
+async def get_record_guide(
+    record_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[GuideService, Depends(GuideService)],
+) -> GenerateGuideResponse:
+    """지정한 medical_record의 최신 가이드를 조회한다. 본인 소유만."""
+    result = await service.get_latest_guide_by_record(user=user, record_id=record_id)
+    if result is None:
+        raise NotFoundException(detail="해당 기록의 가이드를 찾을 수 없습니다.")
+    return GenerateGuideResponse(**result)

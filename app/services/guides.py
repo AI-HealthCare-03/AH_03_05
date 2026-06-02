@@ -176,6 +176,12 @@ class GuideService:
             "doctor_opinion": doctor_opinion,
         }
 
+    async def get_latest_guide_by_record(self, user: User, record_id: int) -> dict | None:
+        guide = await Guide.filter(record_id=record_id, user=user).order_by("-created_at").first()
+        if guide is None:
+            return None
+        return await self.get_guide_by_id(user=user, guide_id=guide.id)
+
     async def get_guide_by_id(self, user: User, guide_id: int) -> dict | None:
         """
         guide_id로 단건 조회. 본인 가이드만 조회 가능.
