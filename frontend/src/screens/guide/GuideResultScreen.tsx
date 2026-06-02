@@ -10,6 +10,7 @@ import { guidesApi, feedbacksApi, extractApiError } from "../../api";
 import type { GuideResponse } from "../../api";
 import EmptyState from "../../components/EmptyState";
 import Banner from "../../components/Banner";
+import SectionHeader from "../../components/SectionHeader";
 
 // ─── 헬퍼 ─────────────────────────────────────────────────────────────────────
 
@@ -29,10 +30,7 @@ function GuideItemCard({ item }: { item: GuideItem }) {
   return (
     <Card shadow style={{ marginBottom: spacing.s14 }}>
       {item.title ? (
-        <View style={s.cardHeader}>
-          <Icon name="link" size={14} color={colors.ink2} />
-          <Text style={s.cardHeaderText}>{item.title}</Text>
-        </View>
+        <SectionHeader icon="link" label={item.title} />
       ) : null}
       <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{item.content}</Text>
     </Card>
@@ -223,10 +221,6 @@ const s = StyleSheet.create({
   tabBtnActive: { backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
   tabText: { fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink2 },
   tabTextActive: { color: colors.accent700 },
-
-  // 카드 헤더
-  cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.s6, marginBottom: spacing.s12 },
-  cardHeaderText: { fontSize: typography.fz13, fontWeight: typography.fw6 },
 
   // 응급 배너
   emergencyBanner: { backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, borderWidth: 1, borderColor: colors.danger, marginTop: spacing.s8, marginBottom: spacing.s14 },

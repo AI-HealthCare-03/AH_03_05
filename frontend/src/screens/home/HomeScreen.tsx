@@ -11,6 +11,7 @@ import { colors, radii, spacing, typography } from "../../theme";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import Card from "../../components/Card";
 import Badge from "../../components/Badge";
+import SectionHeader from "../../components/SectionHeader";
 import ScreenLayout from "../../components/ScreenLayout";
 import BellButton from "../../components/BellButton";
 import ProgressBar from "../../components/ProgressBar";
@@ -344,17 +345,21 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* 복약 현황 */}
         <Card shadow>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s14 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
-              <Icon name="link" size={14} color={colors.ink2} />
+          <SectionHeader
+            icon="link"
+            label={
               <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>
                 {selectedStatus === "today" ? "오늘 복약 현황" : selectedStatus === "future" ? "예정된 복약" : "복약 기록"}
                 <Text style={{ color: colors.muted, fontWeight: typography.fw4 }}> · {dateStr}</Text> ({dayCompleted}/{drugsForDay.length})
               </Text>
-            </View>
-            {selectedStatus === "missed" && <Badge variant="danger">미복용 있음</Badge>}
-            {selectedStatus === "done" && <Badge variant="success">모두 복약</Badge>}
-          </View>
+            }
+            action={
+              selectedStatus === "missed" ? <Badge variant="danger">미복용 있음</Badge>
+              : selectedStatus === "done" ? <Badge variant="success">모두 복약</Badge>
+              : undefined
+            }
+            mb={spacing.s14}
+          />
 
           {drugsForDay.map((d, i) => (
             <View key={d.id} style={[s.drugRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>

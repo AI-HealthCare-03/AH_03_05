@@ -8,6 +8,7 @@ import Badge from "../../components/Badge";
 import ScreenLayout from "../../components/ScreenLayout";
 import { colors, radii, spacing, typography } from "../../theme";
 import IconCircle from "../../components/IconCircle";
+import SectionHeader from "../../components/SectionHeader";
 import { recordsApi, extractApiError } from "../../api";
 import type { RecordDetail, MedicationItem, RecordGuideResponse } from "../../api";
 import { RECORD_LABEL, formatDate, getRecordColor, iconFor } from "./_recordsShared";
@@ -206,15 +207,11 @@ export function RecordDetailScreen({ navigation, route }: any) {
 
         {/* ── 처방 약품 ── */}
         <Card shadow style={{ marginBottom: spacing.s14 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s12 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
-              <Icon name="link" size={14} color={colors.ink2} />
-              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>처방 약품 ({medications.length}종)</Text>
-            </View>
-            {record.total_days ? (
-              <Text style={{ fontSize: typography.fz12, color: colors.muted }}>총 처방 일수 {record.total_days}일</Text>
-            ) : null}
-          </View>
+          <SectionHeader
+            icon="link"
+            label={`처방 약품 (${medications.length}종)`}
+            action={record.total_days ? <Text style={{ fontSize: typography.fz12, color: colors.muted }}>총 처방 일수 {record.total_days}일</Text> : undefined}
+          />
 
           {medsError ? (
             <Text style={{ fontSize: typography.fz13, color: colors.muted, textAlign: "center", paddingVertical: spacing.s12 }}>
@@ -259,10 +256,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
         {/* ── 가이드 상태 ── */}
         {/* TODO: [BE 대기] GET /records/{record_id}/guide 미구현 — 구현 완료 후 __DEV__ 분기 제거 */}
         <Card shadow style={{ marginBottom: spacing.s14 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6, marginBottom: spacing.s12 }}>
-            <Icon name="wand" size={14} color={colors.accent700} />
-            <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>복약 가이드</Text>
-          </View>
+          <SectionHeader icon="wand" iconColor={colors.accent700} label="복약 가이드" />
           {!guide ? (
             <EmptyState
               icon="doc"

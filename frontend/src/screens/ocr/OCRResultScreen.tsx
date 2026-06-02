@@ -5,6 +5,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Banner from '../../components/Banner';
+import SectionHeader from '../../components/SectionHeader';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -145,15 +146,15 @@ export function OCRResultScreen({ navigation, route }: any) {
       )}
 
       <Card shadow>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s12 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
-            <Icon name="link" size={14} color={colors.ink2} />
-            <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>인식된 약품 ({displayDrugs.length}종)</Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('DrugCandidate')}>
-            <Text style={{ fontSize: typography.fz13, color: colors.accent }}>+ 직접 추가</Text>
-          </TouchableOpacity>
-        </View>
+        <SectionHeader
+          icon="link"
+          label={`인식된 약품 (${displayDrugs.length}종)`}
+          action={
+            <TouchableOpacity onPress={() => navigation.navigate('DrugCandidate')}>
+              <Text style={{ fontSize: typography.fz13, color: colors.accent }}>+ 직접 추가</Text>
+            </TouchableOpacity>
+          }
+        />
 
         {displayDrugs.map((d, i) => {
           const warn = d.status === 'needsCheck';
