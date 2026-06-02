@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import Icon from '../../components/Icon';
 import Banner from '../../components/Banner';
+import IconCircle from '../../components/IconCircle';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { colors, radii, spacing, typography } from '../../theme';
@@ -102,9 +103,7 @@ export function DrugDetailScreen({ navigation, route }: any) {
               {drug.manufacturer ?? '제조사 정보 없음'}
             </Text>
           </View>
-          <View style={{ width: 48, height: 48, borderRadius: radii.pill, backgroundColor: colors.accent100, alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="pill" size={22} color={colors.accent700} />
-          </View>
+          <IconCircle size={48} icon="pill" iconSize={22} color={colors.accent700} backgroundColor={colors.accent100} />
         </View>
 
         {/* 효능·용법·주의사항·부작용 */}

@@ -5,6 +5,7 @@ import Button from "../../components/Button";
 import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
 import { colors, radii, spacing, typography } from "../../theme";
+import IconCircle from "../../components/IconCircle";
 import { recordsApi, extractApiError } from "../../api";
 import type { RecordSummary } from "../../api";
 import { RECORD_LABEL, FILTER_TO_TYPE, iconFor, formatDate, getRecordColor, s } from "./_recordsShared";
@@ -32,9 +33,7 @@ function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
   return (
     <Card shadow noPadding onPress={onPress}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s14, padding: spacing.s20 }}>
-        <View style={{ width: 44, height: 44, borderRadius: radii.sm, backgroundColor: getRecordColor(r.record_id) + "22", alignItems: "center", justifyContent: "center" }}>
-          <Icon name={iconFor(r.record_type)} size={18} color={getRecordColor(r.record_id)} />
-        </View>
+        <IconCircle size={44} icon={iconFor(r.record_type)} iconSize={18} color={getRecordColor(r.record_id)} backgroundColor={getRecordColor(r.record_id) + "22"} borderRadius={radii.sm} />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, marginBottom: spacing.s4 }}>
             <View style={{ paddingHorizontal: spacing.s8, paddingVertical: spacing.s2, borderRadius: radii.pill, borderWidth: 0.5, borderColor: colors.hairline }}>

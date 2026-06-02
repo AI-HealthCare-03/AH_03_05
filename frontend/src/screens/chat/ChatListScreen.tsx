@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography, radii } from '../../theme';
+import IconCircle from '../../components/IconCircle';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import SearchBar from '../../components/SearchBar';
@@ -227,9 +228,7 @@ export function ChatListScreen({ navigation, route }: any) {
             </>
           ) : (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.s12 }}>
-              <View style={{ width: 64, height: 64, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name="chat" size={28} color={colors.accent700} />
-              </View>
+              <IconCircle size={64} icon="chat" iconSize={28} color={colors.accent700} backgroundColor={colors.accent50} />
               <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>상담을 선택해주세요</Text>
               <Text style={{ fontSize: typography.fz13, color: colors.muted }}>왼쪽에서 상담을 선택하거나 새 상담을 시작하세요.</Text>
               <Button variant="primary" size="sm" leftIcon="plus" onPress={startNew}>새 상담 시작하기</Button>

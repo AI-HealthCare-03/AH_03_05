@@ -13,7 +13,6 @@ export function Rule({ ok, children }: { ok: boolean; children: string }) {
 }
 
 export const s = StyleSheet.create({
-  avatar: { width: 44, height: 44, borderRadius: radii.pill, backgroundColor: colors.surface2, borderWidth: 1, borderColor: colors.hairline, alignItems: 'center', justifyContent: 'center' },
   chip: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: radii.pill, backgroundColor: colors.surface2 },
   chipActive: { backgroundColor: colors.accent50, borderColor: colors.accent, borderWidth: 1 },
   rowItem: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.s20, paddingVertical: spacing.s16, gap: 14 },

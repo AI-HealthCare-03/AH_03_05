@@ -7,6 +7,7 @@ import Card from "../../components/Card";
 import Badge from "../../components/Badge";
 import ScreenLayout from "../../components/ScreenLayout";
 import { colors, radii, spacing, typography } from "../../theme";
+import IconCircle from "../../components/IconCircle";
 import { recordsApi, extractApiError } from "../../api";
 import type { RecordDetail, MedicationItem, RecordGuideResponse } from "../../api";
 import { RECORD_LABEL, formatDate, getRecordColor, iconFor } from "./_recordsShared";
@@ -166,9 +167,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
       >
         {/* ── 기록 헤더 ── */}
         <View style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: spacing.s20 }}>
-          <View style={{ width: 52, height: 52, borderRadius: radii.lg, backgroundColor: colors.accent50, alignItems: "center", justifyContent: "center", marginRight: spacing.s16 }}>
-            <Icon name={iconFor(record.record_type)} size={26} color={colors.accent} />
-          </View>
+          <IconCircle size={52} icon={iconFor(record.record_type)} iconSize={26} color={colors.accent} backgroundColor={colors.accent50} borderRadius={radii.lg} style={{ marginRight: spacing.s16 }} />
           <View style={{ flex: 1 }}>
             {/* 뱃지 + 날짜 + 버튼 (한 행) */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.s6 }}>
@@ -284,9 +283,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
             </View>
           ) : (
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s12 }}>
-              <View style={{ width: 40, height: 40, borderRadius: radii.pill, backgroundColor: colors.success50, alignItems: "center", justifyContent: "center" }}>
-                <Icon name="check" size={18} color={colors.success} />
-              </View>
+              <IconCircle size={40} icon="check" iconSize={18} color={colors.success} backgroundColor={colors.success50} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>가이드가 준비됐어요</Text>
                 <Text style={s.subtitleText}>복약 방법, 주의사항, 생활습관 안내를 확인하세요.</Text>

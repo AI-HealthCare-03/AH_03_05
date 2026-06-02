@@ -8,6 +8,7 @@ import { useApp, defaultUser } from '../../context/AppContext';
 import { authApi, usersApi, extractApiError } from '../../api';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography } from '../../theme';
+import IconCircle from '../../components/IconCircle';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -100,7 +101,7 @@ export function SettingsScreen({ navigation }: any) {
       {/* Profile card */}
       <Card shadow style={{ marginBottom: spacing.s14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12 }}>
-          <View style={s.avatar}><Icon name="user" size={20} color={colors.ink2} /></View>
+          <IconCircle size={44} icon="user" iconSize={20} color={colors.ink2} backgroundColor={colors.surface2} borderColor={colors.hairline} />
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: 26 }}>
               <View style={{ flex: 1, justifyContent: 'center' }}>
