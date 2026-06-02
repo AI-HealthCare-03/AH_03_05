@@ -16,7 +16,6 @@ export const s = StyleSheet.create({
   chip: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: radii.pill, backgroundColor: colors.surface2 },
   chipActive: { backgroundColor: colors.accent50, borderColor: colors.accent, borderWidth: 1 },
   rowItem: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.s20, paddingVertical: spacing.s16, gap: 14 },
-  rowLabel: { flex: 1, fontSize: typography.fz14, fontWeight: typography.fw5, color: colors.ink },
   banner: { flexDirection: 'row', alignItems: 'flex-start', padding: spacing.s14, borderRadius: radii.md },
   notifRow: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.s20, paddingVertical: spacing.s16, gap: spacing.s12 },
   notifIcon: { width: 36, height: 36, borderRadius: radii.pill, backgroundColor: colors.accent100, alignItems: 'center', justifyContent: 'center' },

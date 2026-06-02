@@ -9,6 +9,7 @@ import { authApi, usersApi, extractApiError } from '../../api';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography } from '../../theme';
 import IconCircle from '../../components/IconCircle';
+import MenuItem from '../../components/MenuItem';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -29,27 +30,6 @@ const MENU_SECTIONS: { icon: string; label: string; to: string; params?: Record<
   ],
 ];
 
-type MenuItemProps = {
-  icon: string;
-  label: string;
-  to: string;
-  params?: Record<string, string>;
-  isFirst: boolean;
-  navigation: any;
-};
-
-function MenuItem({ icon, label, to, params, isFirst, navigation }: MenuItemProps) {
-  return (
-    <TouchableOpacity
-      style={[s.rowItem, !isFirst && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}
-      onPress={() => navigation.navigate(to, params)}
-    >
-      <Icon name={icon} size={16} color={colors.accent700} />
-      <Text style={s.rowLabel}>{label}</Text>
-      <Icon name="chevron-right" size={14} color={colors.muted2} />
-    </TouchableOpacity>
-  );
-}
 
 export function SettingsScreen({ navigation }: any) {
   const { user, setUser, flash } = useApp();
@@ -182,18 +162,19 @@ export function SettingsScreen({ navigation }: any) {
               key={it.label}
               icon={it.icon}
               label={it.label}
-              to={it.to}
-              params={it.params}
-              isFirst={ji === 0}
-              navigation={navigation}
+              onPress={() => navigation.navigate(it.to, it.params)}
+              separator={ji > 0}
             />
           ))}
         </Card>
       ))}
 
       <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s22 }}>
-        <TouchableOpacity
-          style={s.rowItem}
+        <MenuItem
+          icon="logout"
+          label="로그아웃"
+          iconColor={colors.ink2}
+          chevron={false}
           onPress={async () => {
             await authApi.logout().catch(() => {});
             const rawFlags = await AsyncStorage.getItem('medipt_profile_flags').catch(() => null);
@@ -205,17 +186,16 @@ export function SettingsScreen({ navigation }: any) {
             (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)?.reset({ index: 0, routes: [{ name: 'Auth' }] });
             flash('로그아웃 되었어요');
           }}
-        >
-          <Icon name="logout" size={16} color={colors.ink2} />
-          <Text style={s.rowLabel}>로그아웃</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[s.rowItem, { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}
+        />
+        <MenuItem
+          icon="trash"
+          label="회원 탈퇴"
+          iconColor={colors.danger}
+          labelColor={colors.danger}
+          chevron={false}
+          separator
           onPress={() => navigation.navigate('DeleteAccount')}
-        >
-          <Icon name="trash" size={16} color={colors.danger} />
-          <Text style={[s.rowLabel, { color: colors.danger }]}>회원 탈퇴</Text>
-        </TouchableOpacity>
+        />
       </Card>
 
       <Text style={{ fontSize: typography.fz12, color: colors.muted, textAlign: 'center' }}>
