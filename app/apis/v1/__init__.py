@@ -4,6 +4,7 @@ from app.apis.v1.auth_routers import auth_router
 from app.apis.v1.chat_routers import chat_router
 from app.apis.v1.consents_routers import consents_router
 from app.apis.v1.drug_routers import drug_router
+from app.apis.v1.feedback_routers import feedback_router
 from app.apis.v1.guide_routers import guide_router, records_guide_router
 from app.apis.v1.health_profile_routers import health_profile_router
 from app.apis.v1.medication_routers import medication_router, records_medications_router
@@ -33,3 +34,4 @@ v1_routers.include_router(chat_router)
 v1_routers.include_router(guide_router)
 v1_routers.include_router(records_guide_router)
 v1_routers.include_router(prompt_policy_router)
+v1_routers.include_router(feedback_router)

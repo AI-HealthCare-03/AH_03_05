@@ -8,7 +8,7 @@ import Card from '../../components/Card';
 import SearchBar from '../../components/SearchBar';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { ChatSessionPane } from './ChatSessionPane';
-import { chatApi } from '../../api';
+import { chatApi, extractApiError } from '../../api';
 import type { ChatSession, ChatMessageItem } from '../../api';
 import EmptyState from '../../components/EmptyState';
 function formatTime(iso?: string): string {
@@ -87,11 +87,15 @@ export function ChatListScreen({ navigation, route }: any) {
         {
           text: '삭제',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             setSessions(prev => prev.filter(s => s.session_id !== sessionId));
             if (selectedId === String(sessionId)) setSelectedId(null);
-            // TODO: BE DELETE /chat/sessions/{session_id} 구현 후 연결
-            // await chatApi.deleteSession(sessionId);
+            // TODO: [BE 대기] DELETE /chat/sessions/{session_id} 구현 완료 후 오류 처리 보강
+            try {
+              await chatApi.deleteChatSession(sessionId);
+            } catch (e) {
+              setError(extractApiError(e));
+            }
           },
         },
       ],
@@ -185,7 +189,7 @@ export function ChatListScreen({ navigation, route }: any) {
   return (
     <View style={[{ flex: 1, backgroundColor: colors.canvas }, isDesktop && { alignItems: 'center' }]}>
       <View style={isDesktop
-        ? [ds.root, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop), paddingBottom: Math.max(safeTop + spacing.s8, spacing.safeTop) }]
+        ? [ds.root, { paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: Math.max(safeTop, spacing.safeTop) }]
         : { flex: 1, paddingHorizontal: spacing.s8, paddingTop: Math.max(safeTop, spacing.safeTop), paddingBottom: spacing.s24 }
       }>
         {/* Sidebar — always mounted; hidden on mobile when a session is open */}

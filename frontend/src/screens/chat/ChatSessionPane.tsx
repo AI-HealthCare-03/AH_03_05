@@ -4,7 +4,8 @@ import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import { StyleSheet } from 'react-native';
-import { chatApi, feedbacksApi, ragApi } from '../../api';
+import { useApp } from '../../context/AppContext';
+import { chatApi, feedbacksApi, ragApi, extractApiError } from '../../api';
 import type { ChatMessageItem, RagSource } from '../../api';
 import { s } from './_chatShared';
 
@@ -172,6 +173,7 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
 
 function Bubble({ msg }: { msg: ChatMessageItem }) {
   const [fb, setFb] = useState<'good' | 'bad' | null>(null);
+  const { flash } = useApp();
   const isUser = msg.sender_type === 'user';
   const isSafe = msg.safety_flag === true;
 
@@ -180,7 +182,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
       chat_message_id: msg.message_id,
       rating,
       ...(reportType ? { report_type: reportType } : {}),
-    }).catch(() => {});
+    }).catch(e => flash(extractApiError(e)));
   };
 
   return (

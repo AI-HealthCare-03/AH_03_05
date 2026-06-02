@@ -19,6 +19,7 @@ export function SearchBar({ value, onChangeText, placeholder = '검색', onSubmi
   const [focused, setFocused] = useState(false);
   return (
     <Card
+      noPadding
       style={[
         {
           flexDirection: 'row',
@@ -27,7 +28,6 @@ export function SearchBar({ value, onChangeText, placeholder = '검색', onSubmi
           borderColor: focused ? colors.accent : colors.hairline,
           borderWidth: focused ? 1.5 : 0.5,
           height: 44,
-          paddingVertical: 0,
           paddingHorizontal: spacing.s12,
         },
         style,
