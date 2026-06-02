@@ -231,21 +231,21 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
           <View style={{ flexDirection: 'row', gap: spacing.s8, marginLeft: 36, marginTop: spacing.s4 }}>
             <TouchableOpacity
               disabled={!!fb}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'good' ? colors.accent : colors.hairline, backgroundColor: fb === 'good' ? colors.accent50 : 'transparent', opacity: fb && fb !== 'good' ? 0.4 : 1 }}
+              style={[ps.feedbackBtn, { borderColor: fb === 'good' ? colors.accent : colors.hairline, backgroundColor: fb === 'good' ? colors.accent50 : 'transparent', opacity: fb && fb !== 'good' ? 0.4 : 1 }]}
               onPress={() => { if (fb) return; setFb('good'); submitFeedback(4); }}>
               <Text style={{ fontSize: typography.fz12 }}>👍</Text>
               <Text style={{ fontSize: typography.fz11, color: fb === 'good' ? colors.accent700 : colors.muted }}>도움됨</Text>
             </TouchableOpacity>
             <TouchableOpacity
               disabled={!!fb}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: fb === 'bad' ? colors.danger : colors.hairline, backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent', opacity: fb && fb !== 'bad' ? 0.4 : 1 }}
+              style={[ps.feedbackBtn, { borderColor: fb === 'bad' ? colors.danger : colors.hairline, backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent', opacity: fb && fb !== 'bad' ? 0.4 : 1 }]}
               onPress={() => { if (fb) return; setFb('bad'); submitFeedback(2); }}>
               <Text style={{ fontSize: typography.fz12 }}>👎</Text>
               <Text style={{ fontSize: typography.fz11, color: fb === 'bad' ? colors.danger : colors.muted }}>별로</Text>
             </TouchableOpacity>
             {isSafe && (
               <TouchableOpacity
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1, borderColor: colors.danger, backgroundColor: 'transparent' }}
+                style={[ps.feedbackBtn, { borderColor: colors.danger }]}
                 onPress={() => submitFeedback(2, 'chat_error')}>
                 <Text style={{ fontSize: typography.fz11, color: colors.danger }}>신고하기</Text>
               </TouchableOpacity>
@@ -258,6 +258,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
 }
 
 const ps = StyleSheet.create({
+  feedbackBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1 },
   noticeBanner: {
     flexDirection: 'row',
     alignItems: 'center',

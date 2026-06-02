@@ -102,7 +102,7 @@ export function GuideResultScreen({ navigation, route }: any) {
               <ActivityIndicator color={colors.accent} />
             </View>
           ) : guideError ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.danger }}>
+            <View style={s.errorBanner}>
               <Icon name="alert" size={14} color={colors.danger} />
               <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
             </View>
@@ -126,7 +126,7 @@ export function GuideResultScreen({ navigation, route }: any) {
               <ActivityIndicator color={colors.accent} />
             </View>
           ) : guideError ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.danger }}>
+            <View style={s.errorBanner}>
               <Icon name="alert" size={14} color={colors.danger} />
               <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
             </View>
@@ -221,6 +221,9 @@ export default GuideResultScreen;
 // ─── StyleSheet ────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
+  // 에러 배너
+  errorBanner: { flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.danger },
+
   // 안전 배너
   safetyBanner: { backgroundColor: colors.accent50, borderRadius: radii.md, padding: spacing.s12, flexDirection: "row", alignItems: "flex-start", gap: spacing.s10, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.accent100 },
   safetyText: { fontSize: typography.fz13, color: colors.accent700, flex: 1, lineHeight: 20 },

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../../context/AppContext";
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Linking } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Linking, StyleSheet } from "react-native";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
@@ -242,7 +242,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
                     {med.drug_name}
                   </Text>
                   {med.frequency || med.dosage ? (
-                    <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>
+                    <Text style={s.subtitleText}>
                       {[med.frequency, med.dosage].filter(Boolean).join(" · ")}
                     </Text>
                   ) : null}
@@ -281,7 +281,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
               <ActivityIndicator color={colors.accent} size="small" />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>가이드를 분석하고 있어요...</Text>
-                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>분석이 완료되면 알림으로 알려드려요.</Text>
+                <Text style={s.subtitleText}>분석이 완료되면 알림으로 알려드려요.</Text>
               </View>
             </View>
           ) : (
@@ -291,7 +291,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>가이드가 준비됐어요</Text>
-                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>복약 방법, 주의사항, 생활습관 안내를 확인하세요.</Text>
+                <Text style={s.subtitleText}>복약 방법, 주의사항, 생활습관 안내를 확인하세요.</Text>
               </View>
               <Button
                 variant="primary"
@@ -340,3 +340,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
 }
 
 export default RecordDetailScreen;
+
+const s = StyleSheet.create({
+  subtitleText: { fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 },
+});
