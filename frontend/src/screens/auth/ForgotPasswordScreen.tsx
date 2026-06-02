@@ -4,6 +4,7 @@ import {
   ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import Icon from '../../components/Icon';
+import Banner from '../../components/Banner';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../theme';
@@ -64,13 +65,12 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
 
   const formContent = step === 'confirm' ? (
     <>
-      <View style={[styles.banner, styles.bannerSuccess, { marginBottom: spacing.s20 }]}>
-        <Icon name="check-circle" size={16} color={colors.success} />
-        <View style={{ marginLeft: spacing.s10, flex: 1 }}>
-          <Text style={{ fontWeight: typography.fw7, fontSize: typography.fz14 }}>인증 코드를 보냈어요</Text>
-          <Text style={{ fontSize: typography.fz12, marginTop: spacing.s2, color: colors.ink2 }}>{email} 로 발송됐어요. 스팸함도 확인해주세요.</Text>
-        </View>
-      </View>
+      <Banner
+        variant="success"
+        title="인증 코드를 보냈어요"
+        body={`${email} 로 발송됐어요. 스팸함도 확인해주세요.`}
+        style={{ marginBottom: spacing.s20 }}
+      />
       <View style={styles.field}>
         <Input
           label="인증 코드"

@@ -9,6 +9,7 @@ import ScreenLayout from "../../components/ScreenLayout";
 import { guidesApi, feedbacksApi, extractApiError } from "../../api";
 import type { GuideResponse } from "../../api";
 import EmptyState from "../../components/EmptyState";
+import Banner from "../../components/Banner";
 
 // ─── 헬퍼 ─────────────────────────────────────────────────────────────────────
 
@@ -79,10 +80,11 @@ export function GuideResultScreen({ navigation, route }: any) {
       scrollable
     >
       {/* 상단 의료 안전 고지 (REQ-SAFE-001 필수) */}
-      <View style={s.safetyBanner}>
-        <Icon name="info" size={16} color={colors.accent700} />
-        <Text style={s.safetyText}>본 안내는 참고용이며 의료인의 진단·처방·복약지도를 대체하지 않습니다. 복약 변경 전 반드시 담당 의사·약사와 상담하세요.</Text>
-      </View>
+      <Banner
+        variant="info"
+        body="본 안내는 참고용이며 의료인의 진단·처방·복약지도를 대체하지 않습니다. 복약 변경 전 반드시 담당 의사·약사와 상담하세요."
+        style={{ marginBottom: spacing.s14 }}
+      />
 
       {/* 탭 바 */}
       <View style={s.tabBar}>
@@ -102,10 +104,7 @@ export function GuideResultScreen({ navigation, route }: any) {
               <ActivityIndicator color={colors.accent} />
             </View>
           ) : guideError ? (
-            <View style={s.errorBanner}>
-              <Icon name="alert" size={14} color={colors.danger} />
-              <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
-            </View>
+            <Banner variant="danger" body={guideError} style={{ marginBottom: spacing.s14 }} />
           ) : apiMedItems.length > 0 ? (
             apiMedItems.map((item) => <GuideItemCard key={item.sort_order} item={item} />)
           ) : guide?.medication_guide ? (
@@ -126,10 +125,7 @@ export function GuideResultScreen({ navigation, route }: any) {
               <ActivityIndicator color={colors.accent} />
             </View>
           ) : guideError ? (
-            <View style={s.errorBanner}>
-              <Icon name="alert" size={14} color={colors.danger} />
-              <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
-            </View>
+            <Banner variant="danger" body={guideError} style={{ marginBottom: spacing.s14 }} />
           ) : apiLifeItems.length > 0 ? (
             apiLifeItems.map((item) => <GuideItemCard key={item.sort_order} item={item} />)
           ) : guide?.lifestyle_guide ? (
@@ -221,13 +217,6 @@ export default GuideResultScreen;
 // ─── StyleSheet ────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  // 에러 배너
-  errorBanner: { flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.md, padding: spacing.s12, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.danger },
-
-  // 안전 배너
-  safetyBanner: { backgroundColor: colors.accent50, borderRadius: radii.md, padding: spacing.s12, flexDirection: "row", alignItems: "flex-start", gap: spacing.s10, marginBottom: spacing.s14, borderWidth: 1, borderColor: colors.accent100 },
-  safetyText: { fontSize: typography.fz13, color: colors.accent700, flex: 1, lineHeight: 20 },
-
   // 탭 바
   tabBar: { flexDirection: "row", alignSelf: "flex-start", backgroundColor: colors.surface2, borderRadius: radii.md, padding: spacing.s4, gap: spacing.s4, marginBottom: spacing.s14, borderWidth: 0.5, borderColor: colors.hairline },
   tabBtn: { paddingVertical: spacing.s6, paddingHorizontal: spacing.s12, alignItems: "center", justifyContent: "center", borderRadius: radii.icon },

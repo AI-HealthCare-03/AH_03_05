@@ -19,7 +19,6 @@ export const s = StyleSheet.create({
   rowItem: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.s20, paddingVertical: spacing.s16, gap: 14 },
   rowLabel: { flex: 1, fontSize: typography.fz14, fontWeight: typography.fw5, color: colors.ink },
   banner: { flexDirection: 'row', alignItems: 'flex-start', padding: spacing.s14, borderRadius: radii.md },
-  bannerDanger: { backgroundColor: colors.danger50 },
   notifRow: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.s20, paddingVertical: spacing.s16, gap: spacing.s12 },
   notifIcon: { width: 36, height: 36, borderRadius: radii.pill, backgroundColor: colors.accent100, alignItems: 'center', justifyContent: 'center' },
   timeInput: { borderWidth: 1, borderColor: colors.hairlineStrong, borderRadius: radii.md, paddingHorizontal: spacing.s8, height: 36, fontSize: typography.fz13, color: colors.ink, width: 80, textAlign: 'center' },

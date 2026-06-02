@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import Icon from '../../components/Icon';
+import Banner from '../../components/Banner';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { colors, radii, spacing, typography } from '../../theme';
@@ -84,10 +85,7 @@ export function DrugDetailScreen({ navigation, route }: any) {
   return (
     <ScreenLayout title={drug.drug_name} back onBack={() => navigation.goBack()} scrollable scrollPadding={false} contentStyle={{ padding: spacing.s20 }}>
       {usingCache && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6, backgroundColor: colors.warning50, borderRadius: radii.md, padding: spacing.s10, marginBottom: spacing.s14 }}>
-          <Icon name="alert" size={13} color={colors.warning} />
-          <Text style={{ fontSize: typography.fz12, color: colors.warningText }}>네트워크 오류 — 캐시 데이터 표시 중</Text>
-        </View>
+        <Banner variant="warning" body="네트워크 오류 — 캐시 데이터 표시 중" style={{ marginBottom: spacing.s14 }} />
       )}
 
       <Card shadow>

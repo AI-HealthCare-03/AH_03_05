@@ -4,6 +4,7 @@ import { NavigationProp } from '@react-navigation/native';
 import type { RootStackParams } from '../../navigation/types';
 import { useApp, defaultUser } from '../../context/AppContext';
 import Icon from '../../components/Icon';
+import Banner from '../../components/Banner';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -78,13 +79,12 @@ export function DeleteAccountScreen({ navigation }: any) {
 
   return (
     <ScreenLayout title="회원 탈퇴" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
-      <View style={[s.banner, s.bannerDanger, { marginBottom: spacing.s20 }]}>
-        <Icon name="alert" size={16} color={colors.danger} />
-        <View style={{ marginLeft: spacing.s10 }}>
-          <Text style={{ fontWeight: typography.fw7, color: colors.danger }}>탈퇴하면 복구할 수 없어요</Text>
-          <Text style={{ fontSize: typography.fz12, color: colors.ink2, marginTop: spacing.s2 }}>아래 내용을 꼭 확인해주세요.</Text>
-        </View>
-      </View>
+      <Banner
+        variant="danger"
+        title="탈퇴하면 복구할 수 없어요"
+        body="아래 내용을 꼭 확인해주세요."
+        style={{ marginBottom: spacing.s20 }}
+      />
 
       <Card shadow>
         {step === 1 ? (

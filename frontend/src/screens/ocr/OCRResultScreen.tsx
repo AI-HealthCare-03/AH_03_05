@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
+import Banner from '../../components/Banner';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -138,15 +139,9 @@ export function OCRResultScreen({ navigation, route }: any) {
       )}
 
       {error ? (
-        <View style={[s.banner, { backgroundColor: colors.danger50, marginBottom: spacing.s14 }]}>
-          <Icon name="alert" size={16} color={colors.danger} />
-          <Text style={{ fontSize: typography.fz14, color: colors.danger, marginLeft: spacing.s8 }}>{error}</Text>
-        </View>
+        <Banner variant="danger" body={error} style={{ marginBottom: spacing.s14 }} />
       ) : (
-        <View style={[s.banner, s.bannerSuccess, { marginBottom: spacing.s14 }]}>
-          <Icon name="check-circle" size={16} color={colors.success} />
-          <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink, marginLeft: spacing.s8 }}>OCR 인식이 완료됐어요</Text>
-        </View>
+        <Banner variant="success" title="OCR 인식이 완료됐어요" style={{ marginBottom: spacing.s14 }} />
       )}
 
       <Card shadow>

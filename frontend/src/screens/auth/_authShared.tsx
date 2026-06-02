@@ -93,8 +93,6 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   pwRule: { flexDirection: "row", alignItems: "center" },
-  banner: { flexDirection: "row", alignItems: "flex-start", padding: spacing.s14, borderRadius: radii.md },
-  bannerSuccess: { backgroundColor: colors.success50 },
   requiredBadge: {
     fontSize: typography.fz10,
     color: colors.danger,
