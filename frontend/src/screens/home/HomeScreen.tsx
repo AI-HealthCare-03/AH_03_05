@@ -89,39 +89,12 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
   );
 }
 
-// ─── 오늘의 복약 더미 데이터 ─────────────────────────────────────────────────
-// TODO: BE GET /medication-schedules 구현 후 연결
-
-const DUMMY_TODAY_SCHEDULES = [
-  { id: 's1', drug_name: '암로디핀 5mg',    dosage: '1정', timing: '아침 식후', color: colors.accent },
-  { id: 's2', drug_name: '메트포르민 500mg', dosage: '2정', timing: '점심 식후', color: colors.success },
-  { id: 's3', drug_name: '아스피린 100mg',  dosage: '1정', timing: '저녁 식후', color: colors.warning },
-];
-
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export default function HomeScreen({ navigation }: any) {
   const { user, drugs, setDrugs, adherence, streak, chats, flash, setNotifications, setUnreadCount } = useApp();
   const { isDesktop, isTabletOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
-  const [checkedSchedules, setCheckedSchedules] = useState<Set<string>>(new Set());
-
-  const toggleSchedule = (id: string) => {
-    setCheckedSchedules(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        flash('복약 체크 취소했어요');
-      } else {
-        next.add(id);
-        flash('복약 체크 완료 🎉');
-      }
-      // TODO: BE POST /medication-checkins 구현 후 연결
-      // await checkinApi.createCheckin(id);
-      return next;
-    });
-  };
-
   useFocusEffect(
     useCallback(() => {
       notificationsApi.getUnreadCount().then(res => {
@@ -321,40 +294,6 @@ export default function HomeScreen({ navigation }: any) {
             </Card>
           </View>
         </View>
-
-        {/* 오늘의 복약 */}
-        <Card shadow style={{ marginBottom: spacing.s14 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s14 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
-              <Icon name="bell" size={14} color={colors.accent700} />
-              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>오늘의 복약</Text>
-            </View>
-            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
-              {checkedSchedules.size}/{DUMMY_TODAY_SCHEDULES.length} 완료
-            </Text>
-          </View>
-          {DUMMY_TODAY_SCHEDULES.map((item, i) => {
-            const checked = checkedSchedules.has(item.id);
-            return (
-              <View key={item.id} style={[s.drugRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-                <View style={{ width: 4, height: 32, borderRadius: radii.r2, backgroundColor: item.color }} />
-                <View style={{ flex: 1, marginLeft: spacing.s12 }}>
-                  <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>{item.drug_name}</Text>
-                  <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{item.dosage} · {item.timing}</Text>
-                </View>
-                <TouchableOpacity
-                  style={checked ? undefined : s.chipBtn}
-                  onPress={() => toggleSchedule(item.id)}
-                  activeOpacity={0.7}
-                >
-                  {checked
-                    ? <Badge variant="success">완료</Badge>
-                    : <Text style={{ fontSize: typography.fz12, color: colors.accent700 }}>복약 체크</Text>}
-                </TouchableOpacity>
-              </View>
-            );
-          })}
-        </Card>
 
         {/* 달력 */}
         <Card shadow style={{ marginBottom: spacing.s14 }}>
