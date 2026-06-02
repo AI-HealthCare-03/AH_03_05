@@ -227,7 +227,7 @@ export function ChatListScreen({ navigation, route }: any) {
             </>
           ) : (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.s12 }}>
-              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 64, height: 64, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="chat" size={28} color={colors.accent700} />
               </View>
               <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>상담을 선택해주세요</Text>

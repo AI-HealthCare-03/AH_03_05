@@ -258,7 +258,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
 }
 
 const ps = StyleSheet.create({
-  feedbackBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1 },
+  feedbackBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.s3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1 },
   noticeBanner: {
     flexDirection: 'row',
     alignItems: 'center',

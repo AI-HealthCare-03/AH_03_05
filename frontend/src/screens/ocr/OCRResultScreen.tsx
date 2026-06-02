@@ -151,7 +151,7 @@ export function OCRResultScreen({ navigation, route }: any) {
 
       <Card shadow>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.s12 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
             <Icon name="link" size={14} color={colors.ink2} />
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>인식된 약품 ({displayDrugs.length}종)</Text>
           </View>
@@ -175,23 +175,23 @@ export function OCRResultScreen({ navigation, route }: any) {
             >
               <View style={[s.drugDot, { backgroundColor: dotColor }]}>
                 {manual
-                  ? <Icon name="edit" size={14} color="#fff" />
+                  ? <Icon name="edit" size={14} color={colors.white} />
                   : warn
-                    ? <Icon name="alert" size={14} color="#fff" />
-                    : <Icon name="check" size={14} color="#fff" />
+                    ? <Icon name="alert" size={14} color={colors.white} />
+                    : <Icon name="check" size={14} color={colors.white} />
                 }
               </View>
               <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
                   <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, flex: 1 }} numberOfLines={1}>{d.name}</Text>
                   {d.maker ? <Text style={{ fontSize: typography.fz12, color: colors.muted }}>({d.maker})</Text> : null}
                 </View>
-                <Text style={{ fontSize: typography.fz12, color: manual ? colors.accent700 : warn ? '#92400E' : '#065F46', marginTop: 2 }}>
+                <Text style={{ fontSize: typography.fz12, color: manual ? colors.accent700 : warn ? colors.warningText : colors.successText, marginTop: spacing.s2 }}>
                   {manual ? '직접 입력된 약품' : warn ? `인식률 ${d.confidence}% — 확인이 필요해요` : d.time || `인식률 ${d.confidence}%`}
                 </Text>
               </View>
               <View style={[s.chip, { backgroundColor: manual ? colors.accent100 : warn ? colors.warning : colors.white }]}>
-                <Text style={{ fontSize: typography.fz11, color: manual ? colors.accent700 : warn ? colors.white : '#065F46', fontWeight: typography.fw6 }}>
+                <Text style={{ fontSize: typography.fz11, color: manual ? colors.accent700 : warn ? colors.white : colors.successText, fontWeight: typography.fw6 }}>
                   {manual ? '직접 입력' : warn ? '검색/확인' : '수정'}
                 </Text>
               </View>

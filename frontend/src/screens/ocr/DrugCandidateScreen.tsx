@@ -47,7 +47,7 @@ export function DrugCandidateScreen({ navigation, route }: any) {
         style={{ marginBottom: spacing.s14 }}
       />
 
-      {searched && !loading && !searchError && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: 10 }}>검색 결과 {results.length}건</Text>}
+      {searched && !loading && !searchError && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s10 }}>검색 결과 {results.length}건</Text>}
       {searchError ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: 10 }}>
           <Icon name="alert" size={13} color={colors.danger} />

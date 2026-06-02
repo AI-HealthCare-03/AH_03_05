@@ -233,7 +233,7 @@ const ss = StyleSheet.create({
     fontWeight: typography.fw7,
     borderBottomWidth: 1,
     borderBottomColor: colors.accent,
-    paddingVertical: 2,
+    paddingVertical: spacing.s2,
     color: colors.ink,
   },
 });

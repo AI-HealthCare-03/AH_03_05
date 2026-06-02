@@ -226,7 +226,7 @@ export default function HomeScreen({ navigation }: any) {
                 </View>
               </View>
               <Text style={{ fontSize: 36, fontWeight: typography.fw7, color: colors.white, marginBottom: spacing.s4 }}>{computedAdherence}%</Text>
-              <Text style={{ fontSize: typography.fz12, color: colors.onAccent75, marginBottom: 10 }}>
+              <Text style={{ fontSize: typography.fz12, color: colors.onAccent75, marginBottom: spacing.s10 }}>
                 총 {doneDays.length}일 완료 · 미복용 {pastDays.length - doneDays.length}일
               </Text>
               <ProgressBar progress={computedAdherence} color={colors.white} trackColor={colors.onAccent25} />
@@ -319,7 +319,7 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>복약 완료</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
-              <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: colors.danger }} />
+              <View style={{ width: 10, height: 10, borderRadius: radii.pill, backgroundColor: colors.danger }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>미복용</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>

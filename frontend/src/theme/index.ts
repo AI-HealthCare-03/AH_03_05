@@ -73,6 +73,7 @@ export const radii = {
 
 export const spacing = {
   s2: 2,
+  s3: 3,
   s4: 4,
   s6: 6,
   s8: 8,

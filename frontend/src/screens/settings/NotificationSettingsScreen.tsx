@@ -165,7 +165,7 @@ export function NotificationSettingsScreen({ navigation }: any) {
 
   return (
     <ScreenLayout title="알림 설정" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
-      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 14 }}>
+      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s14 }}>
         <View style={s.rowItem}>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7 }}>복약 알림 받기</Text>
@@ -178,7 +178,7 @@ export function NotificationSettingsScreen({ navigation }: any) {
         <MealRow label="저녁 복약" val={dinner}  setVal={setDinner}  master={master} onTimePress={() => setPickerOpen('dinner')} />
       </Card>
 
-      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 14 }}>
+      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s14 }}>
         <ToggleRow label="새 가이드 생성 알림"  sub="처방전 분석이 완료되었을 때"  val={newGuide}    onChange={setNewGuide} />
         <ToggleRow label="OCR 처리 완료 알림"  sub="문서 OCR 분석이 완료됐을 때"  val={ocrComplete} onChange={setOcrComplete} />
         <ToggleRow label="시스템 알림"         sub="서비스 공지 및 중요 안내"      val={systemAlarm} onChange={setSystemAlarm} />
