@@ -13,7 +13,7 @@ export type AuthNavProp = NativeStackNavigationProp<AuthStackParams>;
 
 export function BrandPanel({ tagline, desc, features }: { tagline: React.ReactNode; desc: string; features: { icon: string; title: string; sub: string }[] }) {
   return (
-    <LinearGradient colors={["#4EC8DC", colors.accent700]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={bp.panel}>
+    <LinearGradient colors={[colors.accentLight, colors.accent700]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={bp.panel}>
       {/* 브랜드 로고 — 패널 최상단 고정 */}
       <MediPTLogo width={130} />
 

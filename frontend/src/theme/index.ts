@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 export const colors = {
   // Accent (teal)
   accent: "#0891B2",
+  accentLight: "#4EC8DC",
   accent700: "#0E7490",
   accent50: "#ECFCFE",
   accent100: "#CFFAFE",
