@@ -144,3 +144,16 @@ class ChatService:
         total = await query.count()
         messages = await query.order_by("created_at").offset(offset).limit(limit)
         return messages, total
+
+    async def delete_session(self, user: User, session_id: int) -> None:
+        """채팅 세션을 소프트 딜리트(status=DELETED) 처리합니다."""
+        from app.exceptions.common import NotFoundException
+
+        # 본인 소유의 세션인지 검증 (없으면 404)
+        session = await ChatSession.get_or_none(id=session_id, user=user)
+        if session is None:
+            raise NotFoundException("채팅 세션을 찾을 수 없습니다.")
+
+        # 소프트 딜리트 필드 업데이트 후 저장
+        session.status = ChatSessionStatus.DELETED
+        await session.save()
