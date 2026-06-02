@@ -11,14 +11,23 @@ interface CardProps {
   onPress?: () => void;
 }
 
-export default function Card({ children, style, containerStyle, noPadding, shadow, onPress }: CardProps) {
+export default function Card({
+  children,
+  style,
+  containerStyle,
+  noPadding,
+  shadow,
+  onPress,
+}: CardProps) {
   const inner = (
-    <View style={[s.card, noPadding && s.noPadding, shadow && s.shadow, style]}>
-      {children}
-    </View>
+    <View style={[s.card, noPadding && s.noPadding, shadow && s.shadow, style]}>{children}</View>
   );
   if (onPress) {
-    return <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={containerStyle}>{inner}</TouchableOpacity>;
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={containerStyle}>
+        {inner}
+      </TouchableOpacity>
+    );
   }
   return inner;
 }

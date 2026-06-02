@@ -1,5 +1,9 @@
 import { apiClient } from './client';
-import type { HealthProfile, HealthProfileUpdateRequest, HealthProfileUpdateResponse } from './types';
+import type {
+  HealthProfile,
+  HealthProfileUpdateRequest,
+  HealthProfileUpdateResponse,
+} from './types';
 
 export async function getHealthProfile(): Promise<HealthProfile> {
   const res = await apiClient.get<HealthProfile>('/health-profile');
@@ -7,7 +11,7 @@ export async function getHealthProfile(): Promise<HealthProfile> {
 }
 
 export async function upsertHealthProfile(
-  data: HealthProfileUpdateRequest,
+  data: HealthProfileUpdateRequest
 ): Promise<HealthProfileUpdateResponse> {
   const res = await apiClient.put<HealthProfileUpdateResponse>('/health-profile', data);
   return res.data;

@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  TouchableOpacity, Text, ActivityIndicator,
-  StyleSheet, ViewStyle,
-} from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, ViewStyle } from 'react-native';
 import Icon from './Icon';
 import { colors, radii, spacing, typography } from '../theme';
 
@@ -109,13 +106,7 @@ export default function Button({
         />
       ) : (
         <>
-          {leftIcon && (
-            <Icon
-              name={leftIcon}
-              size={SIZE_ICON[size]}
-              color={ICON_COLOR[variant]}
-            />
-          )}
+          {leftIcon && <Icon name={leftIcon} size={SIZE_ICON[size]} color={ICON_COLOR[variant]} />}
           <Text
             style={[
               s.text,

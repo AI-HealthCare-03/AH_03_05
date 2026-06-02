@@ -1,3 +1,5 @@
+import type { DrugSearchResult } from '../api/types';
+
 export type AuthStackParams = {
   Login: undefined;
   Signup: undefined;
@@ -11,9 +13,11 @@ export type OnboardingStackParams = {
 export type HomeStackParams = {
   Home: undefined;
   OCRProcessing: { recordId?: number };
-  OCRResult: { recordId?: number };
+  OCRResult: { recordId?: number; inputMethod?: string };
   DrugCandidate: { medicationName?: string; drugIndex?: number };
-  DrugDosage: undefined;
+  DrugDosage:
+    | { drugIndex?: number; selectedDrug?: DrugSearchResult; medicationId?: number }
+    | undefined;
   DrugDetail: { drugId: number };
   GuideLoading: { recordId?: number };
   GuideResult: { guideId?: number };
@@ -22,7 +26,9 @@ export type HomeStackParams = {
 export type RecordsStackParams = {
   RecordList: undefined;
   RecordDetail: { recordId: number };
-  DrugDosage: undefined;
+  DrugDosage:
+    | { drugIndex?: number; selectedDrug?: DrugSearchResult; medicationId?: number }
+    | undefined;
   DrugDetail: { drugId: number };
 };
 
@@ -33,7 +39,7 @@ export type GuideStackParams = {
 
 export type ChatStackParams = {
   ChatList: { sessionId?: string } | undefined;
-  ChatSession: { sessionId: string; guideId?: string };
+  ChatSession: { sessionId: string; guideId?: string; title?: string; subtitle?: string };
 };
 
 export type SettingsStackParams = {
@@ -52,7 +58,9 @@ export type SettingsStackParams = {
 export type RootStackParams = {
   Auth: undefined;
   Onboarding: undefined;
-  Main: undefined;
+  Main:
+    | { screen?: string; params?: { screen?: string; params?: Record<string, unknown> } }
+    | undefined;
   UploadModal: undefined;
   MedicationAlarm: { meal?: 'morning' | 'lunch' | 'dinner' };
 };

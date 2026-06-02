@@ -6,12 +6,10 @@ import { Platform, useWindowDimensions } from 'react-native';
 // Tablet  : 768 ~ 991  (md)
 // Desktop : >= 992  (lg+)
 
-export type Breakpoint = "mobile" | "tablet" | "desktop";
+export type Breakpoint = 'mobile' | 'tablet' | 'desktop';
 
 function useDebouncedWebWidth(): number {
-  const [width, setWidth] = useState(() =>
-    Platform.OS === 'web' ? window.innerWidth : 0
-  );
+  const [width, setWidth] = useState(() => (Platform.OS === 'web' ? window.innerWidth : 0));
   useEffect(() => {
     if (Platform.OS !== 'web') return;
     let timer: ReturnType<typeof setTimeout>;

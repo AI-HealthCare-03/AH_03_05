@@ -1,40 +1,43 @@
 import { apiClient } from './client';
 import type {
-  MedicationVerifyItem, VerifyMedicationResponse,
+  MedicationVerifyItem,
+  VerifyMedicationResponse,
   MedicationsBatchVerifyResponse,
-  MedicationAlarm, MedicationAlarmUpdateRequest,
-  MedicationDosageUpdateRequest, MedicationDosageUpdateResponse,
+  MedicationAlarm,
+  MedicationAlarmUpdateRequest,
+  MedicationDosageUpdateRequest,
+  MedicationDosageUpdateResponse,
 } from './types';
 
 export async function verifyMedication(
   medicationId: number,
-  data: MedicationVerifyItem,
+  data: MedicationVerifyItem
 ): Promise<VerifyMedicationResponse> {
   const res = await apiClient.patch<VerifyMedicationResponse>(
     `/medications/${medicationId}/verify`,
-    data,
+    data
   );
   return res.data;
 }
 
 export async function verifyMedications(
   recordId: number,
-  verifications: MedicationVerifyItem[],
+  verifications: MedicationVerifyItem[]
 ): Promise<MedicationsBatchVerifyResponse> {
   const res = await apiClient.post<MedicationsBatchVerifyResponse>(
     `/records/${recordId}/medications/verify`,
-    { verifications },
+    { verifications }
   );
   return res.data;
 }
 
 export async function updateMedicationDosage(
   medicationId: number,
-  data: MedicationDosageUpdateRequest,
+  data: MedicationDosageUpdateRequest
 ): Promise<MedicationDosageUpdateResponse> {
   const res = await apiClient.patch<MedicationDosageUpdateResponse>(
     `/medications/${medicationId}`,
-    data,
+    data
   );
   return res.data;
 }
@@ -46,11 +49,8 @@ export async function getMedicationAlarms(): Promise<MedicationAlarm[]> {
 
 export async function updateMedicationAlarm(
   medicationId: number,
-  data: MedicationAlarmUpdateRequest,
+  data: MedicationAlarmUpdateRequest
 ): Promise<MedicationAlarm> {
-  const res = await apiClient.patch<MedicationAlarm>(
-    `/medications/${medicationId}/alarm`,
-    data,
-  );
+  const res = await apiClient.patch<MedicationAlarm>(`/medications/${medicationId}/alarm`, data);
   return res.data;
 }

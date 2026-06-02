@@ -22,10 +22,13 @@ export default function AppShell({ children, scrollable = false }: Props) {
     <View style={s.desktopRoot}>
       <Sidebar />
       <View style={s.desktopContent}>
-        {scrollable
-          ? <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scrollContent}>{children}</ScrollView>
-          : <View style={s.contentInner}>{children}</View>
-        }
+        {scrollable ? (
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scrollContent}>
+            {children}
+          </ScrollView>
+        ) : (
+          <View style={s.contentInner}>{children}</View>
+        )}
       </View>
     </View>
   );

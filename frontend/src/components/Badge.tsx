@@ -14,26 +14,21 @@ interface BadgeProps {
 
 const BG: Record<BadgeVariant, string> = {
   success: colors.success50,
-  danger:  colors.danger50,
+  danger: colors.danger50,
   warning: colors.warning50,
-  accent:  colors.accent50,
+  accent: colors.accent50,
   default: colors.surface2,
 };
 
 const FG: Record<BadgeVariant, string> = {
   success: colors.success,
-  danger:  colors.danger,
+  danger: colors.danger,
   warning: colors.warning,
-  accent:  colors.accent700,
+  accent: colors.accent700,
   default: colors.ink2,
 };
 
-export default function Badge({
-  variant = 'default',
-  size = 'sm',
-  children,
-  style,
-}: BadgeProps) {
+export default function Badge({ variant = 'default', size = 'sm', children, style }: BadgeProps) {
   return (
     <View style={[s.base, { backgroundColor: BG[variant] }, style]}>
       <Text

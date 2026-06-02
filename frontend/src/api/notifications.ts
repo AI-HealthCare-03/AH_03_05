@@ -1,6 +1,8 @@
 import { apiClient } from './client';
 import type {
-  NotificationListResponse, UnreadCountResponse, ReadNotificationResponse,
+  NotificationListResponse,
+  UnreadCountResponse,
+  ReadNotificationResponse,
 } from './types';
 
 export async function getNotifications(params?: {
@@ -22,10 +24,10 @@ export async function markAllNotificationsRead(): Promise<void> {
 }
 
 export async function markNotificationRead(
-  notificationId: number,
+  notificationId: number
 ): Promise<ReadNotificationResponse> {
   const res = await apiClient.patch<ReadNotificationResponse>(
-    `/notifications/${notificationId}/read`,
+    `/notifications/${notificationId}/read`
   );
   return res.data;
 }

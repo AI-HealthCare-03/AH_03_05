@@ -121,11 +121,7 @@ export interface HealthProfileUpdateResponse {
 
 // ─── Records ──────────────────────────────────────────────────────────────────
 
-export type RecordStatus =
-  | 'uploaded'
-  | 'ocr_pending'
-  | 'ocr_completed'
-  | 'ocr_failed';
+export type RecordStatus = 'uploaded' | 'ocr_pending' | 'ocr_completed' | 'ocr_failed';
 
 export interface RecordUploadResponse {
   record_id: number;
