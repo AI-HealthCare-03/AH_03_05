@@ -2,6 +2,7 @@
 delete_expired_records() 단위 테스트.
 30일 경과 소프트딜리트 레코드만 영구 삭제되는지 검증.
 """
+
 from datetime import UTC, datetime, timedelta
 
 from httpx import ASGITransport, AsyncClient
