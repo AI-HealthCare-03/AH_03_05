@@ -10,7 +10,7 @@ interface ProgressBarProps {
   style?: ViewStyle;
 }
 
-export function ProgressBar({
+export const ProgressBar = React.memo(function ProgressBar({
   progress,
   color = colors.accent,
   trackColor = colors.hairline,
@@ -35,6 +35,6 @@ export function ProgressBar({
       />
     </View>
   );
-}
+});
 
 export default ProgressBar;

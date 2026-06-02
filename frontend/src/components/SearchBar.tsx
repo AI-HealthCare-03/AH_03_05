@@ -15,7 +15,7 @@ interface SearchBarProps {
   style?: ViewStyle;
 }
 
-export function SearchBar({
+export const SearchBar = React.memo(function SearchBar({
   value,
   onChangeText,
   placeholder = '검색',
@@ -63,6 +63,6 @@ export function SearchBar({
       )}
     </Card>
   );
-}
+});
 
 export default SearchBar;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -57,7 +57,7 @@ export function ChatListScreen({ navigation, route }: Props) {
     }
   }, [route?.params?.sessionId]);
 
-  const startNew = async () => {
+  const startNew = useCallback(async () => {
     try {
       const session = await chatApi.createChatSession({ title: '새 상담' });
       setSessions(prev => [session, ...prev]);
@@ -70,7 +70,7 @@ export function ChatListScreen({ navigation, route }: Props) {
     } catch (err: any) {
       setError('새 상담을 시작하지 못했어요. 다시 시도해주세요.');
     }
-  };
+  }, [isDesktop, navigation]);
 
   const openSession = (c: ChatSession) => {
     if (isDesktop) {

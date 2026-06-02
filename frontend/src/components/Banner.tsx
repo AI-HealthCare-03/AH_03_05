@@ -55,7 +55,7 @@ interface BannerProps {
   style?: ViewStyle;
 }
 
-export function Banner({ variant, title, body, icon, style }: BannerProps) {
+export const Banner = React.memo(function Banner({ variant, title, body, icon, style }: BannerProps) {
   const cfg = VARIANTS[variant];
   const iconName = icon === null ? null : (icon ?? cfg.defaultIcon);
 
@@ -99,6 +99,6 @@ export function Banner({ variant, title, body, icon, style }: BannerProps) {
       </View>
     </View>
   );
-}
+});
 
 export default Banner;

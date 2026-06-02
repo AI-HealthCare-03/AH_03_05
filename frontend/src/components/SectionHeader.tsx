@@ -11,7 +11,7 @@ interface SectionHeaderProps {
   mb?: number;
 }
 
-export function SectionHeader({
+export const SectionHeader = React.memo(function SectionHeader({
   icon,
   iconColor = colors.ink2,
   label,
@@ -43,6 +43,6 @@ export function SectionHeader({
       {action}
     </View>
   );
-}
+});
 
 export default SectionHeader;

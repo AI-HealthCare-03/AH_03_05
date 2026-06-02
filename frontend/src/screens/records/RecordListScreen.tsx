@@ -211,7 +211,7 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
           icon="alert"
           title="목록을 불러오지 못했어요"
           message={error}
-          action={{ label: '다시 시도', onPress: () => fetchRecords() }}
+          action={{ label: '다시 시도', onPress: fetchRecords }}
         />
       </ScreenLayout>
     );

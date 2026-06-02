@@ -14,7 +14,7 @@ interface IconCircleProps {
   style?: ViewStyle;
 }
 
-export function IconCircle({
+export const IconCircle = React.memo(function IconCircle({
   size,
   icon,
   iconSize,
@@ -42,6 +42,6 @@ export function IconCircle({
       <Icon name={icon} size={iconSize ?? Math.round(size * 0.42)} color={color} />
     </View>
   );
-}
+});
 
 export default IconCircle;

@@ -13,7 +13,7 @@ interface MenuItemProps {
   separator?: boolean;
 }
 
-export function MenuItem({
+export const MenuItem = React.memo(function MenuItem({
   icon,
   label,
   onPress,
@@ -50,6 +50,6 @@ export function MenuItem({
       {chevron && <Icon name="chevron-right" size={14} color={colors.muted2} />}
     </TouchableOpacity>
   );
-}
+});
 
 export default MenuItem;

@@ -14,7 +14,12 @@ interface EmptyStateProps {
   };
 }
 
-export function EmptyState({ icon, title, message, action }: EmptyStateProps) {
+export const EmptyState = React.memo(function EmptyState({
+  icon,
+  title,
+  message,
+  action,
+}: EmptyStateProps) {
   return (
     <View style={{ alignItems: 'center', paddingVertical: spacing.s40 }}>
       <Icon name={icon} size={36} color={colors.muted2} />
@@ -55,6 +60,6 @@ export function EmptyState({ icon, title, message, action }: EmptyStateProps) {
       ) : null}
     </View>
   );
-}
+});
 
 export default EmptyState;
