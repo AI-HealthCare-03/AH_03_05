@@ -80,7 +80,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
           return (
             <TouchableOpacity key={day} style={[s.calCell, isToday && s.calToday, isSelected && !isToday && s.calSelected]} onPress={() => onDayClick(day)}>
               <Text style={[s.calDayText, isToday && { color: colors.white }, isSelected && !isToday && { color: colors.accent700, fontWeight: typography.fw7 }, dow === 0 && !isToday && { color: colors.danger }, dow === 6 && !isToday && { color: colors.accent700 }]}>{day}</Text>
-              <View style={{ width: status === "missed" ? 4 : 16, height: 3, borderRadius: 999, marginTop: spacing.s4, backgroundColor: isToday ? colors.onAccent60 : colorFor(status) }} />
+              <View style={{ width: status === "missed" ? 4 : 16, height: 3, borderRadius: radii.pill, marginTop: spacing.s4, backgroundColor: isToday ? colors.onAccent60 : colorFor(status) }} />
             </TouchableOpacity>
           );
         })}
@@ -376,7 +376,7 @@ export default function HomeScreen({ navigation }: any) {
           {/* 범례 */}
           <View style={{ flexDirection: "row", gap: spacing.s16, paddingTop: spacing.s12, marginTop: spacing.s8, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
-              <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: colors.success }} />
+              <View style={{ width: 10, height: 10, borderRadius: radii.pill, backgroundColor: colors.success }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>복약 완료</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
@@ -449,7 +449,7 @@ export default function HomeScreen({ navigation }: any) {
 const s = StyleSheet.create({
   conditionChip: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: radii.pill, backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
   streakBadge: { flexDirection: "row", alignItems: "center", backgroundColor: colors.warning50, borderRadius: radii.pill, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4 },
-  quickIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: colors.accent100, alignItems: "center", justifyContent: "center", marginBottom: spacing.s12 },
+  quickIcon: { width: 52, height: 52, borderRadius: radii.bubble, backgroundColor: colors.accent100, alignItems: "center", justifyContent: "center", marginBottom: spacing.s12 },
   drugRow: { flexDirection: "row", alignItems: "center", paddingVertical: spacing.s14 },
   chipBtn: { borderWidth: 1, borderColor: colors.accent100, borderRadius: radii.pill, paddingHorizontal: spacing.s10, paddingVertical: spacing.s6 },
   calHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s14 },

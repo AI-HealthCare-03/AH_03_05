@@ -21,7 +21,7 @@ const DELETE_ITEMS = [
 
 const ss = StyleSheet.create({
   checkRow: { flexDirection: 'row', gap: spacing.s10, alignItems: 'flex-start', paddingVertical: spacing.s6 },
-  checkBox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: colors.hairlineStrong, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  checkBox: { width: 20, height: 20, borderRadius: radii.checkbox, borderWidth: 1.5, borderColor: colors.hairlineStrong, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   checkBoxActive: { borderColor: colors.accent, backgroundColor: colors.accent },
 });
 

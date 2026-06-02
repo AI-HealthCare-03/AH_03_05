@@ -33,7 +33,7 @@ type DeviceRowProps = {
 function DeviceRow({ device: d, isFirst, onRevoke }: DeviceRowProps) {
   return (
     <View style={[s.rowItem, !isFirst && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-      <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 40, height: 40, borderRadius: radii.icon, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name={d.icon} size={18} color={colors.accent700} />
       </View>
       <View style={{ flex: 1, marginLeft: spacing.s12 }}>

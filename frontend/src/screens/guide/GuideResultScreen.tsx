@@ -227,7 +227,7 @@ const s = StyleSheet.create({
 
   // 탭 바
   tabBar: { flexDirection: "row", alignSelf: "flex-start", backgroundColor: colors.surface2, borderRadius: radii.md, padding: spacing.s4, gap: spacing.s4, marginBottom: spacing.s14, borderWidth: 0.5, borderColor: colors.hairline },
-  tabBtn: { paddingVertical: spacing.s6, paddingHorizontal: spacing.s12, alignItems: "center", justifyContent: "center", borderRadius: 10 },
+  tabBtn: { paddingVertical: spacing.s6, paddingHorizontal: spacing.s12, alignItems: "center", justifyContent: "center", borderRadius: radii.icon },
   tabBtnActive: { backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
   tabText: { fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink2 },
   tabTextActive: { color: colors.accent700 },

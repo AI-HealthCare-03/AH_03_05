@@ -32,15 +32,15 @@ function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
   return (
     <Card shadow noPadding onPress={onPress}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s14, padding: spacing.s20 }}>
-        <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: getRecordColor(r.record_id) + "22", alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: 44, height: 44, borderRadius: radii.sm, backgroundColor: getRecordColor(r.record_id) + "22", alignItems: "center", justifyContent: "center" }}>
           <Icon name={iconFor(r.record_type)} size={18} color={getRecordColor(r.record_id)} />
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, marginBottom: spacing.s4 }}>
-            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: spacing.s2, borderRadius: 999, borderWidth: 0.5, borderColor: colors.hairline }}>
+            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: spacing.s2, borderRadius: radii.pill, borderWidth: 0.5, borderColor: colors.hairline }}>
               <Text style={{ fontSize: typography.fz11, color: colors.ink2 }}>{RECORD_LABEL[r.record_type]}</Text>
             </View>
-            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: spacing.s2, borderRadius: 999, backgroundColor: chip.bg }}>
+            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: spacing.s2, borderRadius: radii.pill, backgroundColor: chip.bg }}>
               <Text style={{ fontSize: typography.fz11, color: chip.color, fontWeight: typography.fw6 }}>{chip.label}</Text>
             </View>
             <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(r.uploaded_at)}</Text>

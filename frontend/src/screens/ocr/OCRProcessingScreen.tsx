@@ -165,7 +165,7 @@ export function OCRProcessingScreen({ navigation, route }: any) {
           {/* 진행 바 — onLayout으로 실측 너비 캡처 후 픽셀 값 사용 */}
           <View
             onLayout={onTrackLayout}
-            style={{ height: 6, borderRadius: 3, backgroundColor: colors.hairline, overflow: "hidden", marginBottom: spacing.s24 }}
+            style={{ height: 6, borderRadius: radii.xs, backgroundColor: colors.hairline, overflow: "hidden", marginBottom: spacing.s24 }}
           >
             {fillWidth > 0 && (
               <View
@@ -174,7 +174,7 @@ export function OCRProcessingScreen({ navigation, route }: any) {
                   top: 0, left: 0, bottom: 0,
                   width: fillWidth,
                   backgroundColor: colors.accent,
-                  borderRadius: 3,
+                  borderRadius: radii.xs,
                 }}
               />
             )}
