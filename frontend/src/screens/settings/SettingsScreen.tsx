@@ -190,7 +190,7 @@ export function SettingsScreen({ navigation }: any) {
         </Card>
       ))}
 
-      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 22 }}>
+      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s22 }}>
         <TouchableOpacity
           style={s.rowItem}
           onPress={async () => {

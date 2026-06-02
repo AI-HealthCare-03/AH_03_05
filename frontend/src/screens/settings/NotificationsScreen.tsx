@@ -147,7 +147,7 @@ export function NotificationsScreen({ navigation }: any) {
       {errorBanner}
       {[{ label: '오늘', items: today }, { label: '이전', items: earlier }].map(g =>
         g.items.length > 0 ? (
-          <View key={g.label} style={{ marginBottom: 18 }}>
+          <View key={g.label} style={{ marginBottom: spacing.s18 }}>
             <Text style={{ fontSize: typography.fz12, color: colors.muted, paddingHorizontal: spacing.s4, marginBottom: spacing.s8 }}>{g.label}</Text>
             <Card shadow noPadding style={{ overflow: 'hidden' }}>
               {g.items.map((n, i) => (
