@@ -115,7 +115,7 @@ export function NotificationSettingsScreen({ navigation }: any) {
         setOcrComplete(res.ocr_complete_alarm);
         setSystemAlarm(res.system_alarm);
       })
-      .catch(() => {});
+      .catch(() => flash('알림 설정을 불러오지 못했어요'));
   }, []);
 
   const getMealState = (key: MealKey): MealState =>
