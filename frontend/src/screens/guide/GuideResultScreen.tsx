@@ -167,7 +167,7 @@ export function GuideResultScreen({ navigation, route }: any) {
               }
             }}
           >
-            <Text style={{ fontSize: 18 }}>👍</Text>
+            <Text style={{ fontSize: typography.fz18 }}>👍</Text>
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: feedback === "good" ? colors.accent700 : colors.ink2 }}>도움됨</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -175,7 +175,7 @@ export function GuideResultScreen({ navigation, route }: any) {
             style={[s.feedbackBtn, { borderColor: feedback === "bad" ? colors.danger : colors.hairlineStrong, backgroundColor: feedback === "bad" ? colors.danger50 : "transparent", opacity: feedback && feedback !== "bad" ? 0.4 : 1 }]}
             onPress={() => { if (!feedback) setCommentVisible(true); }}
           >
-            <Text style={{ fontSize: 18 }}>👎</Text>
+            <Text style={{ fontSize: typography.fz18 }}>👎</Text>
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: feedback === "bad" ? colors.danger : colors.ink2 }}>별로</Text>
           </TouchableOpacity>
         </View>
