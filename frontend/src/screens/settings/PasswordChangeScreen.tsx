@@ -55,11 +55,11 @@ export function PasswordChangeScreen({ navigation }: any) {
           { label: '새 비밀번호',      val: pw,   set: setPw,   autoComplete: 'new-password'     as const },
           { label: '새 비밀번호 확인', val: pw2,  set: setPw2,  autoComplete: 'new-password'     as const },
         ].map(f => (
-          <View key={f.label} style={{ marginBottom: 14 }}>
+          <View key={f.label} style={{ marginBottom: spacing.s14 }}>
             <Input label={f.label} value={f.val} onChangeText={f.set} secureTextEntry autoComplete={f.autoComplete} />
           </View>
         ))}
-        <View style={{ marginBottom: 14 }}>
+        <View style={{ marginBottom: spacing.s14 }}>
           <Rule ok={pwLengthOk}>8자 이상 20자 이하</Rule>
           <Rule ok={pwUpperOk && pwLowerOk && pwNumberOk && pwSpecialOk}>영문 대소문자·숫자·특수문자 포함</Rule>
           {pw2.length > 0 && <Rule ok={matchOk}>새 비밀번호와 확인 일치</Rule>}
@@ -78,7 +78,7 @@ export function PasswordChangeScreen({ navigation }: any) {
           fullWidth
         >변경하기</Button>
       </Card>
-      <View style={[s.banner, { backgroundColor: colors.accent50, marginTop: 14 }]}>
+      <View style={[s.banner, { backgroundColor: colors.accent50, marginTop: spacing.s14 }]}>
         <Icon name="shield" size={16} color={colors.accent700} />
         <Text style={{ fontSize: typography.fz13, color: colors.accent700, flex: 1, marginLeft: spacing.s8 }}>변경 후 다른 기기에서는 다시 로그인해야 해요.</Text>
       </View>

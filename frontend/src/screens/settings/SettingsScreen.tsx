@@ -98,7 +98,7 @@ export function SettingsScreen({ navigation }: any) {
       scrollable
     >
       {/* Profile card */}
-      <Card shadow style={{ marginBottom: 14 }}>
+      <Card shadow style={{ marginBottom: spacing.s14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12 }}>
           <View style={s.avatar}><Icon name="user" size={20} color={colors.ink2} /></View>
           <View style={{ flex: 1 }}>
@@ -156,7 +156,7 @@ export function SettingsScreen({ navigation }: any) {
                 <Button variant="ghost" size="sm" onPress={() => navigation.navigate('HealthProfileEdit')}>건강 프로필 수정</Button>
               )}
             </View>
-            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>{user.email}</Text>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>{user.email}</Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: spacing.s8, marginTop: spacing.s12 }}>
@@ -175,7 +175,7 @@ export function SettingsScreen({ navigation }: any) {
 
       {/* Sections */}
       {MENU_SECTIONS.map((sec, si) => (
-        <Card key={si} shadow noPadding style={{ overflow: 'hidden', marginBottom: 14 }}>
+        <Card key={si} shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s14 }}>
           {sec.map((it, ji) => (
             <MenuItem
               key={it.label}

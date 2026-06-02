@@ -142,7 +142,7 @@ export default function OnboardingScreen({ navigation, route }: any) {
                   placeholder={STEP2_PLACEHOLDERS[i]}
                   value={form[k]}
                   onChangeText={v => set(k, v)}
-                  containerStyle={{ marginBottom: 14 }}
+                  containerStyle={{ marginBottom: spacing.s14 }}
                 />
               ))}
 
@@ -182,15 +182,15 @@ export default function OnboardingScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.canvas },
   container: { padding: spacing.s24, alignItems: 'center' },
-  containerDesktop: { padding: 48, paddingVertical: spacing.s40, alignItems: 'center' },
+  containerDesktop: { padding: spacing.s48, paddingVertical: spacing.s40, alignItems: 'center' },
   brandRow: { marginBottom: spacing.s20 },
-  progressRow: { flexDirection: 'row', gap: 6, marginBottom: spacing.s20, width: '100%' },
+  progressRow: { flexDirection: 'row', gap: spacing.s6, marginBottom: spacing.s20, width: '100%' },
   progressBar: { height: 4, borderRadius: 2 },
   card: { width: '100%', backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s24, borderWidth: 0.5, borderColor: colors.hairline },
   stepLabel: { fontSize: typography.fz12, fontWeight: typography.fw7, color: colors.accent, marginBottom: spacing.s4, letterSpacing: 0.5 },
-  title: { fontSize: typography.fz22, fontWeight: typography.fw7, color: colors.ink, marginBottom: 6 },
+  title: { fontSize: typography.fz22, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s6 },
   sub: { fontSize: typography.fz14, color: colors.muted, marginBottom: spacing.s16 },
-  infoBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.accent50, borderRadius: radii.md, padding: 14, marginBottom: spacing.s16, gap: 10 },
+  infoBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.accent50, borderRadius: radii.md, padding: spacing.s14, marginBottom: spacing.s16, gap: spacing.s10 },
   infoText: { fontSize: typography.fz13, color: colors.accent700, flex: 1 },
   fieldLabel: { fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s8 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.s8, marginBottom: spacing.s16 },

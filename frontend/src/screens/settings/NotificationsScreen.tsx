@@ -27,7 +27,7 @@ function NotificationRow({ item: n, isFirst, onPress }: NotificationRowProps) {
         </View>
         <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s4 }}>{n.body}</Text>
       </View>
-      {n.unread && <View style={{ width: 7, height: 7, borderRadius: radii.pill, backgroundColor: colors.danger, marginTop: spacing.s4, marginLeft: 6 }} />}
+      {n.unread && <View style={{ width: 7, height: 7, borderRadius: radii.pill, backgroundColor: colors.danger, marginTop: spacing.s4, marginLeft: spacing.s6 }} />}
     </TouchableOpacity>
   );
 }
@@ -125,7 +125,7 @@ export function NotificationsScreen({ navigation }: any) {
   ) : null;
 
   const errorBanner = loadError ? (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: 14 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: spacing.s14 }}>
       <Icon name="alert" size={14} color={colors.danger} />
       <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{loadError}</Text>
     </View>

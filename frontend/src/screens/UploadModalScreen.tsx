@@ -183,10 +183,10 @@ export default function UploadModalScreen({ navigation }: any) {
       </View>
 
       {uploading ? (
-        <View style={{ paddingVertical: 8 }}>
+        <View style={{ paddingVertical: spacing.s8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12, marginBottom: spacing.s16 }}>
             <View style={{ width: 40, height: 40, borderRadius: radii.pill, backgroundColor: uploadDone ? colors.success : colors.accent, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name={uploadDone ? 'check' : 'camera'} size={18} color="#fff" />
+              <Icon name={uploadDone ? 'check' : 'camera'} size={18} color={colors.white} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>
@@ -209,11 +209,11 @@ export default function UploadModalScreen({ navigation }: any) {
             contentContainerStyle={{ paddingBottom: kbHeight }}
           >
             <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}
+              style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.s12 }}
               onPress={() => { setManualMode(false); setManualText(''); setUploadError(''); }}
             >
               <Icon name="chevron-left" size={14} color={colors.accent} />
-              <Text style={{ fontSize: typography.fz13, color: colors.accent, marginLeft: 4 }}>뒤로</Text>
+              <Text style={{ fontSize: typography.fz13, color: colors.accent, marginLeft: spacing.s4 }}>뒤로</Text>
             </TouchableOpacity>
             <TextInput
               multiline
@@ -239,7 +239,7 @@ export default function UploadModalScreen({ navigation }: any) {
           </ScrollView>
         ) : (
           <>
-            <View style={{ flexDirection: 'row', gap: spacing.s8, marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', gap: spacing.s8, marginBottom: spacing.s14 }}>
               {TYPES.map((t) => (
                 <TouchableOpacity key={t.id} style={[s.typeCard, type === t.id && s.typeCardActive]} onPress={() => setType(t.id)}>
                   <View style={[s.typeIcon, { backgroundColor: type === t.id ? colors.accent100 : colors.surface2 }]}>
@@ -250,7 +250,7 @@ export default function UploadModalScreen({ navigation }: any) {
               ))}
             </View>
 
-            <View style={{ gap: spacing.s8, marginBottom: 14 }}>
+            <View style={{ gap: spacing.s8, marginBottom: spacing.s14 }}>
               {[SOURCES.slice(0, 2), SOURCES.slice(2, 4)].map((row, ri) => (
                 <View key={ri} style={{ flexDirection: 'row', gap: spacing.s8 }}>
                   {row.map((src) => (
@@ -297,23 +297,23 @@ export default function UploadModalScreen({ navigation }: any) {
 const s = StyleSheet.create({
   scrim: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'flex-end' },
   scrimCenter: { flex: 1, backgroundColor: colors.scrim, alignItems: 'center', justifyContent: 'center' },
-  modal: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: spacing.s20 },
-  modalCenter: { backgroundColor: colors.surface, borderRadius: 20, padding: spacing.s20 },
+  modal: { backgroundColor: colors.surface, borderTopLeftRadius: radii.xl, borderTopRightRadius: radii.xl, padding: spacing.s20 },
+  modalCenter: { backgroundColor: colors.surface, borderRadius: radii.xl, padding: spacing.s20 },
   modalHandle: { width: 36, height: 4, backgroundColor: colors.hairlineStrong, borderRadius: 2, alignSelf: 'center', marginBottom: spacing.s16 },
-  modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
+  modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.s14 },
   modalTitle: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   modalSub: { fontSize: typography.fz13, color: colors.muted },
-  closeBtn: { width: 36, height: 36, borderRadius: 999, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' },
+  closeBtn: { width: 36, height: 36, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' },
   typeCard: { flex: 1, alignItems: 'center', padding: spacing.s12, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
   typeCardActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
-  typeIcon: { width: 28, height: 28, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  typeIcon: { width: 28, height: 28, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s6 },
   srcCard: { alignItems: 'center', padding: spacing.s12, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
-  srcIcon: { width: 28, height: 28, borderRadius: radii.sm, backgroundColor: colors.accent100, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 3, width: '60%' },
+  srcIcon: { width: 28, height: 28, borderRadius: radii.sm, backgroundColor: colors.accent100, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s6 },
+  progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: radii.xs, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: radii.xs, width: '60%' },
   errorBox: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: spacing.s8 },
   errorText: { flex: 1, fontSize: typography.fz12, color: colors.danger, lineHeight: 18 },
-  manualInput: { borderWidth: 1, borderColor: colors.hairline, borderRadius: radii.md, padding: spacing.s12, fontSize: typography.fz14, color: colors.ink, minHeight: 140, textAlignVertical: 'top', marginBottom: 14 },
+  manualInput: { borderWidth: 1, borderColor: colors.hairline, borderRadius: radii.md, padding: spacing.s12, fontSize: typography.fz14, color: colors.ink, minHeight: 140, textAlignVertical: 'top', marginBottom: spacing.s14 },
   manualSubmit: { backgroundColor: colors.accent, borderRadius: radii.md, paddingVertical: spacing.s12, alignItems: 'center' },
-  manualSubmitText: { fontSize: typography.fz15, fontWeight: typography.fw6, color: '#fff' },
+  manualSubmitText: { fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.white },
 });
