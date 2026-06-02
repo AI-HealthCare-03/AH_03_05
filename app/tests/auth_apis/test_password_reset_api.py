@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import AsyncMock, patch
 
 from httpx import ASGITransport, AsyncClient
@@ -16,25 +17,17 @@ CONSENTS = [
 
 
 class TestPasswordResetAPI(TestCase):
-    async def tearDown(self):
-        from app.core.redis import redis_client
-
-        emails = [
-            "reset_test@example.com",
-            "nonexistent@example.com",
-            "reset_confirm@example.com",
-            "reset_wrong@example.com",
-            "reset_cooldown@example.com",
-            "reset_brute@example.com",
-        ]
-        for email in emails:
-            await redis_client.delete(f"pw_reset:{email}")
-            await redis_client.delete(f"pw_reset_cooldown:{email}")
-            await redis_client.delete(f"pw_reset_fail:{email}")
+    def setUp(self):
+        self.email1 = f"reset_{uuid.uuid4().hex[:8]}@example.com"
+        self.email2 = f"reset_{uuid.uuid4().hex[:8]}@example.com"
+        self.email3 = f"reset_{uuid.uuid4().hex[:8]}@example.com"
+        self.email4 = f"reset_{uuid.uuid4().hex[:8]}@example.com"
+        self.email5 = f"reset_{uuid.uuid4().hex[:8]}@example.com"
+        self.email6 = f"reset_{uuid.uuid4().hex[:8]}@example.com"
 
     async def test_request_password_reset_success(self):
         # Given
-        email = "reset_test@example.com"
+        email = self.email1
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(
                 "/api/v1/auth/signup",
@@ -63,7 +56,7 @@ class TestPasswordResetAPI(TestCase):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/password-reset/request",
-                    json={"email": "nonexistent@example.com"},
+                    json={"email": self.email2},
                 )
 
         # Then
@@ -71,7 +64,7 @@ class TestPasswordResetAPI(TestCase):
 
     async def test_confirm_password_reset_success(self):
         # Given
-        email = "reset_confirm@example.com"
+        email = self.email3
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(
                 "/api/v1/auth/signup",
@@ -87,7 +80,6 @@ class TestPasswordResetAPI(TestCase):
                     "/api/v1/auth/password-reset/request",
                     json={"email": email},
                 )
-            # Redis에서 코드 직접 가져오기
             from app.core.redis import redis_client
 
             code = await redis_client.get(f"pw_reset:{email}")
@@ -104,7 +96,7 @@ class TestPasswordResetAPI(TestCase):
 
     async def test_confirm_password_reset_wrong_code(self):
         # Given
-        email = "reset_wrong@example.com"
+        email = self.email4
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(
                 "/api/v1/auth/signup",
@@ -132,7 +124,7 @@ class TestPasswordResetAPI(TestCase):
 
     async def test_request_password_reset_cooldown(self):
         """1분 내 재요청 시 429 반환"""
-        email = "reset_cooldown@example.com"
+        email = self.email5
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(
                 "/api/v1/auth/signup",
@@ -158,7 +150,7 @@ class TestPasswordResetAPI(TestCase):
 
     async def test_confirm_password_reset_brute_force(self):
         """5회 실패 시 코드 무효화 후 재시도도 400"""
-        email = "reset_brute@example.com"
+        email = self.email6
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(
                 "/api/v1/auth/signup",
@@ -175,15 +167,13 @@ class TestPasswordResetAPI(TestCase):
                     json={"email": email},
                 )
 
-            # 5회 틀린 코드 입력
             for _ in range(5):
                 await client.post(
                     "/api/v1/auth/password-reset/confirm",
                     json={"email": email, "code": "000000", "new_password": "NewPassword123!"},
                 )
 
-            # 코드 무효화 후 올바른 코드로 시도해도 실패
             from app.core.redis import redis_client
 
             code = await redis_client.get(f"pw_reset:{email}")
-            assert code is None  # 코드가 삭제되었는지 확인
+            assert code is None
