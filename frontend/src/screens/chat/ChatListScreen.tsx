@@ -202,7 +202,7 @@ export function ChatListScreen({ navigation, route }: Props) {
           {selectedId ? (
             <>
               <View style={ds.paneHeader}>
-                <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn}>
+                <TouchableOpacity onPress={() => setSelectedId(null)} style={ds.iconBtn} accessibilityLabel="뒤로">
                   <Icon name="arrow-left" size={16} color={colors.ink2} />
                 </TouchableOpacity>
                 <View style={{ flex: 1, marginLeft: spacing.s8 }}>

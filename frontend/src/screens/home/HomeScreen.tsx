@@ -64,7 +64,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
   return (
     <View>
       <View style={s.calHeader}>
-        <TouchableOpacity onPress={onPrev} style={s.iconBtn}>
+        <TouchableOpacity onPress={onPrev} style={s.iconBtn} accessibilityLabel="이전 달">
           <Icon name="chevron-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s10 }}>
@@ -77,7 +77,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity onPress={onNext} style={s.iconBtn}>
+        <TouchableOpacity onPress={onNext} style={s.iconBtn} accessibilityLabel="다음 달">
           <Icon name="chevron-right" size={16} color={colors.ink2} />
         </TouchableOpacity>
       </View>

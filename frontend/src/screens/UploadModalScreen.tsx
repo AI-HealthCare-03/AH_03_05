@@ -181,7 +181,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
           <Text style={s.modalTitle}>의료 문서 업로드</Text>
           <Text style={s.modalSub}>어떤 문서를 분석할까요?</Text>
         </View>
-        <TouchableOpacity onPress={handleClose} style={s.closeBtn}>
+        <TouchableOpacity onPress={handleClose} style={s.closeBtn} accessibilityLabel="닫기">
           <Icon name="x" size={15} color={colors.accent700} />
         </TouchableOpacity>
       </View>

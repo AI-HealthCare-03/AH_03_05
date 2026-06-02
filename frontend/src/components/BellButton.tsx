@@ -13,6 +13,7 @@ export default function BellButton() {
     <TouchableOpacity
       style={[styles.bellBtn, { top: insets.top + spacing.s8 }]}
       onPress={() => setNotifDrawerOpen(true)}
+      accessibilityLabel="알림"
     >
       <Icon name="bell" size={18} color={colors.ink2} />
       {unreadCount > 0 && (

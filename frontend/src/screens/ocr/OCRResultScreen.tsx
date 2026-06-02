@@ -121,7 +121,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
           <Card shadow style={{ marginBottom: spacing.s14 }}>
             <View style={s.docPreview}>
               <Icon name="doc" size={72} color={colors.accentAlpha30} />
-              <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn}>
+              <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn} accessibilityLabel="이미지 제거">
                 <Icon name="x" size={14} color={colors.ink} />
               </TouchableOpacity>
             </View>

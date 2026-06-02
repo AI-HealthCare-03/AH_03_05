@@ -158,7 +158,7 @@ export default function NotificationDrawer() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8 }}>
               {notifications.length > 0 && <Button variant="ghost" size="sm" onPress={markAll}>모두 읽음</Button>}
               {notifications.length > 0 && <Button variant="ghost" size="sm" onPress={clear}>모두 지우기</Button>}
-              <TouchableOpacity onPress={close} style={s.closeBtn}>
+              <TouchableOpacity onPress={close} style={s.closeBtn} accessibilityLabel="닫기">
                 <Icon name="x" size={15} color={colors.ink2} />
               </TouchableOpacity>
             </View>
@@ -211,6 +211,7 @@ export default function NotificationDrawer() {
                                   onPress={() => handleDelete(n.id)}
                                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                   style={s.deleteBtn}
+                                  accessibilityLabel="알림 삭제"
                                 >
                                   <Icon name="x" size={12} color={colors.muted2} />
                                 </TouchableOpacity>
