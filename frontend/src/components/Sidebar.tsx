@@ -36,20 +36,15 @@ export default function Sidebar() {
   const { user } = useApp();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-  const { activeTab, activeScreen } = useNavigationState((state) => {
+  const { activeTab } = useNavigationState((state) => {
     try {
       const mainRoute = state.routes.find((r) => r.name === "Main");
       const mainState = mainRoute?.state;
-      if (!mainState?.routes) return { activeTab: "HomeTab", activeScreen: undefined };
+      if (!mainState?.routes) return { activeTab: "HomeTab" };
       const activeTabRoute = mainState.routes[mainState.index ?? 0];
-      const tabState = (activeTabRoute as any)?.state;
-      const screenRoute = tabState?.routes?.[tabState?.index ?? 0];
-      return {
-        activeTab: activeTabRoute?.name ?? "HomeTab",
-        activeScreen: screenRoute?.name as string | undefined,
-      };
+      return { activeTab: activeTabRoute?.name ?? "HomeTab" };
     } catch {
-      return { activeTab: "HomeTab", activeScreen: undefined };
+      return { activeTab: "HomeTab" };
     }
   });
 

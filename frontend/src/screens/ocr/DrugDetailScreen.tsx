@@ -5,7 +5,7 @@ import Banner from '../../components/Banner';
 import IconCircle from '../../components/IconCircle';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
-import { colors, radii, spacing, typography } from '../../theme';
+import { colors, spacing, typography } from '../../theme';
 import { drugsApi, extractApiError } from '../../api';
 import type { DrugDetail } from '../../api';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';

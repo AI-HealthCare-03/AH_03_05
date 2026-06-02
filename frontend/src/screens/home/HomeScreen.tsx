@@ -110,7 +110,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
 
 export default function HomeScreen({ navigation }: { navigation: NavProp }) {
   const { user, drugs, setDrugs, adherence, streak, chats, flash, setNotifications, setUnreadCount } = useApp();
-  const { isDesktop, isTabletOrAbove } = useBreakpoint();
+  const { isTabletOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
   useFocusEffect(
     useCallback(() => {

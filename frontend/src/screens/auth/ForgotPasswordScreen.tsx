@@ -3,7 +3,6 @@ import {
   View, Text, TouchableOpacity,
   ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import Icon from '../../components/Icon';
 import Banner from '../../components/Banner';
 import Button from '../../components/Button';
 import Input from '../../components/Input';

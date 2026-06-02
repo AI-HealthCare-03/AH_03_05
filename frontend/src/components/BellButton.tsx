@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useApp } from '../context/AppContext';
 import Icon from './Icon';
 import { colors, radii, shadows, spacing } from '../theme';

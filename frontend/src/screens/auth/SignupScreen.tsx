@@ -54,7 +54,7 @@ function AgreeRow({ checked, onPress, label, extra, onPressExtra }: {
 // ─── SignupScreen ─────────────────────────────────────────────────────────────
 
 export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
-  const { user, setUser, flash } = useApp();
+  const { setUser, flash } = useApp();
   const { isTabletOrAbove } = useBreakpoint();
   const { top: safeTop } = useSafeAreaInsets();
   const [form, setForm] = useState({ name: '', nickname: '', email: '', pw: '', pw2: '' });

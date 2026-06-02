@@ -25,7 +25,7 @@ const loginFeatures = [
 ];
 
 export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
-  const { user, setUser } = useApp();
+  const { setUser } = useApp();
   const { top: safeTop } = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');

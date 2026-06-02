@@ -3,8 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
 import type { RootStackParams, SettingsStackParams } from '../../navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-type NavProp = NativeStackNavigationProp<SettingsStackParams, 'DeleteAccount'>;
 import { useApp, defaultUser } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Banner from '../../components/Banner';
@@ -13,15 +11,9 @@ import Button from '../../components/Button';
 import Card from '../../components/Card';
 import Input from '../../components/Input';
 import ScreenLayout from '../../components/ScreenLayout';
-import { s } from './_settingsShared';
 import { usersApi, tokenStore, extractApiError } from '../../api';
 
-const DELETE_ITEMS = [
-  '건강 프로필 (기저질환, 알레르기, 복용약)',
-  '업로드한 처방전·약봉투·진료기록 4건',
-  'AI 상담 기록 3건',
-  '생성된 복약 가이드 및 알림 설정',
-];
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'DeleteAccount'>;
 
 const ss = StyleSheet.create({
   checkRow: { flexDirection: 'row', gap: spacing.s10, alignItems: 'flex-start', paddingVertical: spacing.s6 },

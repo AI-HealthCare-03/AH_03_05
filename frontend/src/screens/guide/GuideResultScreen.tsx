@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Modal, TextInput } from "react-native";
 import { colors, radii, spacing, typography } from "../../theme";
 import { useApp } from "../../context/AppContext";
-import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
