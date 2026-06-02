@@ -54,3 +54,8 @@ export async function sendChatMessage(
   );
   return res.data;
 }
+
+// TODO: [BE 대기] DELETE /chat/sessions/{session_id} 구현 완료 후 연결
+export async function deleteChatSession(sessionId: number): Promise<void> {
+  await apiClient.delete(`/chat/sessions/${sessionId}`);
+}

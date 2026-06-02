@@ -17,7 +17,7 @@ import Card from '../../components/Card';
 import SearchBar from '../../components/SearchBar';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { ChatSessionPane } from './ChatSessionPane';
-import { chatApi } from '../../api';
+import { chatApi, extractApiError } from '../../api';
 import type { ChatSession, ChatMessageItem } from '../../api';
 import EmptyState from '../../components/EmptyState';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -90,11 +90,15 @@ export function ChatListScreen({ navigation, route }: Props) {
       {
         text: '삭제',
         style: 'destructive',
-        onPress: () => {
+        onPress: async () => {
           setSessions(prev => prev.filter(s => s.session_id !== sessionId));
           if (selectedId === String(sessionId)) setSelectedId(null);
-          // TODO: BE DELETE /chat/sessions/{session_id} 구현 후 연결
-          // await chatApi.deleteSession(sessionId);
+          // TODO: [BE 대기] DELETE /chat/sessions/{session_id} 구현 완료 후 오류 처리 보강
+          try {
+            await chatApi.deleteChatSession(sessionId);
+          } catch (e) {
+            setError(extractApiError(e));
+          }
         },
       },
     ]);
