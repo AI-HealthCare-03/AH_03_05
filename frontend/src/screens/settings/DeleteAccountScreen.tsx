@@ -90,8 +90,8 @@ export function DeleteAccountScreen({ navigation }: any) {
         {step === 1 ? (
           <>
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, marginBottom: spacing.s12 }}>탈퇴 시 삭제되는 정보</Text>
-            {['건강 프로필 (기저질환, 알레르기, 복용약)', '업로드한 처방전·약봉투·진료기록 4건', 'AI 상담 기록 3건', '생성된 복약 가이드 및 알림 설정'].map((item, i) => (
-              <Text key={i} style={{ fontSize: typography.fz14, color: colors.ink2, marginBottom: spacing.s4 }}>• {item}</Text>
+            {['건강 프로필 (기저질환, 알레르기, 복용약)', '업로드한 처방전·약봉투·진료기록 4건', 'AI 상담 기록 3건', '생성된 복약 가이드 및 알림 설정'].map((item) => (
+              <Text key={item} style={{ fontSize: typography.fz14, color: colors.ink2, marginBottom: spacing.s4 }}>• {item}</Text>
             ))}
             <View style={{ height: 1, backgroundColor: colors.hairline, marginVertical: spacing.s16 }} />
             <CheckRow checked={checked.data} label="모든 건강 데이터가 영구 삭제되는 점에 동의합니다." onToggle={() => setChecked(p => ({ ...p, data: !p.data }))} />

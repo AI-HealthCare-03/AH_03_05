@@ -208,9 +208,9 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={{ fontSize: typography.fz26, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s8 }}>안녕하세요{(user.nickname || user.name) ? `, ${user.nickname || user.name}` : ""}님 👋</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: spacing.s20 }}>
           {user.conditions ? (
-            user.conditions.split(/,\s*/).filter(Boolean).slice(0, 4).map((c, i) => (
+            user.conditions.split(/,\s*/).filter(Boolean).slice(0, 4).map((c) => (
               <TouchableOpacity
-                key={i}
+                key={c}
                 onPress={() => { if (recentGuideId != null) navigation.navigate("GuideResult", { guideId: recentGuideId }); }}
                 disabled={recentGuideId == null}
                 style={[s.conditionChip, recentGuideId == null && { opacity: 0.55 }]}

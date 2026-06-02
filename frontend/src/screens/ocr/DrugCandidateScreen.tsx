@@ -55,8 +55,8 @@ export function DrugCandidateScreen({ navigation, route }: any) {
         </View>
       ) : null}
 
-      {results.map((c, i) => (
-        <Card shadow key={i} style={{ marginBottom: spacing.s12 }}>
+      {results.map((c) => (
+        <Card shadow key={c.drug_name} style={{ marginBottom: spacing.s12 }}>
           <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink, marginBottom: spacing.s4 }}>{c.drug_name}</Text>
           {c.ingredient_name ? <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s4 }}>성분: {c.ingredient_name}</Text> : null}
           {c.manufacturer ? <Text style={{ fontSize: typography.fz12, color: colors.accent, marginBottom: spacing.s12 }}>{c.manufacturer}</Text> : null}

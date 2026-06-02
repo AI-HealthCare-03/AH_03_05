@@ -107,7 +107,7 @@ export function GuideResultScreen({ navigation, route }: any) {
               <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
             </View>
           ) : apiMedItems.length > 0 ? (
-            apiMedItems.map((item, i) => <GuideItemCard key={i} item={item} />)
+            apiMedItems.map((item) => <GuideItemCard key={item.sort_order} item={item} />)
           ) : guide?.medication_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
               <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{guide.medication_guide}</Text>
@@ -131,7 +131,7 @@ export function GuideResultScreen({ navigation, route }: any) {
               <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{guideError}</Text>
             </View>
           ) : apiLifeItems.length > 0 ? (
-            apiLifeItems.map((item, i) => <GuideItemCard key={i} item={item} />)
+            apiLifeItems.map((item) => <GuideItemCard key={item.sort_order} item={item} />)
           ) : guide?.lifestyle_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
               <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{guide.lifestyle_guide}</Text>

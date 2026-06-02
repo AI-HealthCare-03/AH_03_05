@@ -21,8 +21,8 @@ export function BrandPanel({ tagline, desc, features }: { tagline: React.ReactNo
       <View style={{ flex: 1, justifyContent: "center" }}>
         <Text style={bp.tagline}>{tagline}</Text>
         <Text style={bp.desc}>{desc}</Text>
-        {features.map((f, i) => (
-          <View key={i} style={bp.feat}>
+        {features.map((f) => (
+          <View key={f.title} style={bp.feat}>
             <View style={bp.featIcon}>
               <Icon name={f.icon} size={16} color={colors.white} />
             </View>

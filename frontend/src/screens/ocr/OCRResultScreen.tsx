@@ -166,7 +166,7 @@ export function OCRResultScreen({ navigation, route }: any) {
           const bgColor = manual ? colors.accent50 : warn ? colors.warning50 : colors.success50;
           const dotColor = manual ? colors.accent700 : warn ? colors.warning : colors.success;
           return (
-            <TouchableOpacity key={i}
+            <TouchableOpacity key={`${d.name}_${i}`}
               style={[s.drugCard, { backgroundColor: bgColor }]}
               onPress={() => (warn || manual)
                 ? navigation.navigate('DrugCandidate', { medicationName: d.name, drugIndex: i })
