@@ -339,3 +339,39 @@ class TestChatMessageListAPI(TestCase):
         assert body["record_id"] is None
         assert body["status"] == "ACTIVE"
         assert body["session_id"] is not None
+
+
+class TestChatSessionDeleteAPI(TestCase):
+    async def test_delete_session_success_returns_204(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "del_ok@test.com")
+            create = await client.post("/api/v1/chat/sessions", json={}, headers=headers)
+            sid = create.json()["session_id"]
+
+            resp = await client.delete(f"/api/v1/chat/sessions/{sid}", headers=headers)
+            assert resp.status_code == status.HTTP_204_NO_CONTENT
+
+            listed = await client.get("/api/v1/chat/sessions", headers=headers)
+            session_ids = [item["session_id"] for item in listed.json()["items"]]
+            assert sid not in session_ids
+
+    async def test_delete_session_other_user_returns_404(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            owner = await _signup_and_login(client, "del_owner@test.com")
+            create = await client.post("/api/v1/chat/sessions", json={}, headers=owner)
+            sid = create.json()["session_id"]
+
+            other = await _signup_and_login(client, "del_other@test.com")
+            resp = await client.delete(f"/api/v1/chat/sessions/{sid}", headers=other)
+            assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_delete_session_not_found_returns_404(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "del_404@test.com")
+            resp = await client.delete("/api/v1/chat/sessions/99999999", headers=headers)
+            assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_delete_session_without_auth_returns_401(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.delete("/api/v1/chat/sessions/1")
+            assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)

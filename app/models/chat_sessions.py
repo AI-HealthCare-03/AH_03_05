@@ -6,6 +6,7 @@ from tortoise import fields, models
 class ChatSessionStatus(StrEnum):
     ACTIVE = "ACTIVE"
     CLOSED = "CLOSED"
+    DELETED = "DELETED"
 
 
 class ChatSession(models.Model):

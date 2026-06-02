@@ -177,3 +177,16 @@ async def list_chat_messages(
         limit=limit,
         offset=offset,
     )
+
+
+@chat_router.delete(
+    "/sessions/{session_id}",
+    status_code=204,
+)
+async def delete_chat_session(
+    session_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChatService, Depends(ChatService)],
+) -> None:
+    """채팅 세션 삭제(소프트 딜리트). 본인 세션이 아니면 404."""
+    await service.delete_session(user=user, session_id=session_id)
