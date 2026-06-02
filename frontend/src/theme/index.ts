@@ -130,4 +130,10 @@ export const shadows = {
       : { boxShadow: '0px 2px 6px rgba(0,0,0,0.08)' } as any),
     elevation: 3,
   },
+  drawer: {
+    ...(Platform.OS !== 'web'
+      ? { shadowColor: "#000", shadowOffset: { width: -4, height: 0 }, shadowOpacity: 0.12, shadowRadius: 20 }
+      : { boxShadow: '-4px 0px 20px rgba(0,0,0,0.12)' } as any),
+    elevation: 16,
+  },
 };

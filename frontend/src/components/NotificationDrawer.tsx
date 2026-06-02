@@ -7,7 +7,7 @@ import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useNavigation } from '@react-navigation/native';
 import { useApp, type Notification } from '../context/AppContext';
 import { useBreakpoint } from '../hooks/useBreakpoint';
-import { colors, radii, spacing, typography } from '../theme';
+import { colors, radii, shadows, spacing, typography } from '../theme';
 import Icon from './Icon';
 import Card from './Card';
 import Button from './Button';
@@ -169,7 +169,7 @@ export default function NotificationDrawer() {
             {notifications.length === 0 ? (
               <Card style={{ alignItems: 'center', paddingVertical: spacing.s56 }}>
                 <Icon name="bell" size={36} color={colors.muted2} />
-                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, marginTop: 14 }}>
+                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, marginTop: spacing.s14 }}>
                   알림이 없어요
                 </Text>
               </Card>
@@ -251,9 +251,7 @@ export default function NotificationDrawer() {
   );
 }
 
-const panelShadow = Platform.OS !== 'web'
-  ? { shadowColor: '#000', shadowOffset: { width: -4, height: 0 }, shadowOpacity: 0.12, shadowRadius: 20 }
-  : { boxShadow: '-4px 0px 20px rgba(0,0,0,0.12)' };
+const panelShadow = shadows.drawer;
 
 const s = StyleSheet.create({
   overlay: {
@@ -265,7 +263,6 @@ const s = StyleSheet.create({
   },
   panel: {
     backgroundColor: colors.surface,
-    elevation: 16,
   },
   panelDesktop: {
     position: 'absolute',
@@ -329,13 +326,13 @@ const s = StyleSheet.create({
     borderRadius: radii.pill,
     backgroundColor: colors.danger,
     marginTop: spacing.s4,
-    marginLeft: 6,
+    marginLeft: spacing.s6,
   },
   notifRight: {
     flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    paddingVertical: 2,
+    paddingVertical: spacing.s2,
     gap: spacing.s12,
   },
   notifTime: {
@@ -350,7 +347,7 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.s20,
   },
   swipeDeleteText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: typography.fz13,
     fontWeight: typography.fw6,
   },
