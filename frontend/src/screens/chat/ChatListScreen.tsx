@@ -14,19 +14,9 @@ import type { ChatSession, ChatMessageItem } from '../../api';
 import EmptyState from '../../components/EmptyState';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ChatStackParams } from '../../navigation/types';
+import { formatRelativeTime } from '../../utils/date';
 
 type Props = NativeStackScreenProps<ChatStackParams, 'ChatList'>;
-function formatTime(iso?: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const now = new Date();
-  if (d.toDateString() === now.toDateString())
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  const yest = new Date(now);
-  yest.setDate(now.getDate() - 1);
-  if (d.toDateString() === yest.toDateString()) return '어제';
-  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
-}
 
 
 export function ChatListScreen({ navigation, route }: Props) {
@@ -170,7 +160,7 @@ export function ChatListScreen({ navigation, route }: Props) {
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, flex: 1 }} numberOfLines={1}>{c.title}</Text>
-                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s8 }}>{formatTime(c.updated_at)}</Text>
+                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s8 }}>{formatRelativeTime(c.updated_at)}</Text>
               </View>
               {c.last_message_preview ? (
                 <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }} numberOfLines={1}>{c.last_message_preview}</Text>

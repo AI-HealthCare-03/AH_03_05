@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { colors, radii, spacing } from "../../theme";
 import type { RecordType } from "../../api";
+export { formatDate } from "../../utils/date";
 
 const RECORD_COLORS = [colors.scheduleMorning, colors.scheduleLunch, colors.scheduleEvening, colors.accent, colors.success, colors.warning];
 
@@ -29,15 +30,6 @@ export const iconFor = (type: RecordType) =>
   type === "manual" ? "keyboard" :
   "list";
 
-export function formatDate(iso: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  return d
-    .toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
-    .replace(/\. /g, ".")
-    .replace(/\.$/, "");
-}
 
 export const s = StyleSheet.create({
   chip: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong },

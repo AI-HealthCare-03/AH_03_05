@@ -12,18 +12,9 @@ import type { HomeStackParams } from '../../navigation/types';
 import EmptyState from "../../components/EmptyState";
 import Banner from "../../components/Banner";
 import SectionHeader from "../../components/SectionHeader";
+import { formatGuideDate } from "../../utils/date";
 
 type Props = NativeStackScreenProps<HomeStackParams, 'GuideResult'>;
-
-// ─── 헬퍼 ─────────────────────────────────────────────────────────────────────
-
-function formatGuideDate(timestamp: string): string {
-  const d = new Date(timestamp);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}.${m}.${day} 생성`;
-}
 
 // ─── 서브컴포넌트 ──────────────────────────────────────────────────────────────
 
