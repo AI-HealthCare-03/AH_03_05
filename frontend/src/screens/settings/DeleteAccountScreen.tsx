@@ -20,7 +20,7 @@ const DELETE_ITEMS = [
 ];
 
 const ss = StyleSheet.create({
-  checkRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', paddingVertical: 6 },
+  checkRow: { flexDirection: 'row', gap: spacing.s10, alignItems: 'flex-start', paddingVertical: spacing.s6 },
   checkBox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: colors.hairlineStrong, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   checkBoxActive: { borderColor: colors.accent, backgroundColor: colors.accent },
 });
@@ -78,11 +78,11 @@ export function DeleteAccountScreen({ navigation }: any) {
 
   return (
     <ScreenLayout title="회원 탈퇴" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
-      <View style={[s.banner, s.bannerDanger, { marginBottom: 18 }]}>
+      <View style={[s.banner, s.bannerDanger, { marginBottom: spacing.s20 }]}>
         <Icon name="alert" size={16} color={colors.danger} />
-        <View style={{ marginLeft: 10 }}>
+        <View style={{ marginLeft: spacing.s10 }}>
           <Text style={{ fontWeight: typography.fw7, color: colors.danger }}>탈퇴하면 복구할 수 없어요</Text>
-          <Text style={{ fontSize: typography.fz12, color: colors.ink2, marginTop: 2 }}>아래 내용을 꼭 확인해주세요.</Text>
+          <Text style={{ fontSize: typography.fz12, color: colors.ink2, marginTop: spacing.s2 }}>아래 내용을 꼭 확인해주세요.</Text>
         </View>
       </View>
 
@@ -101,11 +101,11 @@ export function DeleteAccountScreen({ navigation }: any) {
         ) : (
           <>
             <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, marginBottom: spacing.s8 }}>최종 확인</Text>
-            <Text style={{ fontSize: typography.fz13, color: colors.ink2, marginBottom: 14 }}>
+            <Text style={{ fontSize: typography.fz13, color: colors.ink2, marginBottom: spacing.s14 }}>
               정말로 탈퇴하시려면 현재 비밀번호를 입력해주세요.
             </Text>
             <Input placeholder="비밀번호" value={confirm} onChangeText={v => { setConfirm(v); setError(''); }} secureTextEntry autoComplete="current-password" error={error || undefined} />
-            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 10 }}>{user.email || '이 계정'}이 삭제됩니다.</Text>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s10 }}>{user.email || '이 계정'}이 삭제됩니다.</Text>
           </>
         )}
       </Card>

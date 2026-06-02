@@ -32,7 +32,7 @@ function AgreeRow({ checked, onPress, label, extra, onPressExtra }: {
 }) {
   return (
     <View style={styles.agreeRow}>
-      <TouchableOpacity onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 }} activeOpacity={0.7}>
+      <TouchableOpacity onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: spacing.s10 }} activeOpacity={0.7}>
         <View style={[styles.agreeCircle, { backgroundColor: checked ? colors.accent : 'transparent', borderWidth: checked ? 0 : 1.5 }]}>
           {checked && <Icon name="check" size={11} color={colors.white} />}
         </View>
@@ -299,7 +299,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
         {/* 인증코드 입력 */}
         {codeSent && !emailVerified && (
-          <View style={{ marginTop: spacing.s8, gap: 6 }}>
+          <View style={{ marginTop: spacing.s8, gap: spacing.s6 }}>
             <View style={{ flexDirection: 'row', gap: spacing.s8 }}>
               <Input
                 icon="lock"
@@ -364,7 +364,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       </View>
 
       {/* 약관 동의 */}
-      <Card style={{ marginBottom: 18 }}>
+      <Card style={{ marginBottom: spacing.s20 }}>
         <AgreeRow checked={agreed.all} onPress={() => toggleAgree('all')} label={<Text style={{ fontSize: typography.fz13, fontWeight: typography.fw7 }}>전체 동의 (선택 항목 포함)</Text>} />
         <View style={styles.divider} />
         <AgreeRow checked={agreed.tos}       onPress={() => toggleAgree('tos')}       label={<Text style={{ fontSize: typography.fz13 }}><Text style={{ color: colors.danger, fontWeight: typography.fw6 }}>[필수]</Text> 서비스 이용약관 동의</Text>}           extra="보기 ›" onPressExtra={() => setTermsModal('tos')} />
@@ -422,7 +422,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
             { icon: 'wand',  title: 'AI 맞춤 복약 가이드',  sub: '건강 프로필 기반 개인화 안내' },
           ]}
         />
-        <ScrollView style={{ flex: 1, backgroundColor: colors.canvas }} contentContainerStyle={{ padding: 48, paddingVertical: spacing.s40 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1, backgroundColor: colors.canvas }} contentContainerStyle={{ padding: spacing.s48, paddingVertical: spacing.s40 }} keyboardShouldPersistTaps="handled">
           <View style={{ maxWidth: 480, width: '100%', alignSelf: 'center' }}>
             <Text style={styles.authTitle}>계정 만들기</Text>
             <Text style={[styles.authSub, { marginBottom: spacing.s24 }]}>이메일과 비밀번호로 1분이면 가입할 수 있어요.</Text>

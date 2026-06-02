@@ -171,14 +171,14 @@ export function RecordDetailScreen({ navigation, route }: any) {
           </View>
           <View style={{ flex: 1 }}>
             {/* 뱃지 + 날짜 + 버튼 (한 행) */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.s6 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8 }}>
                 <Badge variant="accent">{typeLabel}</Badge>
                 <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(record.uploaded_at ?? "")}</Text>
               </View>
               <View style={{ flexDirection: "row", gap: spacing.s8, alignItems: "center" }}>
                 <Button variant="ghost" size="sm" leftIcon="edit" onPress={() => flash("편집 기능은 준비 중이에요.")}>편집</Button>
-                <TouchableOpacity onPress={handleDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ padding: 4 }}>
+                <TouchableOpacity onPress={handleDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ padding: spacing.s4 }}>
                   <Icon name="trash" size={16} color={colors.danger} />
                 </TouchableOpacity>
                 <Button
@@ -195,7 +195,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
               </View>
             </View>
             {/* 병원명 / 타입별 주제목 */}
-            <Text style={{ fontSize: typography.fz20, fontWeight: typography.fw7, color: colors.ink, marginBottom: 2 }}>
+            <Text style={{ fontSize: typography.fz20, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s2 }}>
               {record.record_type === 'manual'
                 ? '직접 입력'
                 : record.hospital_name ?? RECORD_LABEL[record.record_type]}
@@ -208,9 +208,9 @@ export function RecordDetailScreen({ navigation, route }: any) {
         </View>
 
         {/* ── 처방 약품 ── */}
-        <Card shadow style={{ marginBottom: 14 }}>
+        <Card shadow style={{ marginBottom: spacing.s14 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s12 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
               <Icon name="link" size={14} color={colors.ink2} />
               <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>처방 약품 ({medications.length}종)</Text>
             </View>
@@ -231,7 +231,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
             medications.map((med, i) => (
               <TouchableOpacity
                 key={med.medication_id}
-                style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, borderTopWidth: i === 0 ? 0 : 0.5, borderTopColor: colors.hairline }}
+                style={{ flexDirection: "row", alignItems: "center", paddingVertical: spacing.s14, borderTopWidth: i === 0 ? 0 : 0.5, borderTopColor: colors.hairline }}
                 disabled={!med.drug_ref_id}
                 activeOpacity={med.drug_ref_id ? 0.7 : 1}
                 onPress={() => med.drug_ref_id && navigation.navigate("DrugDetail", { drugId: med.drug_ref_id })}
@@ -242,7 +242,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
                     {med.drug_name}
                   </Text>
                   {med.frequency || med.dosage ? (
-                    <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>
+                    <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>
                       {[med.frequency, med.dosage].filter(Boolean).join(" · ")}
                     </Text>
                   ) : null}
@@ -261,8 +261,8 @@ export function RecordDetailScreen({ navigation, route }: any) {
 
         {/* ── 가이드 상태 ── */}
         {/* TODO: [BE 대기] GET /records/{record_id}/guide 미구현 — 구현 완료 후 __DEV__ 분기 제거 */}
-        <Card shadow style={{ marginBottom: 14 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.s12 }}>
+        <Card shadow style={{ marginBottom: spacing.s14 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6, marginBottom: spacing.s12 }}>
             <Icon name="wand" size={14} color={colors.accent700} />
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>복약 가이드</Text>
           </View>
@@ -281,7 +281,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
               <ActivityIndicator color={colors.accent} size="small" />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>가이드를 분석하고 있어요...</Text>
-                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>분석이 완료되면 알림으로 알려드려요.</Text>
+                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>분석이 완료되면 알림으로 알려드려요.</Text>
               </View>
             </View>
           ) : (
@@ -291,7 +291,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>가이드가 준비됐어요</Text>
-                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>복약 방법, 주의사항, 생활습관 안내를 확인하세요.</Text>
+                <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>복약 방법, 주의사항, 생활습관 안내를 확인하세요.</Text>
               </View>
               <Button
                 variant="primary"
@@ -304,17 +304,17 @@ export function RecordDetailScreen({ navigation, route }: any) {
 
         {/* ── 의사 메모 — prescription / medical_record만 표시 ── */}
         {(record.record_type === 'prescription' || record.record_type === 'medical_record') && record.notes ? (
-          <Card shadow style={{ marginBottom: 14 }}>
+          <Card shadow style={{ marginBottom: spacing.s14 }}>
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, marginBottom: spacing.s8 }}>의사 메모</Text>
             <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>{record.notes}</Text>
           </Card>
         ) : null}
 
         {/* ── 원본 이미지 — manual은 숨김 ── */}
-        {record.record_type !== 'manual' && <Card shadow style={{ marginBottom: 14 }}>
+        {record.record_type !== 'manual' && <Card shadow style={{ marginBottom: spacing.s14 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s12 }}>
             <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6 }}>원본 이미지</Text>
-            <TouchableOpacity onPress={handleDownload} disabled={downloading} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <TouchableOpacity onPress={handleDownload} disabled={downloading} style={{ flexDirection: "row", alignItems: "center", gap: spacing.s4 }}>
               {downloading
                 ? <ActivityIndicator size="small" color={colors.accent} />
                 : <Icon name="download" size={14} color={record.file_url ? colors.accent : colors.muted2} />}

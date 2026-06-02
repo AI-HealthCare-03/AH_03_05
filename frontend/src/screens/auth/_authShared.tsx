@@ -42,11 +42,11 @@ const bp = StyleSheet.create({
     flex: 1,
     padding: spacing.s40,
   },
-  tagline: { fontSize: typography.fz26, fontWeight: typography.fw7, color: colors.white, lineHeight: 36, marginBottom: 14 },
-  desc: { fontSize: typography.fz14, color: colors.onAccent80, lineHeight: 22, marginBottom: 28 },
-  feat: { flexDirection: "row", alignItems: "flex-start", gap: spacing.s12, marginBottom: 16 },
+  tagline: { fontSize: typography.fz26, fontWeight: typography.fw7, color: colors.white, lineHeight: 36, marginBottom: spacing.s14 },
+  desc: { fontSize: typography.fz14, color: colors.onAccent80, lineHeight: 22, marginBottom: spacing.s24 },
+  feat: { flexDirection: "row", alignItems: "flex-start", gap: spacing.s12, marginBottom: spacing.s16 },
   featIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: colors.onAccent20, alignItems: "center", justifyContent: "center" },
-  featTitle: { fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.white, marginBottom: 2 },
+  featTitle: { fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.white, marginBottom: spacing.s2 },
   featSub: { fontSize: typography.fz12, color: colors.onAccent75 },
 });
 
@@ -62,10 +62,10 @@ export const styles = StyleSheet.create({
   brandRow: {
     marginBottom: spacing.s24,
   },
-  authTitle: { fontSize: 24, fontWeight: typography.fw7, color: colors.ink, marginBottom: 6 },
+  authTitle: { fontSize: 24, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s6 },
   authSub: { fontSize: typography.fz14, color: colors.muted, marginBottom: spacing.s20 },
   field: { marginBottom: spacing.s16 },
-  label: { fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: 6 },
+  label: { fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s6 },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -82,8 +82,8 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   input: { flex: 1, fontSize: typography.fz14, color: colors.ink, marginLeft: spacing.s8 },
-  divider: { height: 0.5, backgroundColor: colors.hairline, marginVertical: 10 },
-  agreeRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6, gap: 10 },
+  divider: { height: 0.5, backgroundColor: colors.hairline, marginVertical: spacing.s10 },
+  agreeRow: { flexDirection: "row", alignItems: "center", paddingVertical: spacing.s6, gap: spacing.s10 },
   agreeCircle: {
     width: 18,
     height: 18,
@@ -93,7 +93,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   pwRule: { flexDirection: "row", alignItems: "center" },
-  banner: { flexDirection: "row", alignItems: "flex-start", padding: 14, borderRadius: radii.md },
+  banner: { flexDirection: "row", alignItems: "flex-start", padding: spacing.s14, borderRadius: radii.md },
   bannerSuccess: { backgroundColor: colors.success50 },
   requiredBadge: {
     fontSize: typography.fz10,

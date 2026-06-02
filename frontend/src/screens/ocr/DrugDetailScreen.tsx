@@ -84,7 +84,7 @@ export function DrugDetailScreen({ navigation, route }: any) {
   return (
     <ScreenLayout title={drug.drug_name} back onBack={() => navigation.goBack()} scrollable scrollPadding={false} contentStyle={{ padding: spacing.s20 }}>
       {usingCache && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.warning50, borderRadius: radii.md, padding: 10, marginBottom: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6, backgroundColor: colors.warning50, borderRadius: radii.md, padding: spacing.s10, marginBottom: spacing.s14 }}>
           <Icon name="alert" size={13} color={colors.warning} />
           <Text style={{ fontSize: typography.fz12, color: colors.warningText }}>네트워크 오류 — 캐시 데이터 표시 중</Text>
         </View>
@@ -94,11 +94,11 @@ export function DrugDetailScreen({ navigation, route }: any) {
         {/* 약품명 + 일반명 + 제조사 */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.s20 }}>
           <View style={{ flex: 1, marginRight: spacing.s12 }}>
-            <Text style={{ fontSize: typography.fz18, fontWeight: typography.fw7, color: colors.ink, marginBottom: 4 }}>
+            <Text style={{ fontSize: typography.fz18, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s4 }}>
               {drug.drug_name}
             </Text>
             {drug.ingredient_name ? (
-              <Text style={{ fontSize: typography.fz13, color: colors.accent700, marginBottom: 4 }}>{drug.ingredient_name}</Text>
+              <Text style={{ fontSize: typography.fz13, color: colors.accent700, marginBottom: spacing.s4 }}>{drug.ingredient_name}</Text>
             ) : null}
             <Text style={{ fontSize: typography.fz13, color: drug.manufacturer ? colors.muted : colors.muted2, fontStyle: drug.manufacturer ? 'normal' : 'italic' }}>
               {drug.manufacturer ?? '제조사 정보 없음'}
@@ -112,7 +112,7 @@ export function DrugDetailScreen({ navigation, route }: any) {
         {/* 효능·용법·주의사항·부작용 */}
         {sections.map((sec, i) => (
           <View key={sec.label} style={[{ paddingTop: spacing.s16 }, i === 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.s8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6, marginBottom: spacing.s8 }}>
               <Icon name={sec.icon} size={13} color={sec.iconColor} />
               <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>{sec.label}</Text>
             </View>
@@ -122,7 +122,7 @@ export function DrugDetailScreen({ navigation, route }: any) {
 
         {/* 식약처 출처 + 캐시 조회 시각 */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: spacing.s12, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
             <Icon name="shield" size={12} color={colors.muted2} />
             <Text style={{ fontSize: typography.fz11, color: colors.muted2 }}>식품의약품안전처 데이터</Text>
           </View>

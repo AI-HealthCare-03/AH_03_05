@@ -140,5 +140,5 @@ export default GuideLoadingScreen;
 
 const s = StyleSheet.create({
   loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  spinner:       { width: 84, height: 84, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  spinner:       { width: 84, height: 84, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s16 },
 });

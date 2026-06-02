@@ -88,7 +88,7 @@ function ToggleRow({ label, sub, val, onChange }: ToggleRowProps) {
     <View style={[s.rowItem, { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}>{label}</Text>
-        {sub && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>{sub}</Text>}
+        {sub && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>{sub}</Text>}
       </View>
       <Switch value={val} onValueChange={onChange} trackColor={{ true: colors.accent }} />
     </View>

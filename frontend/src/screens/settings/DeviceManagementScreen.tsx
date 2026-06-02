@@ -58,7 +58,7 @@ export function DeviceManagementScreen({ navigation }: any) {
 
   return (
     <ScreenLayout title="로그인 기기 관리" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
-      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: 18 }}>
+      <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s20 }}>
         {devices.map((d, i) => (
           <DeviceRow key={d.id} device={d} isFirst={i === 0} onRevoke={revoke} />
         ))}

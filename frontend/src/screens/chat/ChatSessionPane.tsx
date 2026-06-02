@@ -114,7 +114,7 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#fff' }}
+      style={{ flex: 1, backgroundColor: colors.white }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
     >
@@ -184,7 +184,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
   };
 
   return (
-    <View style={{ marginBottom: 14 }}>
+    <View style={{ marginBottom: spacing.s14 }}>
       <View style={[s.bubbleRow, isUser && { justifyContent: 'flex-end' }]}>
         {!isUser && (
           <View style={s.aiAvatar}>
@@ -203,7 +203,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
           )}
           {isSafe && (
             <View style={{ marginBottom: spacing.s8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: spacing.s4 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, marginBottom: spacing.s4 }}>
                 <Icon name="alert-circle" size={13} color={colors.danger} />
                 <Text style={{ fontSize: typography.fz11, color: colors.danger, fontWeight: typography.fw6 }}>주의가 필요한 답변입니다</Text>
               </View>
@@ -263,7 +263,7 @@ const ps = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface2,
     paddingHorizontal: spacing.s16,
-    paddingVertical: 6,
+    paddingVertical: spacing.s6,
     borderBottomWidth: 0.5,
     borderBottomColor: colors.hairline,
   },
@@ -281,7 +281,7 @@ const CATEGORY_STYLE: Record<string, { bg: string; fg: string }> = {
 function CategoryBadge({ category }: { category: string }) {
   const style = CATEGORY_STYLE[category] ?? { bg: colors.surface2, fg: colors.muted };
   return (
-    <View style={{ backgroundColor: style.bg, borderRadius: radii.pill, paddingHorizontal: spacing.s8, paddingVertical: 2 }}>
+    <View style={{ backgroundColor: style.bg, borderRadius: radii.pill, paddingHorizontal: spacing.s8, paddingVertical: spacing.s2 }}>
       <Text style={{ fontSize: typography.fz11, color: style.fg, fontWeight: typography.fw6 }}>{category}</Text>
     </View>
   );
@@ -318,7 +318,7 @@ function RagSourcesSection({ sources }: { sources: RagSource[] }) {
       {displayed.map(src => (
         <TouchableOpacity
           key={src.source_id}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, paddingVertical: 2 }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, paddingVertical: spacing.s2 }}
           onPress={() => Linking.openURL(src.source_url)}
           activeOpacity={0.7}
         >
@@ -329,7 +329,7 @@ function RagSourcesSection({ sources }: { sources: RagSource[] }) {
         </TouchableOpacity>
       ))}
       {overflow > 0 && (
-        <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: 2 }}>외 {overflow}개</Text>
+        <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }}>외 {overflow}개</Text>
       )}
     </View>
   );

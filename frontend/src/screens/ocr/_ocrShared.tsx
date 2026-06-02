@@ -8,7 +8,7 @@ export const s = StyleSheet.create({
   bannerWarn:    { backgroundColor: colors.warning50 },
   docPreview: { height: 140, backgroundColor: colors.accent50, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
   removeBtn: { position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: radii.pill, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' },
-  drugCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.s12, padding: 14, borderRadius: radii.md, marginBottom: spacing.s8 },
+  drugCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.s12, padding: spacing.s14, borderRadius: radii.md, marginBottom: spacing.s8 },
   drugDot: { width: 28, height: 28, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center' },
   chip: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.hairlineStrong },
   chipActive: { backgroundColor: colors.accent50, borderColor: colors.accent },

@@ -64,11 +64,11 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
 
   const formContent = step === 'confirm' ? (
     <>
-      <View style={[styles.banner, styles.bannerSuccess, { marginBottom: 18 }]}>
+      <View style={[styles.banner, styles.bannerSuccess, { marginBottom: spacing.s20 }]}>
         <Icon name="check-circle" size={16} color={colors.success} />
-        <View style={{ marginLeft: 10, flex: 1 }}>
+        <View style={{ marginLeft: spacing.s10, flex: 1 }}>
           <Text style={{ fontWeight: typography.fw7, fontSize: typography.fz14 }}>인증 코드를 보냈어요</Text>
-          <Text style={{ fontSize: typography.fz12, marginTop: 2, color: colors.ink2 }}>{email} 로 발송됐어요. 스팸함도 확인해주세요.</Text>
+          <Text style={{ fontSize: typography.fz12, marginTop: spacing.s2, color: colors.ink2 }}>{email} 로 발송됐어요. 스팸함도 확인해주세요.</Text>
         </View>
       </View>
       <View style={styles.field}>
@@ -136,7 +136,7 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
           desc="가입 시 사용한 이메일을 입력해주세요. 안내 메일 발송 후 24시간 안에 비밀번호를 재설정해주세요."
           features={BRAND_PANEL_FEATURES}
         />
-        <ScrollView style={{ flex: 1, backgroundColor: colors.canvas }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 48 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1, backgroundColor: colors.canvas }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.s48 }} keyboardShouldPersistTaps="handled">
           <View style={{ maxWidth: 420, width: '100%', alignSelf: 'center' }}>
             <Text style={styles.authTitle}>비밀번호 찾기</Text>
             <Text style={[styles.authSub, { marginBottom: spacing.s24 }]}>가입한 이메일로 재설정 링크를 보내드려요.</Text>

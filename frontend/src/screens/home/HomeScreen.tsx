@@ -50,7 +50,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
         <TouchableOpacity onPress={onPrev} style={s.iconBtn}>
           <Icon name="chevron-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s10 }}>
           <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}>
             {y}년 {m}월
           </Text>
@@ -227,13 +227,13 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* 프로필 미완료 배너 */}
         {!user.profileComplete && (
-          <Card shadow style={{ marginBottom: 14, backgroundColor: colors.accent50, borderColor: colors.accent100 }}>
+          <Card shadow style={{ marginBottom: spacing.s14, backgroundColor: colors.accent50, borderColor: colors.accent100 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s12 }}>
               <View style={{ width: 42, height: 42, borderRadius: radii.pill, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center" }}>
                 <Icon name="info" size={18} color={colors.white} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw7, color: colors.ink, marginBottom: 2 }}>건강 프로필을 완성해주세요</Text>
+                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s2 }}>건강 프로필을 완성해주세요</Text>
                 <Text style={{ fontSize: typography.fz12, color: colors.muted }}>건강 정보를 입력할수록 맞춤형 가이드 정확도가 높아져요.</Text>
               </View>
             </View>
@@ -242,14 +242,14 @@ export default function HomeScreen({ navigation }: any) {
         )}
 
         {/* 복약 달성률 + 최근 상담 */}
-        <View style={{ flexDirection: isTabletOrAbove ? "row" : "column", gap: spacing.s12, marginBottom: 14 }}>
+        <View style={{ flexDirection: isTabletOrAbove ? "row" : "column", gap: spacing.s12, marginBottom: spacing.s14 }}>
           <View style={isTabletOrAbove ? { flex: 2 } : undefined}>
             <Card style={{ backgroundColor: colors.accent, borderColor: "transparent", flex: 1 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s10 }}>
                 <Text style={{ fontSize: typography.fz13, color: colors.onAccent85 }}>{viewM}월 복약 달성률</Text>
                 <View style={s.streakBadge}>
                   <Text style={{ fontSize: typography.fz12 }}>🔥</Text>
-                  <Text style={{ fontSize: typography.fz12, color: "#92400E", marginLeft: 3 }}>{streak}일 연속 달성 중</Text>
+                  <Text style={{ fontSize: typography.fz12, color: colors.warningText, marginLeft: spacing.s4 }}>{streak}일 연속 달성 중</Text>
                 </View>
               </View>
               <Text style={{ fontSize: 36, fontWeight: typography.fw7, color: colors.white, marginBottom: spacing.s4 }}>{computedAdherence}%</Text>
@@ -270,8 +270,8 @@ export default function HomeScreen({ navigation }: any) {
                 navigation.getParent()?.navigate("ChatTab", { screen: "ChatList", params: { sessionId: recentChat.id } });
               }}
             >
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s6 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
                   <Icon name="chat" size={14} color={colors.accent700} />
                   <Text style={{ fontSize: typography.fz12, fontWeight: typography.fw6, color: colors.ink }}>최근 상담 {recentChat ? `(${recentChat.time})` : ""}</Text>
                 </View>
@@ -303,7 +303,7 @@ export default function HomeScreen({ navigation }: any) {
                 <Icon name="file" size={18} color={colors.accent700} />
               </View>
               <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>의료 문서 업로드</Text>
-              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }} numberOfLines={1}>처방전·약봉투·진료기록 분석</Text>
+              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }} numberOfLines={1}>처방전·약봉투·진료기록 분석</Text>
             </Card>
           </View>
           <View style={{ flex: 1 }}>
@@ -317,15 +317,15 @@ export default function HomeScreen({ navigation }: any) {
                 <Icon name="doc" size={22} color={colors.accent700} />
               </View>
               <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink }}>최근 가이드</Text>
-              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }} numberOfLines={1}>복약·생활습관 안내</Text>
+              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }} numberOfLines={1}>복약·생활습관 안내</Text>
             </Card>
           </View>
         </View>
 
         {/* 오늘의 복약 */}
-        <Card shadow style={{ marginBottom: 14 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <Card shadow style={{ marginBottom: spacing.s14 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s14 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
               <Icon name="bell" size={14} color={colors.accent700} />
               <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>오늘의 복약</Text>
             </View>
@@ -357,7 +357,7 @@ export default function HomeScreen({ navigation }: any) {
         </Card>
 
         {/* 달력 */}
-        <Card shadow style={{ marginBottom: 14 }}>
+        <Card shadow style={{ marginBottom: spacing.s14 }}>
           <MonthCalendar
             y={viewY}
             m={viewM}
@@ -374,16 +374,16 @@ export default function HomeScreen({ navigation }: any) {
             }}
           />
           {/* 범례 */}
-          <View style={{ flexDirection: "row", gap: spacing.s16, paddingTop: spacing.s12, marginTop: 8, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+          <View style={{ flexDirection: "row", gap: spacing.s16, paddingTop: spacing.s12, marginTop: spacing.s8, borderTopWidth: 0.5, borderTopColor: colors.hairline }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
               <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: colors.success }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>복약 완료</Text>
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
               <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: colors.danger }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>미복용</Text>
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
               <View style={{ width: 14, height: 4, borderRadius: 2, backgroundColor: colors.hairlineStrong }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>예정</Text>
             </View>
@@ -405,8 +405,8 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* 복약 현황 */}
         <Card shadow>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s14 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
               <Icon name="link" size={14} color={colors.ink2} />
               <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>
                 {selectedStatus === "today" ? "오늘 복약 현황" : selectedStatus === "future" ? "예정된 복약" : "복약 기록"}
@@ -450,14 +450,14 @@ const s = StyleSheet.create({
   conditionChip: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: radii.pill, backgroundColor: colors.accent50, borderWidth: 1, borderColor: colors.accent100 },
   streakBadge: { flexDirection: "row", alignItems: "center", backgroundColor: colors.warning50, borderRadius: radii.pill, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4 },
   quickIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: colors.accent100, alignItems: "center", justifyContent: "center", marginBottom: spacing.s12 },
-  drugRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14 },
+  drugRow: { flexDirection: "row", alignItems: "center", paddingVertical: spacing.s14 },
   chipBtn: { borderWidth: 1, borderColor: colors.accent100, borderRadius: radii.pill, paddingHorizontal: spacing.s10, paddingVertical: spacing.s6 },
-  calHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
+  calHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.s14 },
   iconBtn: { width: 32, height: 32, borderRadius: radii.sm, alignItems: "center", justifyContent: "center" },
-  chipSmall: { paddingHorizontal: spacing.s10, paddingVertical: 3, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.accent100 },
+  chipSmall: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s4, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.accent100 },
   calGrid: { flexDirection: "row", flexWrap: "wrap" },
   calWeekHead: { width: "14.28%", textAlign: "center", fontSize: typography.fz11, paddingVertical: spacing.s4 },
-  calCell: { width: "14.28%", alignItems: "center", paddingVertical: 6, borderRadius: radii.sm },
+  calCell: { width: "14.28%", alignItems: "center", paddingVertical: spacing.s6, borderRadius: radii.sm },
   calToday: { backgroundColor: colors.accent },
   calSelected: { backgroundColor: colors.accent100 },
   calDayText: { fontSize: typography.fz13, color: colors.ink },

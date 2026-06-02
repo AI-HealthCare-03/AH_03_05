@@ -63,7 +63,7 @@ export function DrugDosageScreen({ navigation, route }: any) {
   };
 
   const Section = ({ label, options, value, onChange }: any) => (
-    <View style={{ marginBottom: 18 }}>
+    <View style={{ marginBottom: spacing.s20 }}>
       <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s8 }}>{label}</Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.s8 }}>
         {options.map((o: string) => (
@@ -80,11 +80,11 @@ export function DrugDosageScreen({ navigation, route }: any) {
       <Text style={{ fontSize: typography.fz14, color: colors.muted, marginBottom: spacing.s20 }}>OCR 인식값이 자동으로 채워졌어요. 내용을 확인하고 필요시 수정해 주세요.</Text>
 
       <Card shadow>
-        <View style={[s.banner, s.bannerSuccess, { marginBottom: 14 }]}>
+        <View style={[s.banner, s.bannerSuccess, { marginBottom: spacing.s14 }]}>
           <View style={[s.chip, { backgroundColor: colors.success }]}>
             <Text style={{ color: colors.white, fontSize: typography.fz11, fontWeight: typography.fw6 }}>선택됨</Text>
           </View>
-          <View style={{ flex: 1, marginLeft: 10 }}>
+          <View style={{ flex: 1, marginLeft: spacing.s10 }}>
             <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}>
               {selectedDrug ? selectedDrug.drug_name : existing?.name ?? '—'}
             </Text>
@@ -98,7 +98,7 @@ export function DrugDosageScreen({ navigation, route }: any) {
           </View>
         </View>
 
-        <View style={[s.banner, s.bannerWarn, { marginBottom: 20 }]}>
+        <View style={[s.banner, s.bannerWarn, { marginBottom: spacing.s20 }]}>
           <Icon name="alert" size={16} color={colors.warning} />
           <Text style={{ fontSize: typography.fz13, color: colors.ink2, flex: 1, marginLeft: spacing.s8 }}>아래 값은 OCR 자동 인식 결과입니다. 처방전과 다른 경우 직접 수정해 주세요.</Text>
         </View>
@@ -107,7 +107,7 @@ export function DrugDosageScreen({ navigation, route }: any) {
         <Section label="복용 시간" options={["식전 30분", "식후 30분", "식전 즉시", "식후 즉시", "취침 전", "공복"]} value={time} onChange={setTime} />
         <Section label="복용 기간" options={["7일", "14일", "30일", "60일", "90일", "장기복용"]} value={duration} onChange={setDuration} />
 
-        <Card style={{ backgroundColor: colors.surface2, marginBottom: 18 }}>
+        <Card style={{ backgroundColor: colors.surface2, marginBottom: spacing.s20 }}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.s16 }}>
             <Text style={{ fontSize: typography.fz12, color: colors.muted }}>입력 확인</Text>
             {[
@@ -115,7 +115,7 @@ export function DrugDosageScreen({ navigation, route }: any) {
               ["시간", time],
               ["기간", duration],
             ].map(([k, v]) => (
-              <View key={k} style={{ flexDirection: "row", gap: 4, alignItems: "baseline" }}>
+              <View key={k} style={{ flexDirection: "row", gap: spacing.s4, alignItems: "baseline" }}>
                 <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{k}</Text>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}>{v}</Text>
               </View>

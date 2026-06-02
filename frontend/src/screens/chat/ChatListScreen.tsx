@@ -126,11 +126,11 @@ export function ChatListScreen({ navigation, route }: any) {
   const sessionList = (
     <>
       {loading ? (
-        <View style={{ alignItems: 'center', padding: 48 }}>
+        <View style={{ alignItems: 'center', padding: spacing.s48 }}>
           <ActivityIndicator color={colors.accent} size="large" />
         </View>
       ) : error ? (
-        <View style={{ alignItems: 'center', padding: 48 }}>
+        <View style={{ alignItems: 'center', padding: spacing.s48 }}>
           <Text style={{ fontSize: typography.fz14, color: colors.muted, textAlign: 'center', marginBottom: spacing.s16 }}>{error}</Text>
           <Button variant="ghost" size="sm" onPress={() => {
             setLoading(true);
@@ -168,7 +168,7 @@ export function ChatListScreen({ navigation, route }: any) {
                 <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s8 }}>{formatTime(c.updated_at)}</Text>
               </View>
               {c.last_message_preview ? (
-                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: 2 }} numberOfLines={1}>{c.last_message_preview}</Text>
+                <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }} numberOfLines={1}>{c.last_message_preview}</Text>
               ) : null}
             </TouchableOpacity>
           );
@@ -247,9 +247,9 @@ const ds = StyleSheet.create({
   sidebarHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.s16, paddingTop: spacing.s12, paddingBottom: spacing.s12 },
   sidebarTitle:  { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   pane:          { flex: 1 },
-  paneHeader:    { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: spacing.s16, borderBottomWidth: 0.5, borderBottomColor: colors.hairline },
+  paneHeader:    { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.s14, paddingHorizontal: spacing.s16, borderBottomWidth: 0.5, borderBottomColor: colors.hairline },
   paneTitle:     { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
-  paneSubtitle:  { fontSize: typography.fz12, color: colors.muted, marginTop: 2 },
+  paneSubtitle:  { fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 },
   iconBtn:       { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   sessionRow:    { paddingVertical: spacing.s12, paddingHorizontal: spacing.s16 },
 });

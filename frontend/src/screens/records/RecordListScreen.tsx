@@ -31,16 +31,16 @@ function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
   const chip = statusChip(r.status);
   return (
     <Card shadow noPadding onPress={onPress}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: spacing.s20 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s14, padding: spacing.s20 }}>
         <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: getRecordColor(r.record_id) + "22", alignItems: "center", justifyContent: "center" }}>
           <Icon name={iconFor(r.record_type)} size={18} color={getRecordColor(r.record_id)} />
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, marginBottom: spacing.s4 }}>
-            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 999, borderWidth: 0.5, borderColor: colors.hairline }}>
+            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: spacing.s2, borderRadius: 999, borderWidth: 0.5, borderColor: colors.hairline }}>
               <Text style={{ fontSize: typography.fz11, color: colors.ink2 }}>{RECORD_LABEL[r.record_type]}</Text>
             </View>
-            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 999, backgroundColor: chip.bg }}>
+            <View style={{ paddingHorizontal: spacing.s8, paddingVertical: spacing.s2, borderRadius: 999, backgroundColor: chip.bg }}>
               <Text style={{ fontSize: typography.fz11, color: chip.color, fontWeight: typography.fw6 }}>{chip.label}</Text>
             </View>
             <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{formatDate(r.uploaded_at)}</Text>
@@ -49,7 +49,7 @@ function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
             {cardTitle(r)}
           </Text>
           {r.medication_count != null ? (
-            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: 2 }}>약품 {r.medication_count}개</Text>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>약품 {r.medication_count}개</Text>
           ) : null}
         </View>
         <Icon name="chevron-right" size={16} color={colors.muted2} />
@@ -106,7 +106,7 @@ export function RecordListScreen({ navigation }: any) {
       </Button>
     ),
     headerExtra: (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 6 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: spacing.s6 }}>
         {tabs.map((t) => (
           <TouchableOpacity key={t} style={[s.chip, filter === t && s.chipActive]} onPress={() => setFilter(t)}>
             <Text style={[{ fontSize: typography.fz12 }, filter === t && { color: colors.accent700, fontWeight: typography.fw6 }]}>{t}</Text>

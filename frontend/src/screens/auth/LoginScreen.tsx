@@ -88,7 +88,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
         />
         <ScrollView
           style={{ flex: 1, backgroundColor: colors.canvas }}
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 48 }}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.s48 }}
           keyboardShouldPersistTaps="handled"
         >
           <View style={{ maxWidth: 420, width: '100%', alignSelf: 'center' }}>
@@ -148,7 +148,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
             secureTextEntry
             autoComplete="current-password"
           />
-          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: 6 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: spacing.s6 }}>
             <Text style={{ fontSize: typography.fz12, color: colors.accent }}>비밀번호 찾기</Text>
           </TouchableOpacity>
         </View>

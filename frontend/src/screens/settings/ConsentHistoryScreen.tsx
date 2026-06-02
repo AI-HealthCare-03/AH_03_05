@@ -80,9 +80,9 @@ export function ConsentHistoryScreen({ navigation }: any) {
 
   return (
     <ScreenLayout title="약관 동의 내역" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
-      <View style={[s.banner, { backgroundColor: colors.accent50, marginBottom: 14 }]}>
+      <View style={[s.banner, { backgroundColor: colors.accent50, marginBottom: spacing.s14 }]}>
         <Icon name="info" size={16} color={colors.accent700} />
-        <Text style={{ fontSize: typography.fz13, color: colors.accent700, flex: 1, marginLeft: 10 }}>
+        <Text style={{ fontSize: typography.fz13, color: colors.accent700, flex: 1, marginLeft: spacing.s10 }}>
           필수 약관은 철회 시 회원탈퇴로 이어집니다.{'\n'}선택 약관(마케팅)은 언제든 변경 가능합니다.
         </Text>
       </View>
@@ -94,8 +94,8 @@ export function ConsentHistoryScreen({ navigation }: any) {
       ) : (
         <Card shadow noPadding style={{ overflow: 'hidden' }}>
           {consents.map((c, i) => (
-            <View key={c.type} style={[{ paddingHorizontal: spacing.s20, paddingVertical: 14 }, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, marginBottom: 6 }}>
+            <View key={c.type} style={[{ paddingHorizontal: spacing.s20, paddingVertical: spacing.s14 }, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, marginBottom: spacing.s6 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink, flex: 1 }}>{c.name}</Text>
                 <Badge variant={c.required ? 'danger' : (c.type === 'marketing' && marketingConsent?.agreed) ? 'success' : 'default'}>
                   {c.required ? '필수' : (c.type === 'marketing' && marketingConsent?.agreed) ? '동의함' : '선택'}

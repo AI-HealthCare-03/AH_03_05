@@ -78,7 +78,7 @@ const cs = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: spacing.s12,
-    paddingBottom: 14,
+    paddingBottom: spacing.s14,
     paddingHorizontal: spacing.s16,
     backgroundColor: colors.surface,
     borderBottomWidth: 0.5,
@@ -96,7 +96,7 @@ const cs = StyleSheet.create({
   iconBtn:         { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   title:           { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   sessionTitle:    { fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink },
-  sessionSubtitle: { fontSize: typography.fz12, color: colors.muted, marginTop: 2 },
+  sessionSubtitle: { fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 },
   mobileCanvas: {
     flex: 1,
     backgroundColor: colors.canvas,

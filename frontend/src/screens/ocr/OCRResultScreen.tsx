@@ -112,7 +112,7 @@ export function OCRResultScreen({ navigation, route }: any) {
     >
       {inputMethod !== 'manual' && (
         !imageRemoved ? (
-          <Card shadow style={{ marginBottom: 14 }}>
+          <Card shadow style={{ marginBottom: spacing.s14 }}>
             <View style={s.docPreview}>
               <Icon name="doc" size={72} color={colors.accentAlpha30} />
               <TouchableOpacity onPress={() => { setImageRemoved(true); flash('이미지를 제거했습니다'); }} style={s.removeBtn}>
@@ -130,7 +130,7 @@ export function OCRResultScreen({ navigation, route }: any) {
           <Card shadow style={{ marginBottom: 14, alignItems: 'center', paddingVertical: spacing.s24 }}>
             <Icon name="image" size={24} color={colors.muted2} />
             <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s8 }}>원본 이미지를 제거했어요</Text>
-            <TouchableOpacity onPress={() => { setImageRemoved(false); flash('이미지를 복원했습니다'); }} style={{ marginTop: 4 }}>
+            <TouchableOpacity onPress={() => { setImageRemoved(false); flash('이미지를 복원했습니다'); }} style={{ marginTop: spacing.s4 }}>
               <Text style={{ fontSize: typography.fz12, color: colors.accent }}>되돌리기</Text>
             </TouchableOpacity>
           </Card>
@@ -138,12 +138,12 @@ export function OCRResultScreen({ navigation, route }: any) {
       )}
 
       {error ? (
-        <View style={[s.banner, { backgroundColor: colors.danger50, marginBottom: 14 }]}>
+        <View style={[s.banner, { backgroundColor: colors.danger50, marginBottom: spacing.s14 }]}>
           <Icon name="alert" size={16} color={colors.danger} />
           <Text style={{ fontSize: typography.fz14, color: colors.danger, marginLeft: spacing.s8 }}>{error}</Text>
         </View>
       ) : (
-        <View style={[s.banner, s.bannerSuccess, { marginBottom: 14 }]}>
+        <View style={[s.banner, s.bannerSuccess, { marginBottom: spacing.s14 }]}>
           <Icon name="check-circle" size={16} color={colors.success} />
           <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink, marginLeft: spacing.s8 }}>OCR 인식이 완료됐어요</Text>
         </View>

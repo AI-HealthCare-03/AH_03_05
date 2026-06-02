@@ -122,7 +122,7 @@ export function HealthProfileEditScreen({ navigation }: any) {
         ))}
 
         {TEXT_FIELDS.map((f) => (
-          <View key={f.key} style={{ marginBottom: 14 }}>
+          <View key={f.key} style={{ marginBottom: spacing.s14 }}>
             <Input label={`${f.label} (선택)`} value={form[f.key as keyof FormState]} onChangeText={(v) => set(f.key, v)} />
           </View>
         ))}
