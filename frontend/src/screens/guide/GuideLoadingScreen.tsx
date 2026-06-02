@@ -20,6 +20,11 @@ const STATUS_TEXT: Partial<Record<AsyncJobStatus, string>> = {
   running: '복약 정보 분석 중...',
 };
 
+const JOB_PROGRESS: Partial<Record<AsyncJobStatus, number>> = {
+  pending: 20,
+  running: 60,
+};
+
 // ─── GuideLoadingScreen ────────────────────────────────────────────────────────
 
 export function GuideLoadingScreen({ navigation, route }: any) {
@@ -27,6 +32,7 @@ export function GuideLoadingScreen({ navigation, route }: any) {
   const recordId: number | undefined = route?.params?.recordId;
 
   const [phase, setPhase] = useState<'loading' | 'failed' | 'timeout'>('loading');
+  const [jobStatus, setJobStatus] = useState<AsyncJobStatus | null>(null);
   const [statusText, setStatusText] = useState('가이드 생성 준비 중...');
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef(false);
@@ -34,6 +40,7 @@ export function GuideLoadingScreen({ navigation, route }: any) {
   const startGuide = () => {
     abortRef.current = false;
     setPhase('loading');
+    setJobStatus(null);
     setErrorMsg('');
     setStatusText('가이드 생성 준비 중...');
     run();
@@ -60,6 +67,7 @@ export function GuideLoadingScreen({ navigation, route }: any) {
         if (job.status === 'failed')    { setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.'); setPhase('failed'); return; }
         if (job.status === 'timeout')   { setPhase('timeout'); return; }
 
+        setJobStatus(job.status);
         setStatusText(STATUS_TEXT[job.status] ?? '분석 중...');
         const delay = BACKOFF_DELAYS[Math.min(attempt, BACKOFF_DELAYS.length - 1)];
         attempt++;
@@ -125,7 +133,7 @@ export function GuideLoadingScreen({ navigation, route }: any) {
           {statusText}
         </Text>
         <ProgressBar
-          progress={statusText.includes('분석') ? 60 : 20}
+          progress={jobStatus ? (JOB_PROGRESS[jobStatus] ?? 40) : 20}
           style={{ alignSelf: 'stretch', marginBottom: spacing.s20 }}
         />
         <Text style={{ fontSize: typography.fz12, color: colors.muted2 }}>최대 90초가 소요될 수 있어요</Text>
