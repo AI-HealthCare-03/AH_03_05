@@ -1,9 +1,9 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Icon from "./Icon";
-import { colors, radii, spacing, typography } from "../theme";
-import { useBreakpoint } from "../hooks/useBreakpoint";
+import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Icon from './Icon';
+import { colors, radii, spacing, typography } from '../theme';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const CONTENT_MAX_WIDTH = 900;
 
@@ -25,10 +25,27 @@ interface ScreenLayoutProps {
   scrollRef?: React.RefObject<ScrollView>;
 }
 
-export default function ScreenLayout({ children, title, subtitle, back, onBack, right, headerExtra, header, noHeader, scrollable, scrollPadding = true, refreshing, onRefresh, contentStyle, scrollRef }: ScreenLayoutProps) {
+export default function ScreenLayout({
+  children,
+  title,
+  subtitle,
+  back,
+  onBack,
+  right,
+  headerExtra,
+  header,
+  noHeader,
+  scrollable,
+  scrollPadding = true,
+  refreshing,
+  onRefresh,
+  contentStyle,
+  scrollRef,
+}: ScreenLayoutProps) {
   const { isDesktopOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
-  const hasHeader = !noHeader && (header !== undefined || title !== undefined || back || subtitle || headerExtra);
+  const hasHeader =
+    !noHeader && (header !== undefined || title !== undefined || back || subtitle || headerExtra);
 
   const headerContent = header ?? (
     <>
@@ -37,9 +54,17 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
       )}
-      <View style={[headerExtra ? { alignSelf: 'stretch' } : s.titleBlock, back && { marginLeft: spacing.s8 }]}>
+      <View
+        style={[
+          headerExtra ? { alignSelf: 'stretch' } : s.titleBlock,
+          back && { marginLeft: spacing.s8 },
+        ]}
+      >
         {title && (
-          <Text style={[s.title, subtitle && { marginBottom: 2 }]} numberOfLines={back ? 1 : undefined}>
+          <Text
+            style={[s.title, subtitle && { marginBottom: 2 }]}
+            numberOfLines={back ? 1 : undefined}
+          >
             {title}
           </Text>
         )}
@@ -53,7 +78,14 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
     <View style={s.root}>
       {hasHeader && (
         <View style={s.topBar}>
-          <View style={[s.topBarInner, { paddingTop: Math.max(insets.top + spacing.s8, spacing.safeTop) }, headerExtra ? s.topBarInnerColumn : undefined, isDesktopOrAbove && s.topBarInnerDesktop]}>
+          <View
+            style={[
+              s.topBarInner,
+              { paddingTop: Math.max(insets.top + spacing.s8, spacing.safeTop) },
+              headerExtra ? s.topBarInnerColumn : undefined,
+              isDesktopOrAbove && s.topBarInnerDesktop,
+            ]}
+          >
             {headerContent}
             {headerExtra && (
               <View style={s.headerExtraRow}>
@@ -66,13 +98,32 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
       )}
 
       {scrollable ? (
-        <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={scrollPadding ? (isDesktopOrAbove ? { paddingVertical: spacing.s16 } : { padding: spacing.s16 }) : undefined} refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.accent} /> : undefined}>
+        <ScrollView
+          ref={scrollRef}
+          style={{ flex: 1 }}
+          contentContainerStyle={
+            scrollPadding
+              ? isDesktopOrAbove
+                ? { paddingVertical: spacing.s16 }
+                : { padding: spacing.s16 }
+              : undefined
+          }
+          refreshControl={
+            onRefresh ? (
+              <RefreshControl
+                refreshing={!!refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.accent}
+              />
+            ) : undefined
+          }
+        >
           <View
             style={[
               isDesktopOrAbove && {
                 maxWidth: CONTENT_MAX_WIDTH,
-                alignSelf: "center",
-                width: "100%",
+                alignSelf: 'center',
+                width: '100%',
               },
               isDesktopOrAbove && scrollPadding && { paddingHorizontal: spacing.s16 },
               contentStyle,
@@ -83,7 +134,16 @@ export default function ScreenLayout({ children, title, subtitle, back, onBack, 
         </ScrollView>
       ) : (
         <View style={[s.contentOuter, isDesktopOrAbove && s.contentOuterDesktop]}>
-          <View style={[s.contentInner, isDesktopOrAbove && s.contentInnerDesktop, { flex: 1 }, contentStyle]}>{children}</View>
+          <View
+            style={[
+              s.contentInner,
+              isDesktopOrAbove && s.contentInnerDesktop,
+              { flex: 1 },
+              contentStyle,
+            ]}
+          >
+            {children}
+          </View>
         </View>
       )}
     </View>
@@ -96,18 +156,18 @@ const s = StyleSheet.create({
     backgroundColor: colors.canvas,
   },
   topBar: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   topBarInner: {
-    width: "100%",
+    width: '100%',
     paddingHorizontal: spacing.s16,
     paddingBottom: 14,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   topBarInnerColumn: {
-    flexDirection: "column",
-    alignItems: "flex-start",
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     gap: 10,
   },
   topBarInnerDesktop: {
@@ -117,8 +177,8 @@ const s = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: radii.sm,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   titleBlock: {
     flex: 1,
@@ -133,22 +193,22 @@ const s = StyleSheet.create({
     color: colors.muted,
   },
   headerExtraRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    alignSelf: 'stretch',
   },
   contentOuter: {
     flex: 1,
   },
   contentOuterDesktop: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   contentInner: {
     flex: 1,
   },
   contentInnerDesktop: {
-    width: "100%",
+    width: '100%',
     maxWidth: CONTENT_MAX_WIDTH,
   },
 });

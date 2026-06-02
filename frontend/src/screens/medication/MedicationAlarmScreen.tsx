@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { useApp } from '../../context/AppContext';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<RootStackParams, 'MedicationAlarm'>;
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
+import { formatTimePeriod } from '../../utils/date';
 
 const ICON_CIRCLE_SIZE = 140;
 const SNOOZE_CIRCLE_SIZE = 80;
@@ -13,24 +25,17 @@ type MealKey = 'morning' | 'lunch' | 'dinner';
 
 const MEAL_LABELS: Record<MealKey, string> = {
   morning: '아침 복약',
-  lunch:   '점심 복약',
-  dinner:  '저녁 복약',
+  lunch: '점심 복약',
+  dinner: '저녁 복약',
 };
 
 const MEAL_BODY: Record<MealKey, string> = {
   morning: '아침 복약 시간입니다',
-  lunch:   '점심 복약 시간입니다',
-  dinner:  '저녁 복약 시간입니다',
+  lunch: '점심 복약 시간입니다',
+  dinner: '저녁 복약 시간입니다',
 };
 
-function formatTime(time: string): string {
-  const [h, m] = time.split(':').map(Number);
-  const period = h < 12 ? '오전' : '오후';
-  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${period} ${displayH}:${String(m).padStart(2, '0')}`;
-}
-
-export function MedicationAlarmScreen({ navigation, route }: any) {
+export function MedicationAlarmScreen({ navigation, route }: Props) {
   const meal: MealKey = route?.params?.meal ?? 'morning';
   const { notifSettings } = useApp();
   const insets = useSafeAreaInsets();
@@ -38,9 +43,9 @@ export function MedicationAlarmScreen({ navigation, route }: any) {
   const [done, setDone] = useState(false);
 
   const mealState = notifSettings[meal];
-  const timeDisplay = formatTime(mealState.time);
-  // TODO: NotifSettings에 drugs 필드 추가 시 아래 타입 확장 필요
-  const drugNames: string[] = (mealState as any).drugs ?? [];
+  const timeDisplay = formatTimePeriod(mealState.time);
+  // TODO: NotifSettings에 drugs 필드 추가 시 연결
+  const drugNames: string[] = [];
 
   const handleComplete = async () => {
     // TODO: BE 연결 — POST /medications/checkin { meal, checked_at: new Date().toISOString() }
@@ -82,9 +87,7 @@ export function MedicationAlarmScreen({ navigation, route }: any) {
         </View>
         <Text style={[s.timeText, { marginBottom: spacing.s12 }]}>{timeDisplay}</Text>
         <Text style={s.mealLabel}>{MEAL_LABELS[meal]}</Text>
-        {drugNames.length > 0 && (
-          <Text style={s.drugNames}>{drugNames.join(' · ')}</Text>
-        )}
+        {drugNames.length > 0 && <Text style={s.drugNames}>{drugNames.join(' · ')}</Text>}
       </View>
 
       <View style={[s.actions, { bottom: insets.bottom + spacing.s24 }]}>
@@ -106,15 +109,14 @@ export function MedicationAlarmScreen({ navigation, route }: any) {
               disabled={snoozing !== null || done}
               activeOpacity={0.75}
             >
-              {snoozing === min
-                ? <ActivityIndicator color={colors.accent} size="small" />
-                : (
-                  <>
-                    <Icon name="clock" size={24} color={colors.accent700} />
-                    <Text style={s.snoozeLabel}>{min}분</Text>
-                  </>
-                )
-              }
+              {snoozing === min ? (
+                <ActivityIndicator color={colors.accent} size="small" />
+              ) : (
+                <>
+                  <Icon name="clock" size={24} color={colors.accent700} />
+                  <Text style={s.snoozeLabel}>{min}분</Text>
+                </>
+              )}
             </TouchableOpacity>
           ))}
         </View>

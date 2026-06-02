@@ -1,9 +1,15 @@
 import { apiClient } from './client';
 import { tokenStore } from './tokenStore';
 import type {
-  SignUpRequest, SignUpResponse, LoginRequest, LoginResponse, LogoutResponse,
-  EmailVerifySendRequest, EmailVerifySendResponse,
-  EmailVerifyConfirmRequest, EmailVerifyConfirmResponse,
+  SignUpRequest,
+  SignUpResponse,
+  LoginRequest,
+  LoginResponse,
+  LogoutResponse,
+  EmailVerifySendRequest,
+  EmailVerifySendResponse,
+  EmailVerifyConfirmRequest,
+  EmailVerifyConfirmResponse,
 } from './types';
 
 export async function signup(data: SignUpRequest): Promise<SignUpResponse> {
@@ -18,16 +24,19 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
 }
 
 export async function sendVerificationCode(
-  data: EmailVerifySendRequest,
+  data: EmailVerifySendRequest
 ): Promise<EmailVerifySendResponse> {
   const res = await apiClient.post<EmailVerifySendResponse>('/auth/email-verify/send-code', data);
   return res.data;
 }
 
 export async function verifyEmailCode(
-  data: EmailVerifyConfirmRequest,
+  data: EmailVerifyConfirmRequest
 ): Promise<EmailVerifyConfirmResponse> {
-  const res = await apiClient.post<EmailVerifyConfirmResponse>('/auth/email-verify/verify-code', data);
+  const res = await apiClient.post<EmailVerifyConfirmResponse>(
+    '/auth/email-verify/verify-code',
+    data
+  );
   return res.data;
 }
 
@@ -36,13 +45,23 @@ export async function requestPasswordReset(email: string): Promise<{ detail: str
   return res.data;
 }
 
-export async function confirmPasswordReset(email: string, code: string, new_password: string): Promise<{ detail: string }> {
-  const res = await apiClient.post<{ detail: string }>('/auth/password-reset/confirm', { email, code, new_password });
+export async function confirmPasswordReset(
+  email: string,
+  code: string,
+  new_password: string
+): Promise<{ detail: string }> {
+  const res = await apiClient.post<{ detail: string }>('/auth/password-reset/confirm', {
+    email,
+    code,
+    new_password,
+  });
   return res.data;
 }
 
 export async function refresh(refreshToken: string): Promise<{ access_token: string }> {
-  const res = await apiClient.post<{ access_token: string }>('/auth/refresh', { refresh_token: refreshToken });
+  const res = await apiClient.post<{ access_token: string }>('/auth/refresh', {
+    refresh_token: refreshToken,
+  });
   return res.data;
 }
 

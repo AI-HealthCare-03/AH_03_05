@@ -1,8 +1,11 @@
 import { apiClient } from './client';
 import type {
-  CreateSessionRequest, ChatSession,
-  ChatSessionListResponse, ChatMessagesResponse,
-  SendMessageRequest, SendMessageResponse,
+  CreateSessionRequest,
+  ChatSession,
+  ChatSessionListResponse,
+  ChatMessagesResponse,
+  SendMessageRequest,
+  SendMessageResponse,
 } from './types';
 
 interface _CreateSessionBEResponse {
@@ -33,22 +36,21 @@ export async function getChatSessions(params?: {
 
 export async function getChatMessages(
   sessionId: number,
-  params?: { limit?: number },
+  params?: { limit?: number }
 ): Promise<ChatMessagesResponse> {
-  const res = await apiClient.get<ChatMessagesResponse>(
-    `/chat/sessions/${sessionId}/messages`,
-    { params },
-  );
+  const res = await apiClient.get<ChatMessagesResponse>(`/chat/sessions/${sessionId}/messages`, {
+    params,
+  });
   return res.data;
 }
 
 export async function sendChatMessage(
   sessionId: number,
-  data: SendMessageRequest,
+  data: SendMessageRequest
 ): Promise<SendMessageResponse> {
   const res = await apiClient.post<SendMessageResponse>(
     `/chat/sessions/${sessionId}/messages`,
-    data,
+    data
   );
   return res.data;
 }

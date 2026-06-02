@@ -1,24 +1,24 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Sidebar from "../../components/Sidebar";
-import Icon from "../../components/Icon";
-import { colors } from "../../theme";
-import { useBreakpoint } from "../../hooks/useBreakpoint";
-import HomeNavigator from "./HomeNavigator";
-import RecordsNavigator from "./RecordsNavigator";
-import GuideNavigator from "./GuideNavigator";
-import ChatNavigator from "./ChatNavigator";
-import SettingsNavigator from "./SettingsNavigator";
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Sidebar from '../../components/Sidebar';
+import Icon from '../../components/Icon';
+import { colors } from '../../theme';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
+import HomeNavigator from './HomeNavigator';
+import RecordsNavigator from './RecordsNavigator';
+import GuideNavigator from './GuideNavigator';
+import ChatNavigator from './ChatNavigator';
+import SettingsNavigator from './SettingsNavigator';
 
 const Tab = createBottomTabNavigator();
 
 const TAB_ROOT_SCREENS: Record<string, string> = {
-  HomeTab: "Home",
-  RecordsTab: "RecordList",
-  GuideTab: "GuideResult",
-  ChatTab: "ChatList",
-  SettingsTab: "Settings",
+  HomeTab: 'Home',
+  RecordsTab: 'RecordList',
+  GuideTab: 'GuideResult',
+  ChatTab: 'ChatList',
+  SettingsTab: 'Settings',
 };
 
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
@@ -36,7 +36,7 @@ function TabNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: isDesktop
-          ? { display: "none" }
+          ? { display: 'none' }
           : {
               backgroundColor: colors.surface,
               borderTopColor: colors.hairline,
@@ -46,22 +46,30 @@ function TabNavigator() {
             },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "500" as const },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' as const },
       }}
     >
       <Tab.Screen
         name="HomeTab"
         component={HomeNavigator}
         options={{
-          title: "홈",
+          title: '홈',
           tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />,
         }}
         listeners={({ navigation, route }) => ({
-          tabPress: (e) => {
+          tabPress: e => {
             const isFocused = navigation.isFocused();
             if (!isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: route.name,
+                  state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] },
+                },
+              ],
+            });
           },
         })}
       />
@@ -69,15 +77,23 @@ function TabNavigator() {
         name="RecordsTab"
         component={RecordsNavigator}
         options={{
-          title: "진료기록",
+          title: '진료기록',
           tabBarIcon: ({ focused }) => <TabIcon name="doc" focused={focused} />,
         }}
         listeners={({ navigation, route }) => ({
-          tabPress: (e) => {
+          tabPress: e => {
             const isFocused = navigation.isFocused();
             if (!isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: route.name,
+                  state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] },
+                },
+              ],
+            });
           },
         })}
       />
@@ -85,15 +101,23 @@ function TabNavigator() {
         name="GuideTab"
         component={GuideNavigator}
         options={{
-          title: "가이드",
+          title: '가이드',
           tabBarIcon: ({ focused }) => <TabIcon name="wand" focused={focused} />,
         }}
         listeners={({ navigation, route }) => ({
-          tabPress: (e) => {
+          tabPress: e => {
             const isFocused = navigation.isFocused();
             if (!isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: route.name,
+                  state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] },
+                },
+              ],
+            });
           },
         })}
       />
@@ -101,15 +125,23 @@ function TabNavigator() {
         name="ChatTab"
         component={ChatNavigator}
         options={{
-          title: "건강상담",
+          title: '건강상담',
           tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />,
         }}
         listeners={({ navigation, route }) => ({
-          tabPress: (e) => {
+          tabPress: e => {
             const isFocused = navigation.isFocused();
             if (!isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: route.name,
+                  state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] },
+                },
+              ],
+            });
           },
         })}
       />
@@ -117,15 +149,23 @@ function TabNavigator() {
         name="SettingsTab"
         component={SettingsNavigator}
         options={{
-          title: "설정",
+          title: '설정',
           tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />,
         }}
         listeners={({ navigation, route }) => ({
-          tabPress: (e) => {
+          tabPress: e => {
             const isFocused = navigation.isFocused();
             if (!isFocused) return;
             e.preventDefault();
-            navigation.reset({ index: 0, routes: [{ name: route.name, state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] } }] });
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: route.name,
+                  state: { index: 0, routes: [{ name: TAB_ROOT_SCREENS[route.name] }] },
+                },
+              ],
+            });
           },
         })}
       />
@@ -153,11 +193,11 @@ export default function MainNavigator() {
 const nav = StyleSheet.create({
   desktopShell: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: colors.canvas,
   },
   desktopContent: {
     flex: 1,
-    overflow: "hidden" as const,
+    overflow: 'hidden' as const,
   },
 });

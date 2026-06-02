@@ -1,15 +1,26 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import Card from '../../components/Card';
 import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { ChatSessionPane } from './ChatSessionPane';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { ChatStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<ChatStackParams, 'ChatSession'>;
 
 const TAB_BAR_HEIGHT = 80;
 
-export function ChatSessionScreen({ navigation, route }: any) {
+export function ChatSessionScreen({ navigation, route }: Props) {
   const { top: safeTop } = useSafeAreaInsets();
   const { isDesktop } = useBreakpoint();
   const sessionId: string | undefined = route?.params?.sessionId;
@@ -18,8 +29,17 @@ export function ChatSessionScreen({ navigation, route }: any) {
 
   if (!sessionId) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: typography.fz14, color: colors.muted }}>상담 내역을 찾을 수 없어요.</Text>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.canvas,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text style={{ fontSize: typography.fz14, color: colors.muted }}>
+          상담 내역을 찾을 수 없어요.
+        </Text>
       </View>
     );
   }
@@ -36,7 +56,9 @@ export function ChatSessionScreen({ navigation, route }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={cs.iconBtn}>
             <Icon name="arrow-left" size={16} color={colors.ink2} />
           </TouchableOpacity>
-          <Text style={[cs.title, { marginLeft: spacing.s8 }]} numberOfLines={1}>건강 상담</Text>
+          <Text style={[cs.title, { marginLeft: spacing.s8 }]} numberOfLines={1}>
+            건강 상담
+          </Text>
         </View>
       )}
       <View style={cs.header2}>
@@ -44,9 +66,13 @@ export function ChatSessionScreen({ navigation, route }: any) {
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
         <View style={{ flex: 1, marginLeft: spacing.s8 }}>
-          <Text style={cs.sessionTitle} numberOfLines={1}>{sessionTitle}</Text>
+          <Text style={cs.sessionTitle} numberOfLines={1}>
+            {sessionTitle}
+          </Text>
           {sessionSubtitle ? (
-            <Text style={cs.sessionSubtitle} numberOfLines={1}>{sessionSubtitle}</Text>
+            <Text style={cs.sessionSubtitle} numberOfLines={1}>
+              {sessionSubtitle}
+            </Text>
           ) : null}
         </View>
       </View>
@@ -57,7 +83,9 @@ export function ChatSessionScreen({ navigation, route }: any) {
   // 모바일: 카드 컨테이너에 좌우 여백 적용
   if (!isDesktop) {
     return (
-      <View style={[cs.mobileCanvas, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop) }]}>
+      <View
+        style={[cs.mobileCanvas, { paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop) }]}
+      >
         <Card shadow noPadding style={cs.mobileCard}>
           {inner}
         </Card>
@@ -66,11 +94,7 @@ export function ChatSessionScreen({ navigation, route }: any) {
   }
 
   // 데스크탑: 기존 풀사이즈 레이아웃
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.canvas }}>
-      {inner}
-    </View>
-  );
+  return <View style={{ flex: 1, backgroundColor: colors.canvas }}>{inner}</View>;
 }
 
 const cs = StyleSheet.create({
@@ -78,7 +102,7 @@ const cs = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: spacing.s12,
-    paddingBottom: 14,
+    paddingBottom: spacing.s14,
     paddingHorizontal: spacing.s16,
     backgroundColor: colors.surface,
     borderBottomWidth: 0.5,
@@ -93,10 +117,10 @@ const cs = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: colors.hairline,
   },
-  iconBtn:         { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  title:           { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
-  sessionTitle:    { fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink },
-  sessionSubtitle: { fontSize: typography.fz12, color: colors.muted, marginTop: 2 },
+  iconBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
+  sessionTitle: { fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink },
+  sessionSubtitle: { fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 },
   mobileCanvas: {
     flex: 1,
     backgroundColor: colors.canvas,

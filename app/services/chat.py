@@ -1,5 +1,6 @@
 from tortoise.transactions import in_transaction
 
+from app.exceptions.common import NotFoundException
 from app.models.chat_messages import ChatMessage, SenderType
 from app.models.chat_sessions import ChatSession, ChatSessionStatus
 from app.models.medical_records import MedicalRecord
@@ -125,10 +126,17 @@ class ChatService:
         limit: int = 20,
         offset: int = 0,
     ) -> tuple[list[ChatSession], int]:
-        query = ChatSession.filter(user=user)
+        query = ChatSession.filter(user=user).exclude(status=ChatSessionStatus.DELETED)
         total = await query.count()
         sessions = await query.order_by("-updated_at").offset(offset).limit(limit)
         return sessions, total
+
+    async def delete_session(self, user: User, session_id: int) -> None:
+        session = await ChatSession.get_or_none(id=session_id, user=user)
+        if session is None:
+            raise NotFoundException("채팅 세션을 찾을 수 없습니다.")
+        session.status = ChatSessionStatus.DELETED
+        await session.save(update_fields=["status", "updated_at"])
 
     async def list_messages(
         self,

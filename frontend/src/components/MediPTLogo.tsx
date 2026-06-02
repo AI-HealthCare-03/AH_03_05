@@ -20,18 +20,19 @@ export default function MediPTLogo({ width = 140 }: Props) {
     const height = Math.round(width / ASPECT);
     return (
       <Image
-        source={{ uri: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(isDark ? SVG_DARK : SVG_LIGHT)}` }}
+        source={{
+          uri: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(isDark ? SVG_DARK : SVG_LIGHT)}`,
+        }}
         style={{ width, height }}
         resizeMode="contain"
       />
     );
   }
 
-  const logoSource = colorScheme === 'dark'
-    ? require('../../assets/logo-dark.png')
-    : require('../../assets/logo-light.png');
+  const logoSource =
+    colorScheme === 'dark'
+      ? require('../../assets/logo-dark.png')
+      : require('../../assets/logo-light.png');
 
-  return (
-    <Image source={logoSource} style={{ width: 120, height: 34 }} resizeMode="contain" />
-  );
+  return <Image source={logoSource} style={{ width: 120, height: 34 }} resizeMode="contain" />;
 }
