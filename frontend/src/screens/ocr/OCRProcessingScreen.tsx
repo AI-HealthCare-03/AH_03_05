@@ -5,7 +5,7 @@ import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
-import { colors, spacing, typography } from "../../theme";
+import { colors, radii, spacing, typography } from "../../theme";
 import { ocrApi, jobsApi, extractApiError } from "../../api";
 import { s } from "./_ocrShared";
 

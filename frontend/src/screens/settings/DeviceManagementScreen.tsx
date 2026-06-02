@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
-import { colors, spacing, typography } from '../../theme';
+import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
