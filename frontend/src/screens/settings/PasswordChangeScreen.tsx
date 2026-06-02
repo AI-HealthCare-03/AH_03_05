@@ -9,8 +9,12 @@ import Input from '../../components/Input';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s, Rule } from './_settingsShared';
 import { usersApi, extractApiError } from '../../api';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '../../navigation/types';
 
-export function PasswordChangeScreen({ navigation }: any) {
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'PasswordChange'>;
+
+export function PasswordChangeScreen({ navigation }: { navigation: NavProp }) {
   const { flash } = useApp();
   const [cur, setCur] = useState('');
   const [pw, setPw]   = useState('');

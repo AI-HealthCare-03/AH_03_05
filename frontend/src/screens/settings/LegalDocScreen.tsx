@@ -3,6 +3,10 @@ import { View, Text } from 'react-native';
 import { colors, spacing, typography } from '../../theme';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<SettingsStackParams, 'LegalDoc'>;
 
 const LEGAL_DOCS: Record<string, { title: string; version: string; sections: { h: string; b: string }[] }> = {
   tos: {
@@ -28,8 +32,8 @@ const LEGAL_DOCS: Record<string, { title: string; version: string; sections: { h
   },
 };
 
-export function LegalDocScreen({ navigation, route }: any) {
-  const docKey: string = route?.params?.docKey || 'tos';
+export function LegalDocScreen({ navigation, route }: Props) {
+  const docKey: string = route.params.docKey || 'tos';
   const doc = LEGAL_DOCS[docKey] || LEGAL_DOCS.tos;
   return (
     <ScreenLayout title={doc.title} back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>

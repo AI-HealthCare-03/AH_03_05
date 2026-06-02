@@ -78,8 +78,9 @@ export interface OcrDrug {
   name: string;
   maker: string;
   time: string;
-  confidence: number;
+  confidence: number | null;
   status: "ok" | "needsCheck";
+  isManual?: boolean;
 }
 
 export interface OcrSession {

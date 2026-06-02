@@ -3,7 +3,10 @@ import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, StyleSheet 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
-import type { RootStackParams } from '../../navigation/types';
+import type { RootStackParams, SettingsStackParams } from '../../navigation/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'Settings'>;
 import { useApp, defaultUser } from '../../context/AppContext';
 import { authApi, usersApi, extractApiError } from '../../api';
 import Icon from '../../components/Icon';
@@ -15,7 +18,7 @@ import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
 
-const MENU_SECTIONS: { icon: string; label: string; to: string; params?: Record<string, string> }[][] = [
+const MENU_SECTIONS: { icon: string; label: string; to: keyof SettingsStackParams }[][] = [
   [
     { icon: 'wand', label: '건강 프로필', to: 'HealthProfileEdit' },
     { icon: 'list', label: '건강 프로필 변경 이력', to: 'HealthProfileHistory' },
@@ -31,7 +34,7 @@ const MENU_SECTIONS: { icon: string; label: string; to: string; params?: Record<
 ];
 
 
-export function SettingsScreen({ navigation }: any) {
+export function SettingsScreen({ navigation }: { navigation: NavProp }) {
   const { user, setUser, flash } = useApp();
   const [loading, setLoading] = useState(true);
   const [nicknameEdit, setNicknameEdit] = useState(false);
@@ -162,7 +165,7 @@ export function SettingsScreen({ navigation }: any) {
               key={it.label}
               icon={it.icon}
               label={it.label}
-              onPress={() => navigation.navigate(it.to, it.params)}
+              onPress={() => navigation.navigate(it.to)}
               separator={ji > 0}
             />
           ))}

@@ -13,6 +13,10 @@ import { colors, spacing, typography } from '../../theme';
 import { recordsApi, medicationsApi, extractApiError } from '../../api';
 import type { MedicationCandidate } from '../../api';
 import { s } from './_ocrShared';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<HomeStackParams, 'OCRResult'>;
 
 function buildCandidateTime(c: MedicationCandidate): string {
   if (!c.frequency && !c.timing) return '';
@@ -23,7 +27,7 @@ function buildCandidateTime(c: MedicationCandidate): string {
   return `1일 ${parts.join(' · ')}`;
 }
 
-export function OCRResultScreen({ navigation, route }: any) {
+export function OCRResultScreen({ navigation, route }: Props) {
   const recordId: number | undefined = route?.params?.recordId;
   const inputMethod: string | undefined = route?.params?.inputMethod;
   const { ocrSession, setOcrSession, flash } = useApp();
@@ -158,7 +162,7 @@ export function OCRResultScreen({ navigation, route }: any) {
 
         {displayDrugs.map((d, i) => {
           const warn = d.status === 'needsCheck';
-          const manual = (d as any).isManual as boolean | undefined;
+          const manual = d.isManual;
           const bgColor = manual ? colors.accent50 : warn ? colors.warning50 : colors.success50;
           const dotColor = manual ? colors.accent700 : warn ? colors.warning : colors.success;
           return (

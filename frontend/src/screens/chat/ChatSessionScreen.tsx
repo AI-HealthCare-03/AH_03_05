@@ -6,10 +6,14 @@ import Card from '../../components/Card';
 import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { ChatSessionPane } from './ChatSessionPane';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { ChatStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<ChatStackParams, 'ChatSession'>;
 
 const TAB_BAR_HEIGHT = 80;
 
-export function ChatSessionScreen({ navigation, route }: any) {
+export function ChatSessionScreen({ navigation, route }: Props) {
   const { top: safeTop } = useSafeAreaInsets();
   const { isDesktop } = useBreakpoint();
   const sessionId: string | undefined = route?.params?.sessionId;

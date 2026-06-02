@@ -9,6 +9,10 @@ import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
 import { usersApi } from '../../api';
 import type { ConsentType } from '../../api';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '../../navigation/types';
+
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'ConsentHistory'>;
 
 const DOC_KEY: Record<ConsentType, 'tos' | 'privacy' | 'sensitive'> = {
   terms: 'tos',
@@ -35,7 +39,7 @@ const STATIC_CONSENTS: ConsentRow[] = [
   { type: 'marketing',       name: '마케팅 수신 동의',            required: false, agreed: false, agreedAt: null },
 ];
 
-export function ConsentHistoryScreen({ navigation }: any) {
+export function ConsentHistoryScreen({ navigation }: { navigation: NavProp }) {
   const { flash } = useApp();
   const [consents, setConsents] = useState<ConsentRow[]>(STATIC_CONSENTS);
   const [loadingConsents, setLoadingConsents] = useState(true);

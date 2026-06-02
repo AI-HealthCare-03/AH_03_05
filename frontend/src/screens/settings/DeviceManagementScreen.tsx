@@ -8,6 +8,10 @@ import Card from '../../components/Card';
 import Badge from '../../components/Badge';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '../../navigation/types';
+
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'DeviceManagement'>;
 
 type Device = {
   id: string;
@@ -50,7 +54,7 @@ function DeviceRow({ device: d, isFirst, onRevoke }: DeviceRowProps) {
   );
 }
 
-export function DeviceManagementScreen({ navigation }: any) {
+export function DeviceManagementScreen({ navigation }: { navigation: NavProp }) {
   const { flash } = useApp();
   const [devices, setDevices] = useState<Device[]>(INITIAL_DEVICES);
 

@@ -9,9 +9,12 @@ import { colors, radii, spacing, typography } from "../../theme";
 import { drugsApi } from "../../api";
 import type { DrugSearchResult } from "../../api";
 import EmptyState from "../../components/EmptyState";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParams } from '../../navigation/types';
 
+type Props = NativeStackScreenProps<HomeStackParams, 'DrugCandidate'>;
 
-export function DrugCandidateScreen({ navigation, route }: any) {
+export function DrugCandidateScreen({ navigation, route }: Props) {
   const drugIndex: number | undefined = route?.params?.drugIndex;
   const [query, setQuery] = useState(route?.params?.medicationName ?? "");
   const [results, setResults] = useState<DrugSearchResult[]>([]);

@@ -12,6 +12,10 @@ import SectionHeader from "../../components/SectionHeader";
 import { recordsApi, extractApiError } from "../../api";
 import type { RecordDetail, MedicationItem, RecordGuideResponse } from "../../api";
 import { RECORD_LABEL, formatDate, getRecordColor, iconFor } from "./_recordsShared";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RecordsStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<RecordsStackParams, 'RecordDetail'>;
 import EmptyState from "../../components/EmptyState";
 
 function mapApiError(err: any): string {
@@ -22,7 +26,7 @@ function mapApiError(err: any): string {
   return extractApiError(err) || "오류가 발생했습니다.";
 }
 
-export function RecordDetailScreen({ navigation, route }: any) {
+export function RecordDetailScreen({ navigation, route }: Props) {
   const { flash } = useApp();
   const recordId: number | undefined = route?.params?.recordId;
   const [record, setRecord] = useState<RecordDetail | null>(null);

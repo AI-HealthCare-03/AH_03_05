@@ -9,6 +9,10 @@ import Input from "../../components/Input";
 import ScreenLayout from "../../components/ScreenLayout";
 import { healthProfileApi, extractApiError } from "../../api";
 import { s } from "./_settingsShared";
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '../../navigation/types';
+
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'HealthProfileEdit'>;
 
 const AGE_MAP: Record<string, string> = { '20대': '20s', '30대': '30s', '40대': '40s', '50대': '50s', '60대+': '60s' };
 const GENDER_MAP: Record<string, string | undefined> = { '여성': 'F', '남성': 'M', '답변 안 함': undefined };
@@ -67,7 +71,7 @@ function ChipField({ label, fieldKey, options, value, onSelect }: ChipFieldProps
   );
 }
 
-export function HealthProfileEditScreen({ navigation }: any) {
+export function HealthProfileEditScreen({ navigation }: { navigation: NavProp }) {
   const { user, setUser, flash } = useApp();
   const [form, setForm] = useState<FormState>({
     age: user.age || "40대",

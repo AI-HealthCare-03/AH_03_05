@@ -4,7 +4,7 @@ import {
   Animated, Modal, Platform, TouchableOpacity, View, Text, ScrollView, StyleSheet,
 } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp, type ParamListBase } from '@react-navigation/native';
 import { useApp, type Notification } from '../context/AppContext';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { colors, radii, shadows, spacing, typography } from '../theme';
@@ -21,7 +21,7 @@ export default function NotificationDrawer() {
   const { notifDrawerOpen, setNotifDrawerOpen, notifications, setNotifications, flash, markNotificationRead } = useApp();
   const { isDesktopOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [rendered, setRendered] = useState(false);
   const slideAnim = useRef(new Animated.Value(DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;

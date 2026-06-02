@@ -10,6 +10,10 @@ import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '../../navigation/types';
+
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'NotificationSettings'>;
 
 type MealState = { on: boolean; time: string };
 type MealKey = 'morning' | 'lunch' | 'dinner';
@@ -95,7 +99,7 @@ function ToggleRow({ label, sub, val, onChange }: ToggleRowProps) {
   );
 }
 
-export function NotificationSettingsScreen({ navigation }: any) {
+export function NotificationSettingsScreen({ navigation }: { navigation: NavProp }) {
   const { flash, notifSettings, setNotifSettings } = useApp();
   const [master, setMaster]   = useState(notifSettings.master);
   const [morning, setMorning] = useState<MealState>(notifSettings.morning);

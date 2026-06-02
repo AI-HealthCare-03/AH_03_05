@@ -9,6 +9,10 @@ import ScreenLayout from '../../components/ScreenLayout';
 import ProgressBar from '../../components/ProgressBar';
 import { guidesApi, jobsApi, extractApiError } from '../../api';
 import type { AsyncJobStatus } from '../../api';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<HomeStackParams, 'GuideLoading'>;
 
 // ─── 모듈 레벨 상수 ────────────────────────────────────────────────────────────
 
@@ -27,7 +31,7 @@ const JOB_PROGRESS: Partial<Record<AsyncJobStatus, number>> = {
 
 // ─── GuideLoadingScreen ────────────────────────────────────────────────────────
 
-export function GuideLoadingScreen({ navigation, route }: any) {
+export function GuideLoadingScreen({ navigation, route }: Props) {
   const { top: safeTop } = useSafeAreaInsets();
   const recordId: number | undefined = route?.params?.recordId;
 

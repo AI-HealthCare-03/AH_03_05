@@ -8,8 +8,12 @@ import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
 import { colors, radii, spacing, typography } from "../../theme";
 import { s } from "./_ocrShared";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParams } from '../../navigation/types';
 
-export function DrugDosageScreen({ navigation, route }: any) {
+type Props = NativeStackScreenProps<HomeStackParams, 'DrugDosage'>;
+
+export function DrugDosageScreen({ navigation, route }: Props) {
   const { flash, ocrSession, setOcrSession } = useApp();
   const drugIndex: number | undefined = route?.params?.drugIndex;
   const medicationId: number | undefined = route?.params?.medicationId;
@@ -62,7 +66,8 @@ export function DrugDosageScreen({ navigation, route }: any) {
     }
   };
 
-  const Section = ({ label, options, value, onChange }: any) => (
+  type SectionProps = { label: string; options: string[]; value: string; onChange: (v: string) => void };
+  const Section = ({ label, options, value, onChange }: SectionProps) => (
     <View style={{ marginBottom: spacing.s20 }}>
       <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2, marginBottom: spacing.s8 }}>{label}</Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.s8 }}>

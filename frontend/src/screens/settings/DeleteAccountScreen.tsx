@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
-import type { RootStackParams } from '../../navigation/types';
+import type { RootStackParams, SettingsStackParams } from '../../navigation/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'DeleteAccount'>;
 import { useApp, defaultUser } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Banner from '../../components/Banner';
@@ -43,7 +46,7 @@ function CheckRow({ label, checked, onToggle }: CheckRowProps) {
   );
 }
 
-export function DeleteAccountScreen({ navigation }: any) {
+export function DeleteAccountScreen({ navigation }: { navigation: NavProp }) {
   const { user, setUser, flash } = useApp();
   const [step, setStep] = useState(1);
   const [checked, setChecked] = useState({ data: false, irreversible: false, alt: false });

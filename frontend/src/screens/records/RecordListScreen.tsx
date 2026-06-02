@@ -9,6 +9,10 @@ import IconCircle from "../../components/IconCircle";
 import { recordsApi, extractApiError } from "../../api";
 import type { RecordSummary } from "../../api";
 import { RECORD_LABEL, FILTER_TO_TYPE, iconFor, formatDate, getRecordColor, s } from "./_recordsShared";
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RecordsStackParams, RootStackParams } from '../../navigation/types';
+
+type NavProp = NativeStackNavigationProp<RecordsStackParams, 'RecordList'>;
 import EmptyState from "../../components/EmptyState";
 
 function statusChip(status: string): { label: string; color: string; bg: string } {
@@ -57,7 +61,7 @@ function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
   );
 }
 
-export function RecordListScreen({ navigation }: any) {
+export function RecordListScreen({ navigation }: { navigation: NavProp }) {
   const [filter, setFilter] = useState("전체");
   const [records, setRecords] = useState<RecordSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +103,7 @@ export function RecordListScreen({ navigation }: any) {
         variant="primary"
         size="sm"
         leftIcon="camera"
-        onPress={() => navigation.navigate("UploadModal")}
+        onPress={() => (navigation as unknown as NativeStackNavigationProp<RootStackParams>).navigate("UploadModal")}
       >
         업로드
       </Button>

@@ -12,6 +12,10 @@ import { ChatSessionPane } from './ChatSessionPane';
 import { chatApi } from '../../api';
 import type { ChatSession, ChatMessageItem } from '../../api';
 import EmptyState from '../../components/EmptyState';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { ChatStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<ChatStackParams, 'ChatList'>;
 function formatTime(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -25,7 +29,7 @@ function formatTime(iso?: string): string {
 }
 
 
-export function ChatListScreen({ navigation, route }: any) {
+export function ChatListScreen({ navigation, route }: Props) {
   const { top: safeTop } = useSafeAreaInsets();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);

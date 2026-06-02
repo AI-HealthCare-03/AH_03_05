@@ -28,7 +28,7 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const scrollRef = useRef<ScrollView>(null);
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<TextInput | null>(null);
   const cachedRef = useRef(cachedMessages);
   const onMessagesChangeRef = useRef(onMessagesChange);
   useLayoutEffect(() => {

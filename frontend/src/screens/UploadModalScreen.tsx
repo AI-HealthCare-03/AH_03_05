@@ -8,6 +8,10 @@ import { colors, radii, spacing, typography } from '../theme';
 import { uploadRecord, createManualRecord } from '../api/records';
 import type { UploadFile } from '../api/records';
 import type { RecordType } from '../api/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParams } from '../navigation/types';
+
+type NavProp = NativeStackNavigationProp<RootStackParams, 'UploadModal'>;
 
 const TYPE_MAP: Record<string, RecordType> = {
   '처방전': 'prescription',
@@ -47,7 +51,7 @@ function SourceCard({ src, onPress }: SourceCardProps) {
   );
 }
 
-export default function UploadModalScreen({ navigation }: any) {
+export default function UploadModalScreen({ navigation }: { navigation: NavProp }) {
   const [type, setType] = useState('처방전');
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
@@ -83,7 +87,7 @@ export default function UploadModalScreen({ navigation }: any) {
       const res = await uploadRecord(file, TYPE_MAP[type]);
       setUploadDone(true);
       setTimeout(() => {
-        (navigation as any).navigate('Main', {
+        (navigation as NativeStackNavigationProp<RootStackParams>).navigate('Main', {
           screen: 'HomeTab',
           params: { screen: 'OCRProcessing', params: { recordId: res.record_id } },
         });
@@ -124,7 +128,7 @@ export default function UploadModalScreen({ navigation }: any) {
       const res = await createManualRecord(manualText.trim());
       setUploadDone(true);
       setTimeout(() => {
-        (navigation as any).navigate('Main', {
+        (navigation as NativeStackNavigationProp<RootStackParams>).navigate('Main', {
           screen: 'HomeTab',
           params: { screen: 'OCRResult', params: { recordId: res.record_id, inputMethod: 'manual' } },
         });

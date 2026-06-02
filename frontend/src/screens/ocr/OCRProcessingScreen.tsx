@@ -8,6 +8,11 @@ import ScreenLayout from "../../components/ScreenLayout";
 import { colors, radii, spacing, typography } from "../../theme";
 import { ocrApi, jobsApi, extractApiError } from "../../api";
 import { s } from "./_ocrShared";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParams, RootStackParams } from '../../navigation/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type Props = NativeStackScreenProps<HomeStackParams, 'OCRProcessing'>;
 
 const STEPS = [
   { label: "이미지 보정", icon: "image" },
@@ -42,7 +47,7 @@ function StepItem({ st, index: i, step }: StepItemProps) {
   );
 }
 
-export function OCRProcessingScreen({ navigation, route }: any) {
+export function OCRProcessingScreen({ navigation, route }: Props) {
   const { top: safeTop } = useSafeAreaInsets();
   const recordId: number | undefined = route?.params?.recordId;
   const [step, setStep] = useState(0);
@@ -187,7 +192,7 @@ export function OCRProcessingScreen({ navigation, route }: any) {
                 variant="primary"
                 onPress={() => {
                   if (navigation.canGoBack()) navigation.goBack();
-                  else navigation.navigate('Main');
+                  else (navigation as unknown as NativeStackNavigationProp<RootStackParams>).navigate('Main');
                 }}
               >
                 돌아가기

@@ -8,9 +8,13 @@ import Card from "../../components/Card";
 import ScreenLayout from "../../components/ScreenLayout";
 import { guidesApi, feedbacksApi, extractApiError } from "../../api";
 import type { GuideResponse } from "../../api";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParams } from '../../navigation/types';
 import EmptyState from "../../components/EmptyState";
 import Banner from "../../components/Banner";
 import SectionHeader from "../../components/SectionHeader";
+
+type Props = NativeStackScreenProps<HomeStackParams, 'GuideResult'>;
 
 // ─── 헬퍼 ─────────────────────────────────────────────────────────────────────
 
@@ -40,7 +44,7 @@ function GuideItemCard({ item }: { item: GuideItem }) {
 
 // ─── GuideResultScreen ─────────────────────────────────────────────────────────
 
-export function GuideResultScreen({ navigation, route }: any) {
+export function GuideResultScreen({ navigation, route }: Props) {
   const [tab, setTab] = useState<"med" | "life">("med");
   const [feedback, setFeedback] = useState<"good" | "bad" | null>(null);
   const [commentVisible, setCommentVisible] = useState(false);

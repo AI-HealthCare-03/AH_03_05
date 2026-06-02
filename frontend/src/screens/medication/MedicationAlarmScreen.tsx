@@ -3,6 +3,10 @@ import { View, Text, StyleSheet, Platform, TouchableOpacity, ActivityIndicator }
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { useApp } from '../../context/AppContext';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<RootStackParams, 'MedicationAlarm'>;
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 
@@ -30,7 +34,7 @@ function formatTime(time: string): string {
   return `${period} ${displayH}:${String(m).padStart(2, '0')}`;
 }
 
-export function MedicationAlarmScreen({ navigation, route }: any) {
+export function MedicationAlarmScreen({ navigation, route }: Props) {
   const meal: MealKey = route?.params?.meal ?? 'morning';
   const { notifSettings } = useApp();
   const insets = useSafeAreaInsets();
@@ -39,8 +43,8 @@ export function MedicationAlarmScreen({ navigation, route }: any) {
 
   const mealState = notifSettings[meal];
   const timeDisplay = formatTime(mealState.time);
-  // TODO: NotifSettings에 drugs 필드 추가 시 아래 타입 확장 필요
-  const drugNames: string[] = (mealState as any).drugs ?? [];
+  // TODO: NotifSettings에 drugs 필드 추가 시 연결
+  const drugNames: string[] = [];
 
   const handleComplete = async () => {
     // TODO: BE 연결 — POST /medications/checkin { meal, checked_at: new Date().toISOString() }

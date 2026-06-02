@@ -9,6 +9,10 @@ import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
 import { notificationsApi } from '../../api';
 import EmptyState from '../../components/EmptyState';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams, RootStackParams } from '../../navigation/types';
+
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'Notifications'>;
 
 type NotificationRowProps = {
   item: Notification;
@@ -48,7 +52,7 @@ function mapNotifIcon(t: string): string {
   return 'bell';
 }
 
-export function NotificationsScreen({ navigation }: any) {
+export function NotificationsScreen({ navigation }: { navigation: NavProp }) {
   const { notifications, setNotifications, flash, markNotificationRead } = useApp();
   const [loadError, setLoadError] = useState('');
 
@@ -82,7 +86,7 @@ export function NotificationsScreen({ navigation }: any) {
         .catch(() => flash('읽음 처리에 실패했어요'));
     }
     if (n.type === 'medication') {
-      navigation.navigate('MedicationAlarm', {});
+      (navigation as unknown as NativeStackNavigationProp<RootStackParams>).navigate('MedicationAlarm', {});
     }
   };
 

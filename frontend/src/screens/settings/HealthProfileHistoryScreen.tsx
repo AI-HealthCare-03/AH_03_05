@@ -6,6 +6,10 @@ import Badge from '../../components/Badge';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import type { BadgeVariant } from '../../components/Badge';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '../../navigation/types';
+
+type NavProp = NativeStackNavigationProp<SettingsStackParams, 'HealthProfileHistory'>;
 
 type ActionType = '추가' | '수정' | '삭제';
 
@@ -36,7 +40,7 @@ function formatLabel(item: HistoryItem): string {
   return `${item.field} ${item.action}: ${item.detail}`;
 }
 
-export function HealthProfileHistoryScreen({ navigation }: any) {
+export function HealthProfileHistoryScreen({ navigation }: { navigation: NavProp }) {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 

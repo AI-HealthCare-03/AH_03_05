@@ -9,6 +9,10 @@ import Input from '../../components/Input';
 import { colors, radii, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { healthProfileApi, extractApiError } from '../../api';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { OnboardingStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<OnboardingStackParams, 'OnboardingStep'>;
 
 const AGE_MAP: Record<string, string> = { '20대': '20s', '30대': '30s', '40대': '40s', '50대': '50s', '60대+': '60s' };
 const GENDER_MAP: Record<string, string | undefined> = { '여성': 'F', '남성': 'M', '답변 안 함': undefined };
@@ -22,7 +26,7 @@ const STEP2_PLACEHOLDERS = ['예: 고혈압, 제2형 당뇨', '예: 페니실린
 
 const splitList = (s: string) => s.split(',').map(v => v.trim()).filter(Boolean);
 
-export default function OnboardingScreen({ navigation, route }: any) {
+export default function OnboardingScreen({ navigation, route }: Props) {
   const step: number = route?.params?.step ?? 1;
   const { user, setUser } = useApp();
   const { isTabletOrAbove } = useBreakpoint();

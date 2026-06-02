@@ -8,6 +8,10 @@ import ScreenLayout from '../../components/ScreenLayout';
 import { colors, radii, spacing, typography } from '../../theme';
 import { drugsApi, extractApiError } from '../../api';
 import type { DrugDetail } from '../../api';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParams } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<HomeStackParams, 'DrugDetail'>;
 
 // Session-scoped cache — persists across back/forward navigations without a network hit
 const cache = new Map<number, { data: DrugDetail; date: string }>();
@@ -17,7 +21,7 @@ function todayStr() {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function DrugDetailScreen({ navigation, route }: any) {
+export function DrugDetailScreen({ navigation, route }: Props) {
   const drugId: number | undefined = route?.params?.drugId;
   const cached = drugId != null ? cache.get(drugId) : undefined;
 

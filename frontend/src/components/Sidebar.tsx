@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useNavigation, useNavigationState } from "@react-navigation/native";
+import { useNavigation, useNavigationState, type NavigationProp, type ParamListBase } from "@react-navigation/native";
 import { useApp } from "../context/AppContext";
 import Icon from "./Icon";
 import MediPTLogo from "./MediPTLogo";
@@ -34,7 +34,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const { user } = useApp();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
   const { activeTab, activeScreen } = useNavigationState((state) => {
     try {
@@ -56,7 +56,7 @@ export default function Sidebar() {
   const isItemActive = (item: { tab: string; screen?: string }) => item.tab === activeTab;
 
   const go = (tab: string, screen?: string) => {
-    navigation.navigate(tab as never, { screen: screen ?? TAB_ROOT_SCREENS[tab] } as never);
+    (navigation as unknown as { navigate: (tab: string, params?: object) => void }).navigate(tab, { screen: screen ?? TAB_ROOT_SCREENS[tab] });
   };
 
   return (

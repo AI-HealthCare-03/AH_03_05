@@ -9,6 +9,10 @@ import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import { colors, radii, spacing, typography } from "../../theme";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { HomeStackParams, RootStackParams } from '../../navigation/types';
+
+type NavProp = NativeStackNavigationProp<HomeStackParams, 'Home'>;
 import Card from "../../components/Card";
 import Badge from "../../components/Badge";
 import SectionHeader from "../../components/SectionHeader";
@@ -39,7 +43,19 @@ function useMonthData(y: number, m: number): { day: number; status: DayStatus }[
   return arr;
 }
 
-function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, showTodayBtn, onToday }: any) {
+type MonthCalendarProps = {
+  y: number;
+  m: number;
+  data: { day: number; status: 'today' | 'done' | 'missed' | 'future' }[];
+  onPrev: () => void;
+  onNext: () => void;
+  onDayClick: (day: number) => void;
+  selectedDay: number;
+  showTodayBtn: boolean;
+  onToday: () => void;
+};
+
+function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, showTodayBtn, onToday }: MonthCalendarProps) {
   const firstDay = new Date(y, m - 1, 1).getDay();
   const weekHeads = ["일", "월", "화", "수", "목", "금", "토"];
   const blanks = Array.from({ length: firstDay });
@@ -74,7 +90,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
         {blanks.map((_, i) => (
           <View key={"b" + i} style={s.calCell} />
         ))}
-        {data.map(({ day, status }: any) => {
+        {data.map(({ day, status }) => {
           const dow = (firstDay + day - 1) % 7;
           const isToday = status === "today";
           const isSelected = selectedDay === day;
@@ -92,7 +108,7 @@ function MonthCalendar({ y, m, data, onPrev, onNext, onDayClick, selectedDay, sh
 
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
-export default function HomeScreen({ navigation }: any) {
+export default function HomeScreen({ navigation }: { navigation: NavProp }) {
   const { user, drugs, setDrugs, adherence, streak, chats, flash, setNotifications, setUnreadCount } = useApp();
   const { isDesktop, isTabletOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
@@ -211,7 +227,7 @@ export default function HomeScreen({ navigation }: any) {
                 <Text style={{ fontSize: typography.fz12, color: colors.muted }}>건강 정보를 입력할수록 맞춤형 가이드 정확도가 높아져요.</Text>
               </View>
             </View>
-            <Button variant="primary" fullWidth style={{ marginTop: spacing.s12 }} onPress={() => (navigation as any).navigate("Onboarding")}>건강 정보 입력하기</Button>
+            <Button variant="primary" fullWidth style={{ marginTop: spacing.s12 }} onPress={() => (navigation as unknown as NativeStackNavigationProp<RootStackParams>).navigate("Onboarding")}>건강 정보 입력하기</Button>
           </Card>
         )}
 
@@ -272,7 +288,7 @@ export default function HomeScreen({ navigation }: any) {
         {/* 빠른 액션 */}
         <View style={{ flexDirection: "row", gap: spacing.s12, marginBottom: spacing.s20 }}>
           <View style={{ flex: 1 }}>
-            <Card shadow containerStyle={{ flex: 1 }} style={{ flex: 1 }} onPress={() => (navigation as any).navigate('UploadModal')}>
+            <Card shadow containerStyle={{ flex: 1 }} style={{ flex: 1 }} onPress={() => (navigation as unknown as NativeStackNavigationProp<RootStackParams>).navigate('UploadModal')}>
               <View style={s.quickIcon}>
                 <Icon name="file" size={18} color={colors.accent700} />
               </View>
