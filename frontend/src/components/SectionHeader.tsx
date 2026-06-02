@@ -18,17 +18,24 @@ export function SectionHeader({
   action,
   mb = spacing.s12,
 }: SectionHeaderProps) {
-  const labelNode = typeof label === 'string'
-    ? <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>{label}</Text>
-    : label;
+  const labelNode =
+    typeof label === 'string' ? (
+      <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}>
+        {label}
+      </Text>
+    ) : (
+      label
+    );
 
   return (
-    <View style={{
-      flexDirection: 'row',
-      justifyContent: action ? 'space-between' : 'flex-start',
-      alignItems: 'center',
-      marginBottom: mb,
-    }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: action ? 'space-between' : 'flex-start',
+        alignItems: 'center',
+        marginBottom: mb,
+      }}
+    >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
         {icon && <Icon name={icon} size={14} color={iconColor} />}
         {labelNode}

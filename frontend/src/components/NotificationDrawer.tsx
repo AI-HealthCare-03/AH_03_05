@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Animated, Modal, Platform, TouchableOpacity, View, Text, ScrollView, StyleSheet,
+  Animated,
+  Modal,
+  Platform,
+  TouchableOpacity,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
 } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useNavigation, type NavigationProp, type ParamListBase } from '@react-navigation/native';
@@ -16,9 +23,15 @@ import Toast from './Toast';
 
 const DRAWER_WIDTH = 460;
 
-
 export default function NotificationDrawer() {
-  const { notifDrawerOpen, setNotifDrawerOpen, notifications, setNotifications, flash, markNotificationRead } = useApp();
+  const {
+    notifDrawerOpen,
+    setNotifDrawerOpen,
+    notifications,
+    setNotifications,
+    flash,
+    markNotificationRead,
+  } = useApp();
   const { isDesktopOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -28,31 +41,39 @@ export default function NotificationDrawer() {
 
   useEffect(() => {
     if (!notifDrawerOpen) return;
-    notificationsApi.getNotifications().then(res => {
-      const mapped: Notification[] = res.items.map(item => {
-        const d = item.created_at ? new Date(item.created_at) : new Date();
-        const hh = d.getHours();
-        const mm = String(d.getMinutes()).padStart(2, '0');
-        return {
-          id: String(item.notification_id),
-          type: 'info' as const,
-          title: item.title,
-          body: item.message ?? '',
-          date: d.toISOString(),
-          time: `${hh}:${mm}`,
-          icon: 'bell',
-          unread: !item.is_read,
-        };
-      });
-      if (mapped.length > 0) setNotifications(mapped);
-    }).catch(() => {});
+    notificationsApi
+      .getNotifications()
+      .then(res => {
+        const mapped: Notification[] = res.items.map(item => {
+          const d = item.created_at ? new Date(item.created_at) : new Date();
+          const hh = d.getHours();
+          const mm = String(d.getMinutes()).padStart(2, '0');
+          return {
+            id: String(item.notification_id),
+            type: 'info' as const,
+            title: item.title,
+            body: item.message ?? '',
+            date: d.toISOString(),
+            time: `${hh}:${mm}`,
+            icon: 'bell',
+            unread: !item.is_read,
+          };
+        });
+        if (mapped.length > 0) setNotifications(mapped);
+      })
+      .catch(() => {});
   }, [notifDrawerOpen]);
 
   useEffect(() => {
     if (notifDrawerOpen) {
       setRendered(true);
       Animated.parallel([
-        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 80, friction: 13 }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 80,
+          friction: 13,
+        }),
         Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
       ]).start();
     } else {
@@ -139,7 +160,10 @@ export default function NotificationDrawer() {
       <View style={s.overlay} pointerEvents="box-none">
         <Toast />
         {/* 스크림 */}
-        <Animated.View style={[s.scrim, { opacity: fadeAnim }]} pointerEvents={notifDrawerOpen ? 'auto' : 'none'}>
+        <Animated.View
+          style={[s.scrim, { opacity: fadeAnim }]}
+          pointerEvents={notifDrawerOpen ? 'auto' : 'none'}
+        >
           <TouchableOpacity style={{ flex: 1 }} onPress={close} activeOpacity={1} />
         </Animated.View>
 
@@ -156,8 +180,16 @@ export default function NotificationDrawer() {
           <View style={[s.header, { paddingTop: insets.top + spacing.s16 }]}>
             <Text style={s.title}>알림</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8 }}>
-              {notifications.length > 0 && <Button variant="ghost" size="sm" onPress={markAll}>모두 읽음</Button>}
-              {notifications.length > 0 && <Button variant="ghost" size="sm" onPress={clear}>모두 지우기</Button>}
+              {notifications.length > 0 && (
+                <Button variant="ghost" size="sm" onPress={markAll}>
+                  모두 읽음
+                </Button>
+              )}
+              {notifications.length > 0 && (
+                <Button variant="ghost" size="sm" onPress={clear}>
+                  모두 지우기
+                </Button>
+              )}
               <TouchableOpacity onPress={close} style={s.closeBtn} accessibilityLabel="닫기">
                 <Icon name="x" size={15} color={colors.ink2} />
               </TouchableOpacity>
@@ -165,16 +197,28 @@ export default function NotificationDrawer() {
           </View>
 
           {/* 알림 목록 */}
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: spacing.s16, gap: spacing.s16 }}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ padding: spacing.s16, gap: spacing.s16 }}
+          >
             {notifications.length === 0 ? (
               <Card style={{ alignItems: 'center', paddingVertical: spacing.s56 }}>
                 <Icon name="bell" size={36} color={colors.muted2} />
-                <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, marginTop: spacing.s14 }}>
+                <Text
+                  style={{
+                    fontSize: typography.fz15,
+                    fontWeight: typography.fw6,
+                    marginTop: spacing.s14,
+                  }}
+                >
                   알림이 없어요
                 </Text>
               </Card>
             ) : (
-              [{ label: '오늘', items: todayNotifs }, { label: '이전', items: earlierNotifs }].map(g =>
+              [
+                { label: '오늘', items: todayNotifs },
+                { label: '이전', items: earlierNotifs },
+              ].map(g =>
                 g.items.length > 0 ? (
                   <View key={g.label}>
                     <Text style={s.groupLabel}>{g.label}</Text>
@@ -190,16 +234,30 @@ export default function NotificationDrawer() {
                             <TouchableOpacity
                               activeOpacity={0.7}
                               onPress={() => handlePress(n)}
-                              style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s12 }}
+                              style={{
+                                flex: 1,
+                                flexDirection: 'row',
+                                alignItems: 'flex-start',
+                                gap: spacing.s12,
+                              }}
                             >
                               <View style={s.notifIcon}>
                                 <Icon name={n.icon} size={14} color={colors.accent700} />
                               </View>
                               <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }} numberOfLines={1}>
+                                <Text
+                                  style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}
+                                  numberOfLines={1}
+                                >
                                   {n.title}
                                 </Text>
-                                <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s4 }}>
+                                <Text
+                                  style={{
+                                    fontSize: typography.fz13,
+                                    color: colors.muted,
+                                    marginTop: spacing.s4,
+                                  }}
+                                >
                                   {n.body}
                                 </Text>
                               </View>
@@ -229,7 +287,10 @@ export default function NotificationDrawer() {
                               rightThreshold={60}
                               overshootLeft={false}
                               renderRightActions={() => (
-                                <TouchableOpacity style={s.swipeDelete} onPress={() => handleDelete(n.id)}>
+                                <TouchableOpacity
+                                  style={s.swipeDelete}
+                                  onPress={() => handleDelete(n.id)}
+                                >
                                   <Text style={s.swipeDeleteText}>삭제</Text>
                                 </TouchableOpacity>
                               )}

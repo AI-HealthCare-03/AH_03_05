@@ -37,7 +37,14 @@ export function MenuItem({
       onPress={onPress}
     >
       <Icon name={icon} size={16} color={iconColor} />
-      <Text style={{ flex: 1, fontSize: typography.fz14, fontWeight: typography.fw5, color: labelColor }}>
+      <Text
+        style={{
+          flex: 1,
+          fontSize: typography.fz14,
+          fontWeight: typography.fw5,
+          color: labelColor,
+        }}
+      >
         {label}
       </Text>
       {chevron && <Icon name="chevron-right" size={14} color={colors.muted2} />}

@@ -16,8 +16,23 @@ import { usersApi, tokenStore, extractApiError } from '../../api';
 type NavProp = NativeStackNavigationProp<SettingsStackParams, 'DeleteAccount'>;
 
 const ss = StyleSheet.create({
-  checkRow: { flexDirection: 'row', gap: spacing.s10, alignItems: 'flex-start', paddingVertical: spacing.s6 },
-  checkBox: { width: 20, height: 20, borderRadius: radii.checkbox, borderWidth: 1.5, borderColor: colors.hairlineStrong, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  checkRow: {
+    flexDirection: 'row',
+    gap: spacing.s10,
+    alignItems: 'flex-start',
+    paddingVertical: spacing.s6,
+  },
+  checkBox: {
+    width: 20,
+    height: 20,
+    borderRadius: radii.checkbox,
+    borderWidth: 1.5,
+    borderColor: colors.hairlineStrong,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
   checkBoxActive: { borderColor: colors.accent, backgroundColor: colors.accent },
 });
 
@@ -46,10 +61,13 @@ export function DeleteAccountScreen({ navigation }: { navigation: NavProp }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const allChecked = checked.data && checked.irreversible && checked.alt;
-  const confirmOk  = confirm.trim().length > 0;
+  const confirmOk = confirm.trim().length > 0;
 
   const proceed = async () => {
-    if (step === 1 && allChecked) { setStep(2); return; }
+    if (step === 1 && allChecked) {
+      setStep(2);
+      return;
+    }
     if (step === 2 && confirmOk) {
       setLoading(true);
       setError('');
@@ -58,8 +76,9 @@ export function DeleteAccountScreen({ navigation }: { navigation: NavProp }) {
         await tokenStore.clear();
         setUser({ ...defaultUser });
         flash('탈퇴 처리가 완료됐어요. 안녕히 가세요 👋');
-        (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)
-          ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+        (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)?.reset(
+          { index: 0, routes: [{ name: 'Auth' }] }
+        );
       } catch (e: any) {
         if (e?.response?.status === 400) {
           setError('비밀번호가 올바르지 않습니다.');
@@ -73,7 +92,14 @@ export function DeleteAccountScreen({ navigation }: { navigation: NavProp }) {
   };
 
   return (
-    <ScreenLayout title="회원 탈퇴" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
+    <ScreenLayout
+      title="회원 탈퇴"
+      back
+      onBack={() =>
+        navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')
+      }
+      scrollable
+    >
       <Banner
         variant="danger"
         title="탈퇴하면 복구할 수 없어요"
@@ -84,23 +110,79 @@ export function DeleteAccountScreen({ navigation }: { navigation: NavProp }) {
       <Card shadow>
         {step === 1 ? (
           <>
-            <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, marginBottom: spacing.s12 }}>탈퇴 시 삭제되는 정보</Text>
-            {['건강 프로필 (기저질환, 알레르기, 복용약)', '업로드한 처방전·약봉투·진료기록 4건', 'AI 상담 기록 3건', '생성된 복약 가이드 및 알림 설정'].map((item) => (
-              <Text key={item} style={{ fontSize: typography.fz14, color: colors.ink2, marginBottom: spacing.s4 }}>• {item}</Text>
+            <Text
+              style={{
+                fontSize: typography.fz15,
+                fontWeight: typography.fw7,
+                marginBottom: spacing.s12,
+              }}
+            >
+              탈퇴 시 삭제되는 정보
+            </Text>
+            {[
+              '건강 프로필 (기저질환, 알레르기, 복용약)',
+              '업로드한 처방전·약봉투·진료기록 4건',
+              'AI 상담 기록 3건',
+              '생성된 복약 가이드 및 알림 설정',
+            ].map(item => (
+              <Text
+                key={item}
+                style={{ fontSize: typography.fz14, color: colors.ink2, marginBottom: spacing.s4 }}
+              >
+                • {item}
+              </Text>
             ))}
-            <View style={{ height: 1, backgroundColor: colors.hairline, marginVertical: spacing.s16 }} />
-            <CheckRow checked={checked.data} label="모든 건강 데이터가 영구 삭제되는 점에 동의합니다." onToggle={() => setChecked(p => ({ ...p, data: !p.data }))} />
-            <CheckRow checked={checked.irreversible} label="탈퇴 후에는 복구할 수 없다는 점을 이해했습니다." onToggle={() => setChecked(p => ({ ...p, irreversible: !p.irreversible }))} />
-            <CheckRow checked={checked.alt} label="복약 정보 보관이 필요하다면 데이터 내보내기 후 탈퇴할 수 있다는 점을 알고 있습니다." onToggle={() => setChecked(p => ({ ...p, alt: !p.alt }))} />
+            <View
+              style={{ height: 1, backgroundColor: colors.hairline, marginVertical: spacing.s16 }}
+            />
+            <CheckRow
+              checked={checked.data}
+              label="모든 건강 데이터가 영구 삭제되는 점에 동의합니다."
+              onToggle={() => setChecked(p => ({ ...p, data: !p.data }))}
+            />
+            <CheckRow
+              checked={checked.irreversible}
+              label="탈퇴 후에는 복구할 수 없다는 점을 이해했습니다."
+              onToggle={() => setChecked(p => ({ ...p, irreversible: !p.irreversible }))}
+            />
+            <CheckRow
+              checked={checked.alt}
+              label="복약 정보 보관이 필요하다면 데이터 내보내기 후 탈퇴할 수 있다는 점을 알고 있습니다."
+              onToggle={() => setChecked(p => ({ ...p, alt: !p.alt }))}
+            />
           </>
         ) : (
           <>
-            <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, marginBottom: spacing.s8 }}>최종 확인</Text>
-            <Text style={{ fontSize: typography.fz13, color: colors.ink2, marginBottom: spacing.s14 }}>
+            <Text
+              style={{
+                fontSize: typography.fz15,
+                fontWeight: typography.fw7,
+                marginBottom: spacing.s8,
+              }}
+            >
+              최종 확인
+            </Text>
+            <Text
+              style={{ fontSize: typography.fz13, color: colors.ink2, marginBottom: spacing.s14 }}
+            >
               정말로 탈퇴하시려면 현재 비밀번호를 입력해주세요.
             </Text>
-            <Input placeholder="비밀번호" value={confirm} onChangeText={v => { setConfirm(v); setError(''); }} secureTextEntry autoComplete="current-password" error={error || undefined} />
-            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s10 }}>{user.email || '이 계정'}이 삭제됩니다.</Text>
+            <Input
+              placeholder="비밀번호"
+              value={confirm}
+              onChangeText={v => {
+                setConfirm(v);
+                setError('');
+              }}
+              secureTextEntry
+              autoComplete="current-password"
+              error={error || undefined}
+            />
+            <Text
+              style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s10 }}
+            >
+              {user.email || '이 계정'}이 삭제됩니다.
+            </Text>
           </>
         )}
       </Card>
@@ -112,8 +194,10 @@ export function DeleteAccountScreen({ navigation }: { navigation: NavProp }) {
           style={{ flex: 1 }}
           borderRadius={radii.pill}
           disabled={loading}
-          onPress={() => step === 2 ? setStep(1) : navigation.goBack()}
-        >{step === 2 ? '이전' : '취소'}</Button>
+          onPress={() => (step === 2 ? setStep(1) : navigation.goBack())}
+        >
+          {step === 2 ? '이전' : '취소'}
+        </Button>
         <Button
           variant="danger"
           size="lg"
@@ -122,7 +206,9 @@ export function DeleteAccountScreen({ navigation }: { navigation: NavProp }) {
           disabled={step === 1 ? !allChecked : !confirmOk}
           loading={loading}
           onPress={proceed}
-        >{step === 1 ? '다음' : '탈퇴하기'}</Button>
+        >
+          {step === 1 ? '다음' : '탈퇴하기'}
+        </Button>
       </View>
     </ScreenLayout>
   );

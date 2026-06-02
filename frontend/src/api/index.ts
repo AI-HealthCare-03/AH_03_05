@@ -1,4 +1,4 @@
-export { tokenStore, } from './tokenStore';
+export { tokenStore } from './tokenStore';
 export { apiClient, extractApiError, API_BASE_URL } from './client';
 export * from './types';
 

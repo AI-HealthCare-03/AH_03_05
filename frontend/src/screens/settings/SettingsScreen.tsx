@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  TextInput,
+  StyleSheet,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -28,11 +35,8 @@ const MENU_SECTIONS: { icon: string; label: string; to: keyof SettingsStackParam
     { icon: 'lock', label: '비밀번호 변경', to: 'PasswordChange' },
     { icon: 'device', label: '로그인 기기 관리', to: 'DeviceManagement' },
   ],
-  [
-    { icon: 'list', label: '약관 동의 내역', to: 'ConsentHistory' },
-  ],
+  [{ icon: 'list', label: '약관 동의 내역', to: 'ConsentHistory' }],
 ];
-
 
 export function SettingsScreen({ navigation }: { navigation: NavProp }) {
   const { user, setUser, flash } = useApp();
@@ -41,9 +45,11 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
   const [nicknameValue, setNicknameValue] = useState('');
   const [nicknameSaving, setNicknameSaving] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    return () => setNicknameEdit(false);
-  }, []));
+  useFocusEffect(
+    useCallback(() => {
+      return () => setNicknameEdit(false);
+    }, [])
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -62,29 +68,38 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
         const status = err?.response?.status;
         if (status === 401) {
           await authApi.logout().catch(() => {});
-          await AsyncStorage.setItem('medipt_user', JSON.stringify({ ...defaultUser, loggedIn: false }));
+          await AsyncStorage.setItem(
+            'medipt_user',
+            JSON.stringify({ ...defaultUser, loggedIn: false })
+          );
           setUser({ ...defaultUser, loggedIn: false });
-          (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)
-            ?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+          (
+            navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined
+          )?.reset({ index: 0, routes: [{ name: 'Auth' }] });
           return;
         }
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
-    <ScreenLayout
-      title="설정"
-      subtitle="알림 · 보안 · 약관 · 계정 정보를 관리해요."
-      scrollable
-    >
+    <ScreenLayout title="설정" subtitle="알림 · 보안 · 약관 · 계정 정보를 관리해요." scrollable>
       {/* Profile card */}
       <Card shadow style={{ marginBottom: spacing.s14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12 }}>
-          <IconCircle size={44} icon="user" iconSize={20} color={colors.ink2} backgroundColor={colors.surface2} borderColor={colors.hairline} />
+          <IconCircle
+            size={44}
+            icon="user"
+            iconSize={20}
+            color={colors.ink2}
+            backgroundColor={colors.surface2}
+            borderColor={colors.hairline}
+          />
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: 26 }}>
               <View style={{ flex: 1, justifyContent: 'center' }}>
@@ -103,10 +118,15 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
                       size="sm"
                       loading={nicknameSaving}
                       onPress={async () => {
-                        if (!nicknameValue.trim()) { flash('닉네임을 입력해주세요'); return; }
+                        if (!nicknameValue.trim()) {
+                          flash('닉네임을 입력해주세요');
+                          return;
+                        }
                         setNicknameSaving(true);
                         try {
-                          const updated = await usersApi.updateMe({ nickname: nicknameValue.trim() });
+                          const updated = await usersApi.updateMe({
+                            nickname: nicknameValue.trim(),
+                          });
                           setUser({ ...user, nickname: updated.nickname ?? nicknameValue.trim() });
                           flash('닉네임이 변경되었습니다');
                           setNicknameEdit(false);
@@ -114,7 +134,10 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
                           const data = e?.response?.data;
                           if (data?.error_code === 'NICKNAME_CHANGE_TOO_SOON') {
                             flash('닉네임은 30일마다 변경할 수 있습니다');
-                          } else if (e?.response?.status === 400 && typeof data?.detail === 'string') {
+                          } else if (
+                            e?.response?.status === 400 &&
+                            typeof data?.detail === 'string'
+                          ) {
                             flash(data.detail);
                           } else {
                             flash(extractApiError(e));
@@ -123,29 +146,56 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
                           setNicknameSaving(false);
                         }
                       }}
-                    >저장</Button>
-                    <Button variant="ghost" size="sm" onPress={() => setNicknameEdit(false)}>취소</Button>
+                    >
+                      저장
+                    </Button>
+                    <Button variant="ghost" size="sm" onPress={() => setNicknameEdit(false)}>
+                      취소
+                    </Button>
                   </View>
                 ) : (
                   <TouchableOpacity
-                    onPress={() => { setNicknameValue(user.nickname || user.name); setNicknameEdit(true); }}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, alignSelf: 'flex-start' }}
+                    onPress={() => {
+                      setNicknameValue(user.nickname || user.name);
+                      setNicknameEdit(true);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: spacing.s8,
+                      alignSelf: 'flex-start',
+                    }}
                   >
-                    <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7 }}>{user.nickname || user.name}</Text>
+                    <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7 }}>
+                      {user.nickname || user.name}
+                    </Text>
                     <Icon name="edit" size={14} color={colors.muted2} />
                   </TouchableOpacity>
                 )}
               </View>
               {!loading && !nicknameEdit && (
-                <Button variant="ghost" size="sm" onPress={() => navigation.navigate('HealthProfileEdit')}>건강 프로필 수정</Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onPress={() => navigation.navigate('HealthProfileEdit')}
+                >
+                  건강 프로필 수정
+                </Button>
               )}
             </View>
-            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>{user.email}</Text>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>
+              {user.email}
+            </Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: spacing.s8, marginTop: spacing.s12 }}>
           <View style={s.chip}>
-            <Text style={{ fontSize: typography.fz12, color: user.profileComplete ? colors.success : colors.muted }}>
+            <Text
+              style={{
+                fontSize: typography.fz12,
+                color: user.profileComplete ? colors.success : colors.muted,
+              }}
+            >
               {user.profileComplete ? '건강정보 입력 완료' : '건강정보 미입력'}
             </Text>
           </View>
@@ -186,7 +236,9 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
             await AsyncStorage.setItem('medipt_profile_flags', JSON.stringify(profileFlags));
             await AsyncStorage.removeItem('medipt_user');
             setUser({ ...defaultUser });
-            (navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined)?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+            (
+              navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined
+            )?.reset({ index: 0, routes: [{ name: 'Auth' }] });
             flash('로그아웃 되었어요');
           }}
         />

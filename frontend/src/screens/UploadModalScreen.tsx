@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, Platform, TextInput, ScrollView, Keyboard } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  useWindowDimensions,
+  Alert,
+  Platform,
+  TextInput,
+  ScrollView,
+  Keyboard,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -14,9 +25,9 @@ import type { RootStackParams } from '../navigation/types';
 type NavProp = NativeStackNavigationProp<RootStackParams, 'UploadModal'>;
 
 const TYPE_MAP: Record<string, RecordType> = {
-  '처방전': 'prescription',
-  '약봉투': 'medicine_bag',
-  '진료기록': 'medical_record',
+  처방전: 'prescription',
+  약봉투: 'medicine_bag',
+  진료기록: 'medical_record',
 };
 
 const TYPES = [
@@ -39,10 +50,7 @@ type SourceCardProps = {
 
 function SourceCard({ src, onPress }: SourceCardProps) {
   return (
-    <TouchableOpacity
-      style={[s.srcCard, { flex: 1 }]}
-      onPress={() => onPress(src.id)}
-    >
+    <TouchableOpacity style={[s.srcCard, { flex: 1 }]} onPress={() => onPress(src.id)}>
       <View style={s.srcIcon}>
         <Icon name={src.icon} size={14} color={colors.accent700} />
       </View>
@@ -68,7 +76,10 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
     if (Platform.OS === 'web') return;
     const show = Keyboard.addListener('keyboardDidShow', e => setKbHeight(e.endCoordinates.height));
     const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
-    return () => { show.remove(); hide.remove(); };
+    return () => {
+      show.remove();
+      hide.remove();
+    };
   }, []);
 
   const handleClose = () => {
@@ -130,7 +141,10 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
       setTimeout(() => {
         (navigation as NativeStackNavigationProp<RootStackParams>).navigate('Main', {
           screen: 'HomeTab',
-          params: { screen: 'OCRResult', params: { recordId: res.record_id, inputMethod: 'manual' } },
+          params: {
+            screen: 'OCRResult',
+            params: { recordId: res.record_id, inputMethod: 'manual' },
+          },
         });
       }, 700);
     } catch (e: any) {
@@ -153,20 +167,45 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
 
     if (srcId === 'camera') {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted) { Alert.alert('권한 필요', '카메라 권한이 필요합니다.'); return; }
-      const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
+      if (!perm.granted) {
+        Alert.alert('권한 필요', '카메라 권한이 필요합니다.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+        allowsEditing: false,
+      });
       if (result.canceled || !result.assets?.length) return;
       const a = result.assets[0];
-      await doUpload({ uri: a.uri, name: a.fileName ?? `photo_${Date.now()}.jpg`, type: a.mimeType ?? 'image/jpeg' });
+      await doUpload({
+        uri: a.uri,
+        name: a.fileName ?? `photo_${Date.now()}.jpg`,
+        type: a.mimeType ?? 'image/jpeg',
+      });
     } else if (srcId === 'gallery') {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) { Alert.alert('권한 필요', '사진 라이브러리 권한이 필요합니다.'); return; }
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
+      if (!perm.granted) {
+        Alert.alert('권한 필요', '사진 라이브러리 권한이 필요합니다.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+        allowsEditing: false,
+      });
       if (result.canceled || !result.assets?.length) return;
       const a = result.assets[0];
-      await doUpload({ uri: a.uri, name: a.fileName ?? `image_${Date.now()}.jpg`, type: a.mimeType ?? 'image/jpeg' });
+      await doUpload({
+        uri: a.uri,
+        name: a.fileName ?? `image_${Date.now()}.jpg`,
+        type: a.mimeType ?? 'image/jpeg',
+      });
     } else if (srcId === 'pdf') {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
       if (result.canceled || !result.assets?.length) return;
       const a = result.assets[0];
       await doUpload({ uri: a.uri, name: a.name, type: a.mimeType ?? 'application/pdf' });
@@ -188,12 +227,30 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
 
       {uploading ? (
         <View style={{ paddingVertical: spacing.s8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s12, marginBottom: spacing.s16 }}>
-            <View style={{ width: 40, height: 40, borderRadius: radii.pill, backgroundColor: uploadDone ? colors.success : colors.accent, alignItems: 'center', justifyContent: 'center' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.s12,
+              marginBottom: spacing.s16,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: radii.pill,
+                backgroundColor: uploadDone ? colors.success : colors.accent,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Icon name={uploadDone ? 'check' : 'camera'} size={18} color={colors.white} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}>
+              <Text
+                style={{ fontSize: typography.fz15, fontWeight: typography.fw7, color: colors.ink }}
+              >
                 {uploadDone ? '업로드 완료' : '업로드 중...'}
               </Text>
               <Text style={{ fontSize: typography.fz13, color: colors.muted }}>
@@ -206,83 +263,115 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
           </View>
         </View>
       ) : manualMode ? (
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            style={{ flexGrow: 0 }}
-            contentContainerStyle={{ paddingBottom: kbHeight }}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{ paddingBottom: kbHeight }}
+        >
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.s12 }}
+            onPress={() => {
+              setManualMode(false);
+              setManualText('');
+              setUploadError('');
+            }}
           >
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.s12 }}
-              onPress={() => { setManualMode(false); setManualText(''); setUploadError(''); }}
+            <Icon name="chevron-left" size={14} color={colors.accent} />
+            <Text
+              style={{ fontSize: typography.fz13, color: colors.accent, marginLeft: spacing.s4 }}
             >
-              <Icon name="chevron-left" size={14} color={colors.accent} />
-              <Text style={{ fontSize: typography.fz13, color: colors.accent, marginLeft: spacing.s4 }}>뒤로</Text>
-            </TouchableOpacity>
-            <TextInput
-              multiline
-              placeholder="진료 내용, 처방 약품 등을 직접 입력해주세요."
-              placeholderTextColor={colors.muted}
-              value={manualText}
-              onChangeText={setManualText}
-              style={s.manualInput}
-            />
-            {uploadError ? (
-              <View style={s.errorBox}>
-                <Icon name="alert" size={13} color={colors.danger} />
-                <Text style={s.errorText}>{uploadError}</Text>
-              </View>
-            ) : null}
-            <TouchableOpacity
-              style={[s.manualSubmit, !manualText.trim() && { opacity: 0.4 }]}
-              onPress={doManualInput}
-              disabled={!manualText.trim()}
-            >
-              <Text style={s.manualSubmitText}>분석 시작</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        ) : (
-          <>
-            <View style={{ flexDirection: 'row', gap: spacing.s8, marginBottom: spacing.s14 }}>
-              {TYPES.map((t) => (
-                <TouchableOpacity key={t.id} style={[s.typeCard, type === t.id && s.typeCardActive]} onPress={() => setType(t.id)}>
-                  <View style={[s.typeIcon, { backgroundColor: type === t.id ? colors.accent100 : colors.surface2 }]}>
-                    <Icon name={t.icon} size={14} color={type === t.id ? colors.accent700 : colors.muted} />
-                  </View>
-                  <Text style={[{ fontSize: typography.fz12, fontWeight: typography.fw6 }, type === t.id && { color: colors.accent700 }]}>{t.id}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={{ gap: spacing.s8, marginBottom: spacing.s14 }}>
-              {[SOURCES.slice(0, 2), SOURCES.slice(2, 4)].map((row, ri) => (
-                <View key={ri} style={{ flexDirection: 'row', gap: spacing.s8 }}>
-                  {row.map((src) => (
-                    <SourceCard key={src.id} src={src} onPress={handleSourcePress} />
-                  ))}
-                </View>
-              ))}
-            </View>
-
-            {uploadError ? (
-              <View style={s.errorBox}>
-                <Icon name="alert" size={13} color={colors.danger} />
-                <Text style={s.errorText}>{uploadError}</Text>
-              </View>
-            ) : null}
-
-            <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: 'center' }}>
-              JPG · PNG · PDF / 최대 10MB · 원본은 90일 후 자동 삭제
+              뒤로
             </Text>
-          </>
-        )}
+          </TouchableOpacity>
+          <TextInput
+            multiline
+            placeholder="진료 내용, 처방 약품 등을 직접 입력해주세요."
+            placeholderTextColor={colors.muted}
+            value={manualText}
+            onChangeText={setManualText}
+            style={s.manualInput}
+          />
+          {uploadError ? (
+            <View style={s.errorBox}>
+              <Icon name="alert" size={13} color={colors.danger} />
+              <Text style={s.errorText}>{uploadError}</Text>
+            </View>
+          ) : null}
+          <TouchableOpacity
+            style={[s.manualSubmit, !manualText.trim() && { opacity: 0.4 }]}
+            onPress={doManualInput}
+            disabled={!manualText.trim()}
+          >
+            <Text style={s.manualSubmitText}>분석 시작</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      ) : (
+        <>
+          <View style={{ flexDirection: 'row', gap: spacing.s8, marginBottom: spacing.s14 }}>
+            {TYPES.map(t => (
+              <TouchableOpacity
+                key={t.id}
+                style={[s.typeCard, type === t.id && s.typeCardActive]}
+                onPress={() => setType(t.id)}
+              >
+                <View
+                  style={[
+                    s.typeIcon,
+                    { backgroundColor: type === t.id ? colors.accent100 : colors.surface2 },
+                  ]}
+                >
+                  <Icon
+                    name={t.icon}
+                    size={14}
+                    color={type === t.id ? colors.accent700 : colors.muted}
+                  />
+                </View>
+                <Text
+                  style={[
+                    { fontSize: typography.fz12, fontWeight: typography.fw6 },
+                    type === t.id && { color: colors.accent700 },
+                  ]}
+                >
+                  {t.id}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={{ gap: spacing.s8, marginBottom: spacing.s14 }}>
+            {[SOURCES.slice(0, 2), SOURCES.slice(2, 4)].map((row, ri) => (
+              <View key={ri} style={{ flexDirection: 'row', gap: spacing.s8 }}>
+                {row.map(src => (
+                  <SourceCard key={src.id} src={src} onPress={handleSourcePress} />
+                ))}
+              </View>
+            ))}
+          </View>
+
+          {uploadError ? (
+            <View style={s.errorBox}>
+              <Icon name="alert" size={13} color={colors.danger} />
+              <Text style={s.errorText}>{uploadError}</Text>
+            </View>
+          ) : null}
+
+          <Text style={{ fontSize: typography.fz11, color: colors.muted, textAlign: 'center' }}>
+            JPG · PNG · PDF / 최대 10MB · 원본은 90일 후 자동 삭제
+          </Text>
+        </>
+      )}
     </>
   );
 
   if (isTabletOrAbove) {
     return (
       <TouchableOpacity style={s.scrimCenter} activeOpacity={1} onPress={handleClose}>
-        <TouchableOpacity activeOpacity={1} style={[s.modalCenter, { width: cardWidth }]} onPress={() => {}}>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={[s.modalCenter, { width: cardWidth }]}
+          onPress={() => {}}
+        >
           {content}
         </TouchableOpacity>
       </TouchableOpacity>
@@ -300,24 +389,116 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
 
 const s = StyleSheet.create({
   scrim: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'flex-end' },
-  scrimCenter: { flex: 1, backgroundColor: colors.scrim, alignItems: 'center', justifyContent: 'center' },
-  modal: { backgroundColor: colors.surface, borderTopLeftRadius: radii.xl, borderTopRightRadius: radii.xl, padding: spacing.s20 },
+  scrimCenter: {
+    flex: 1,
+    backgroundColor: colors.scrim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modal: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
+    padding: spacing.s20,
+  },
   modalCenter: { backgroundColor: colors.surface, borderRadius: radii.xl, padding: spacing.s20 },
-  modalHandle: { width: 36, height: 4, backgroundColor: colors.hairlineStrong, borderRadius: radii.r2, alignSelf: 'center', marginBottom: spacing.s16 },
-  modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.s14 },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: colors.hairlineStrong,
+    borderRadius: radii.r2,
+    alignSelf: 'center',
+    marginBottom: spacing.s16,
+  },
+  modalHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.s14,
+  },
   modalTitle: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   modalSub: { fontSize: typography.fz13, color: colors.muted },
-  closeBtn: { width: 36, height: 36, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' },
-  typeCard: { flex: 1, alignItems: 'center', padding: spacing.s12, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.pill,
+    backgroundColor: colors.accent50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  typeCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: spacing.s12,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.surface2,
+  },
   typeCardActive: { backgroundColor: colors.accent50, borderColor: colors.accent },
-  typeIcon: { width: 28, height: 28, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s6 },
-  srcCard: { alignItems: 'center', padding: spacing.s12, borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface2 },
-  srcIcon: { width: 28, height: 28, borderRadius: radii.sm, backgroundColor: colors.accent100, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s6 },
-  progressBg: { height: 6, backgroundColor: colors.hairline, borderRadius: radii.xs, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: radii.xs, width: '60%' },
-  errorBox: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: spacing.s8 },
+  typeIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: radii.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.s6,
+  },
+  srcCard: {
+    alignItems: 'center',
+    padding: spacing.s12,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.surface2,
+  },
+  srcIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: radii.sm,
+    backgroundColor: colors.accent100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.s6,
+  },
+  progressBg: {
+    height: 6,
+    backgroundColor: colors.hairline,
+    borderRadius: radii.xs,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.accent,
+    borderRadius: radii.xs,
+    width: '60%',
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.s8,
+    backgroundColor: colors.danger50,
+    borderRadius: radii.sm,
+    padding: spacing.s12,
+    marginBottom: spacing.s8,
+  },
   errorText: { flex: 1, fontSize: typography.fz12, color: colors.danger, lineHeight: 18 },
-  manualInput: { borderWidth: 1, borderColor: colors.hairline, borderRadius: radii.md, padding: spacing.s12, fontSize: typography.fz14, color: colors.ink, minHeight: 140, textAlignVertical: 'top', marginBottom: spacing.s14 },
-  manualSubmit: { backgroundColor: colors.accent, borderRadius: radii.md, paddingVertical: spacing.s12, alignItems: 'center' },
+  manualInput: {
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radii.md,
+    padding: spacing.s12,
+    fontSize: typography.fz14,
+    color: colors.ink,
+    minHeight: 140,
+    textAlignVertical: 'top',
+    marginBottom: spacing.s14,
+  },
+  manualSubmit: {
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
+    paddingVertical: spacing.s12,
+    alignItems: 'center',
+  },
   manualSubmitText: { fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.white },
 });

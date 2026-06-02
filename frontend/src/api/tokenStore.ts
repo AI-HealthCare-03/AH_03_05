@@ -7,8 +7,12 @@ let _refresh: string | null = null;
 let _onUnauthorized: (() => void) | null = null;
 
 export const tokenStore = {
-  get accessToken() { return _access; },
-  get refreshToken() { return _refresh; },
+  get accessToken() {
+    return _access;
+  },
+  get refreshToken() {
+    return _refresh;
+  },
 
   async load() {
     const [a, r] = await Promise.all([

@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import { View, Text } from "react-native";
-import Button from "../../components/Button";
-import Icon from "../../components/Icon";
-import Card from "../../components/Card";
-import ScreenLayout from "../../components/ScreenLayout";
-import SearchBar from "../../components/SearchBar";
-import { colors, radii, spacing, typography } from "../../theme";
-import { drugsApi } from "../../api";
-import type { DrugSearchResult } from "../../api";
-import EmptyState from "../../components/EmptyState";
+import React, { useState } from 'react';
+import { View, Text } from 'react-native';
+import Button from '../../components/Button';
+import Icon from '../../components/Icon';
+import Card from '../../components/Card';
+import ScreenLayout from '../../components/ScreenLayout';
+import SearchBar from '../../components/SearchBar';
+import { colors, radii, spacing, typography } from '../../theme';
+import { drugsApi } from '../../api';
+import type { DrugSearchResult } from '../../api';
+import EmptyState from '../../components/EmptyState';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParams } from '../../navigation/types';
 
@@ -16,7 +16,7 @@ type Props = NativeStackScreenProps<HomeStackParams, 'DrugCandidate'>;
 
 export function DrugCandidateScreen({ navigation, route }: Props) {
   const drugIndex: number | undefined = route?.params?.drugIndex;
-  const [query, setQuery] = useState(route?.params?.medicationName ?? "");
+  const [query, setQuery] = useState(route?.params?.medicationName ?? '');
   const [results, setResults] = useState<DrugSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -39,7 +39,14 @@ export function DrugCandidateScreen({ navigation, route }: Props) {
   };
 
   return (
-    <ScreenLayout title="식약처 약품 검색" back onBack={() => navigation.goBack()} scrollable scrollPadding={false} contentStyle={{ padding: spacing.s20 }}>
+    <ScreenLayout
+      title="식약처 약품 검색"
+      back
+      onBack={() => navigation.goBack()}
+      scrollable
+      scrollPadding={false}
+      contentStyle={{ padding: spacing.s20 }}
+    >
       <SearchBar
         value={query}
         onChangeText={setQuery}
@@ -50,27 +57,73 @@ export function DrugCandidateScreen({ navigation, route }: Props) {
         style={{ marginBottom: spacing.s14 }}
       />
 
-      {searched && !loading && !searchError && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s10 }}>검색 결과 {results.length}건</Text>}
+      {searched && !loading && !searchError && (
+        <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s10 }}>
+          검색 결과 {results.length}건
+        </Text>
+      )}
       {searchError ? (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s8, backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s12, marginBottom: 10 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.s8,
+            backgroundColor: colors.danger50,
+            borderRadius: radii.sm,
+            padding: spacing.s12,
+            marginBottom: 10,
+          }}
+        >
           <Icon name="alert" size={13} color={colors.danger} />
-          <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>{searchError}</Text>
+          <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>
+            {searchError}
+          </Text>
         </View>
       ) : null}
 
-      {results.map((c) => (
+      {results.map(c => (
         <Card shadow key={c.drug_name} style={{ marginBottom: spacing.s12 }}>
-          <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw6, color: colors.ink, marginBottom: spacing.s4 }}>{c.drug_name}</Text>
-          {c.ingredient_name ? <Text style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s4 }}>성분: {c.ingredient_name}</Text> : null}
-          {c.manufacturer ? <Text style={{ fontSize: typography.fz12, color: colors.accent, marginBottom: spacing.s12 }}>{c.manufacturer}</Text> : null}
-          <Button variant="primary" size="md" borderRadius={radii.pill} onPress={() => navigation.navigate("DrugDosage", { drugIndex, selectedDrug: c })}>
+          <Text
+            style={{
+              fontSize: typography.fz15,
+              fontWeight: typography.fw6,
+              color: colors.ink,
+              marginBottom: spacing.s4,
+            }}
+          >
+            {c.drug_name}
+          </Text>
+          {c.ingredient_name ? (
+            <Text
+              style={{ fontSize: typography.fz12, color: colors.muted, marginBottom: spacing.s4 }}
+            >
+              성분: {c.ingredient_name}
+            </Text>
+          ) : null}
+          {c.manufacturer ? (
+            <Text
+              style={{ fontSize: typography.fz12, color: colors.accent, marginBottom: spacing.s12 }}
+            >
+              {c.manufacturer}
+            </Text>
+          ) : null}
+          <Button
+            variant="primary"
+            size="md"
+            borderRadius={radii.pill}
+            onPress={() => navigation.navigate('DrugDosage', { drugIndex, selectedDrug: c })}
+          >
             이 약품 선택
           </Button>
         </Card>
       ))}
 
       {searched && !loading && results.length === 0 && (
-        <EmptyState icon="search" title="검색 결과가 없어요" message="다른 이름으로 검색해보세요." />
+        <EmptyState
+          icon="search"
+          title="검색 결과가 없어요"
+          message="다른 이름으로 검색해보세요."
+        />
       )}
     </ScreenLayout>
   );

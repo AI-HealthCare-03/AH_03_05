@@ -1,6 +1,11 @@
 import React, {
-  createContext, useContext, useState, useEffect,
-  useCallback, useMemo, useRef,
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokenStore } from '../api/tokenStore';
@@ -49,7 +54,7 @@ export interface Record {
 }
 
 export interface ChatMessage {
-  from: "user" | "ai" | "warn";
+  from: 'user' | 'ai' | 'warn';
   text: string;
   date?: string;
 }
@@ -79,7 +84,7 @@ export interface OcrDrug {
   maker: string;
   time: string;
   confidence: number | null;
-  status: "ok" | "needsCheck";
+  status: 'ok' | 'needsCheck';
   isManual?: boolean;
 }
 
@@ -159,39 +164,120 @@ export const defaultUser: User = {
 };
 
 const seedDrugs: Drug[] = [
-  { id: 'd1', name: '암로디핀정 5mg', maker: '한미약품', ingredient: 'Amlodipine besylate 5mg',
-    freq: '1일 1회', time: '아침 식후 30분', color: '#0EA5E9', status: '완료', defaultStatus: '아침 식후 30분' },
-  { id: 'd2', name: '로수바스타틴 10mg', maker: '유한양행', ingredient: 'Rosuvastatin 10mg',
-    freq: '1일 1회', time: '저녁 식후', color: '#8B5CF6', status: '저녁 8시', defaultStatus: '저녁 8시' },
-  { id: 'd3', name: '메트포르민 500mg', maker: 'A제약', ingredient: 'Metformin 500mg',
-    freq: '1일 2회', time: '식후', color: '#10B981', status: '점심 · 저녁', defaultStatus: '점심 · 저녁' },
+  {
+    id: 'd1',
+    name: '암로디핀정 5mg',
+    maker: '한미약품',
+    ingredient: 'Amlodipine besylate 5mg',
+    freq: '1일 1회',
+    time: '아침 식후 30분',
+    color: '#0EA5E9',
+    status: '완료',
+    defaultStatus: '아침 식후 30분',
+  },
+  {
+    id: 'd2',
+    name: '로수바스타틴 10mg',
+    maker: '유한양행',
+    ingredient: 'Rosuvastatin 10mg',
+    freq: '1일 1회',
+    time: '저녁 식후',
+    color: '#8B5CF6',
+    status: '저녁 8시',
+    defaultStatus: '저녁 8시',
+  },
+  {
+    id: 'd3',
+    name: '메트포르민 500mg',
+    maker: 'A제약',
+    ingredient: 'Metformin 500mg',
+    freq: '1일 2회',
+    time: '식후',
+    color: '#10B981',
+    status: '점심 · 저녁',
+    defaultStatus: '점심 · 저녁',
+  },
 ];
 
 const seedRecords: Record[] = [
-  { id: "r1", kind: "처방전", date: "2026.05.11", place: "서울 내과 의원", drugCount: 3, drugs: ["암로디핀정 5mg", "로수바스타틴 10mg", "메트포르민 500mg"], doctor: "김민수", note: "고혈압·당뇨 정기 처방, 14일분" },
-  { id: "r2", kind: "약봉투", date: "2026.04.22", place: "건강약국 (강남점)", drugCount: 2, drugs: ["타이레놀 500mg", "베나치오"], doctor: "—", note: "약사 조제, 감기 증상 5일분" },
-  { id: "r3", kind: "진료기록", date: "2026.04.15", place: "강남삼성내과", drugCount: 3, drugs: ["암로디핀정 5mg", "로수바스타틴 10mg", "메트포르민 500mg"], doctor: "박서연", note: "혈압 130/85, HbA1c 6.9 — 약 유지" },
-  { id: "r4", kind: "진료기록", date: "2026.03.15", place: "건강검진 결과", drugCount: 0, drugs: [], doctor: "—", note: "공복혈당 128, LDL 142 — 식이 권고" },
+  {
+    id: 'r1',
+    kind: '처방전',
+    date: '2026.05.11',
+    place: '서울 내과 의원',
+    drugCount: 3,
+    drugs: ['암로디핀정 5mg', '로수바스타틴 10mg', '메트포르민 500mg'],
+    doctor: '김민수',
+    note: '고혈압·당뇨 정기 처방, 14일분',
+  },
+  {
+    id: 'r2',
+    kind: '약봉투',
+    date: '2026.04.22',
+    place: '건강약국 (강남점)',
+    drugCount: 2,
+    drugs: ['타이레놀 500mg', '베나치오'],
+    doctor: '—',
+    note: '약사 조제, 감기 증상 5일분',
+  },
+  {
+    id: 'r3',
+    kind: '진료기록',
+    date: '2026.04.15',
+    place: '강남삼성내과',
+    drugCount: 3,
+    drugs: ['암로디핀정 5mg', '로수바스타틴 10mg', '메트포르민 500mg'],
+    doctor: '박서연',
+    note: '혈압 130/85, HbA1c 6.9 — 약 유지',
+  },
+  {
+    id: 'r4',
+    kind: '진료기록',
+    date: '2026.03.15',
+    place: '건강검진 결과',
+    drugCount: 0,
+    drugs: [],
+    doctor: '—',
+    note: '공복혈당 128, LDL 142 — 식이 권고',
+  },
 ];
 
 const seedChats: Chat[] = [
   {
-    id: "c1",
-    title: "혈압약 부작용 문의",
-    preview: "혈압약 먹는데 사우나...",
-    time: "오늘",
+    id: 'c1',
+    title: '혈압약 부작용 문의',
+    preview: '혈압약 먹는데 사우나...',
+    time: '오늘',
     messages: [
-      { from: "ai", text: "안녕하세요, 김오즈님 👋\n생활습관 관련 궁금한 점을 편하게 물어보세요.", date: "2026년 5월 12일" },
-      { from: "user", text: "혈압약 먹는데 사우나 가도 되나요?" },
-      { from: "ai", text: "혈압약 복용 중에는 사우나 이용 시 주의가 필요해요.\n급격한 온도 변화로 혈압이 갑자기 떨어질 수 있어서, 15분 이내로 짧게 이용하고 수분 보충을 꼭 해주세요." },
-      { from: "user", text: "약을 끊어도 될 것 같은데요" },
-      { from: "warn", text: "복약 중단·변경은 반드시 담당 의사와 상담해야 해요." },
+      {
+        from: 'ai',
+        text: '안녕하세요, 김오즈님 👋\n생활습관 관련 궁금한 점을 편하게 물어보세요.',
+        date: '2026년 5월 12일',
+      },
+      { from: 'user', text: '혈압약 먹는데 사우나 가도 되나요?' },
+      {
+        from: 'ai',
+        text: '혈압약 복용 중에는 사우나 이용 시 주의가 필요해요.\n급격한 온도 변화로 혈압이 갑자기 떨어질 수 있어서, 15분 이내로 짧게 이용하고 수분 보충을 꼭 해주세요.',
+      },
+      { from: 'user', text: '약을 끊어도 될 것 같은데요' },
+      { from: 'warn', text: '복약 중단·변경은 반드시 담당 의사와 상담해야 해요.' },
     ],
   },
-  { id: "c2", title: "메트포르민과 음주", preview: "와인 한 잔 정도는...", time: "어제", messages: [] },
-  { id: "c3", title: "고지혈증 식단", preview: "어떤 음식이 좋을까요?", time: "5월 1일", messages: [] },
+  {
+    id: 'c2',
+    title: '메트포르민과 음주',
+    preview: '와인 한 잔 정도는...',
+    time: '어제',
+    messages: [],
+  },
+  {
+    id: 'c3',
+    title: '고지혈증 식단',
+    preview: '어떤 음식이 좋을까요?',
+    time: '5월 1일',
+    messages: [],
+  },
 ];
-
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
@@ -207,12 +293,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [activeChat, setActiveChat] = useState('c1');
   const [notifSettings, setNotifSettingsState] = useState<NotifSettings>(defaultNotifSettings);
   const [ocrSession, setOcrSession] = useState<OcrSession>({
-    fileName: "처방전.jpg",
-    fileSize: "1.8MB",
+    fileName: '처방전.jpg',
+    fileSize: '1.8MB',
     drugs: [
-      { name: "암로디핀정 5mg", maker: "한미약품", time: "1일 1회 · 아침 식후 30분 · 30일", confidence: 95, status: "ok" },
-      { name: "로수바스타틴 10mg", maker: "유한양행", time: "1일 1회 · 저녁 식후 · 30일", confidence: 92, status: "ok" },
-      { name: "메트포르?정 500mg", maker: "제조사 미확인", time: "—", confidence: 52, status: "needsCheck" },
+      {
+        name: '암로디핀정 5mg',
+        maker: '한미약품',
+        time: '1일 1회 · 아침 식후 30분 · 30일',
+        confidence: 95,
+        status: 'ok',
+      },
+      {
+        name: '로수바스타틴 10mg',
+        maker: '유한양행',
+        time: '1일 1회 · 저녁 식후 · 30일',
+        confidence: 92,
+        status: 'ok',
+      },
+      {
+        name: '메트포르?정 500mg',
+        maker: '제조사 미확인',
+        time: '—',
+        confidence: 52,
+        status: 'needsCheck',
+      },
     ],
   });
   const [isReady, setIsReady] = useState(false);
@@ -297,36 +401,68 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const markNotificationRead = useCallback((id: string) => {
-    setNotificationsState(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+    setNotificationsState(prev => prev.map(n => (n.id === id ? { ...n, unread: false } : n)));
     setUnreadCountState(prev => Math.max(0, prev - 1));
   }, []);
 
-  const value = useMemo<AppState>(() => ({
-    isReady,
-    user, setUser,
-    drugs, setDrugs,
-    records, setRecords,
-    chats, setChats,
-    activeChat, setActiveChat,
-    notifications, setNotifications,
-    adherence: drugs.length > 0
-      ? Math.round((drugs.filter(d => d.status === '완료').length / drugs.length) * 100)
-      : 0,
-    streak,
-    ocrSession, setOcrSession,
-    notifSettings, setNotifSettings,
-    flash, toast,
-    notifDrawerOpen, setNotifDrawerOpen,
-    markNotificationRead,
-    unreadCount: unreadCountState,
-    setUnreadCount,
-  }), [isReady, user, drugs, records, chats, activeChat, notifications, unreadCountState, streak, ocrSession, notifSettings, toast, notifDrawerOpen, markNotificationRead, setNotifSettings, setNotifications, setUnreadCount]);
+  const value = useMemo<AppState>(
+    () => ({
+      isReady,
+      user,
+      setUser,
+      drugs,
+      setDrugs,
+      records,
+      setRecords,
+      chats,
+      setChats,
+      activeChat,
+      setActiveChat,
+      notifications,
+      setNotifications,
+      adherence:
+        drugs.length > 0
+          ? Math.round((drugs.filter(d => d.status === '완료').length / drugs.length) * 100)
+          : 0,
+      streak,
+      ocrSession,
+      setOcrSession,
+      notifSettings,
+      setNotifSettings,
+      flash,
+      toast,
+      notifDrawerOpen,
+      setNotifDrawerOpen,
+      markNotificationRead,
+      unreadCount: unreadCountState,
+      setUnreadCount,
+    }),
+    [
+      isReady,
+      user,
+      drugs,
+      records,
+      chats,
+      activeChat,
+      notifications,
+      unreadCountState,
+      streak,
+      ocrSession,
+      notifSettings,
+      toast,
+      notifDrawerOpen,
+      markNotificationRead,
+      setNotifSettings,
+      setNotifications,
+      setUnreadCount,
+    ]
+  );
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
 }
 
 export const useApp = () => {
   const ctx = useContext(AppCtx);
-  if (!ctx) throw new Error("useApp must be used within AppProvider");
+  if (!ctx) throw new Error('useApp must be used within AppProvider');
   return ctx;
 };

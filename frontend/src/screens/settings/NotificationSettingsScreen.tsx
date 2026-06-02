@@ -42,7 +42,13 @@ function MealRow({ label, val, setVal, master, onTimePress }: MealRowProps) {
   return (
     <View style={[s.rowItem, { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: master ? colors.ink : colors.muted }}>
+        <Text
+          style={{
+            fontSize: typography.fz14,
+            fontWeight: typography.fw6,
+            color: master ? colors.ink : colors.muted,
+          }}
+        >
           {label}
         </Text>
         <Text style={{ fontSize: typography.fz12, color: colors.muted }}>알림 시간 {val.time}</Text>
@@ -64,7 +70,13 @@ function MealRow({ label, val, setVal, master, onTimePress }: MealRowProps) {
           disabled={!active}
           activeOpacity={0.7}
         >
-          <Text style={{ fontSize: typography.fz13, color: active ? colors.ink : colors.muted, textAlign: 'center' }}>
+          <Text
+            style={{
+              fontSize: typography.fz13,
+              color: active ? colors.ink : colors.muted,
+              textAlign: 'center',
+            }}
+          >
             {val.time}
           </Text>
         </TouchableOpacity>
@@ -92,7 +104,11 @@ function ToggleRow({ label, sub, val, onChange }: ToggleRowProps) {
     <View style={[s.rowItem, { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}>{label}</Text>
-        {sub && <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>{sub}</Text>}
+        {sub && (
+          <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>
+            {sub}
+          </Text>
+        )}
       </View>
       <Switch value={val} onValueChange={onChange} trackColor={{ true: colors.accent }} />
     </View>
@@ -101,19 +117,20 @@ function ToggleRow({ label, sub, val, onChange }: ToggleRowProps) {
 
 export function NotificationSettingsScreen({ navigation }: { navigation: NavProp }) {
   const { flash, notifSettings, setNotifSettings } = useApp();
-  const [master, setMaster]   = useState(notifSettings.master);
+  const [master, setMaster] = useState(notifSettings.master);
   const [morning, setMorning] = useState<MealState>(notifSettings.morning);
-  const [lunch,   setLunch]   = useState<MealState>(notifSettings.lunch);
-  const [dinner,  setDinner]  = useState<MealState>(notifSettings.dinner);
-  const [newGuide,    setNewGuide]    = useState(notifSettings.newGuide);
+  const [lunch, setLunch] = useState<MealState>(notifSettings.lunch);
+  const [dinner, setDinner] = useState<MealState>(notifSettings.dinner);
+  const [newGuide, setNewGuide] = useState(notifSettings.newGuide);
   const [ocrComplete, setOcrComplete] = useState(false);
   const [systemAlarm, setSystemAlarm] = useState(false);
-  const [chatReply,   setChatReply]   = useState(notifSettings.chatReply);
-  const [marketing,   setMarketing]   = useState(notifSettings.marketing);
+  const [chatReply, setChatReply] = useState(notifSettings.chatReply);
+  const [marketing, setMarketing] = useState(notifSettings.marketing);
   const [pickerOpen, setPickerOpen] = useState<MealKey | null>(null);
 
   useEffect(() => {
-    notificationSettingsApi.getNotificationSettings()
+    notificationSettingsApi
+      .getNotificationSettings()
       .then(res => {
         setNewGuide(res.guide_complete_alarm);
         setOcrComplete(res.ocr_complete_alarm);
@@ -141,11 +158,13 @@ export function NotificationSettingsScreen({ navigation }: { navigation: NavProp
     setNotifSettings(next);
     await scheduleMedicationNotifications(next).catch(() => {});
 
-    notificationSettingsApi.updateNotificationSettings({
-      guide_complete_alarm: newGuide,
-      ocr_complete_alarm: ocrComplete,
-      system_alarm: systemAlarm,
-    }).catch(() => flash('설정 저장에 실패했습니다.'));
+    notificationSettingsApi
+      .updateNotificationSettings({
+        guide_complete_alarm: newGuide,
+        ocr_complete_alarm: ocrComplete,
+        system_alarm: systemAlarm,
+      })
+      .catch(() => flash('설정 저장에 실패했습니다.'));
 
     try {
       const meds = await getMedicationAlarms();
@@ -168,29 +187,80 @@ export function NotificationSettingsScreen({ navigation }: { navigation: NavProp
   const pickerDate = pickerOpen ? timeStrToDate(getMealState(pickerOpen).time) : new Date();
 
   return (
-    <ScreenLayout title="알림 설정" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
+    <ScreenLayout
+      title="알림 설정"
+      back
+      onBack={() =>
+        navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')
+      }
+      scrollable
+    >
       <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s14 }}>
         <View style={s.rowItem}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7 }}>복약 알림 받기</Text>
-            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>각 식사 시간에 알림을 받아요</Text>
+            <Text style={{ fontSize: typography.fz15, fontWeight: typography.fw7 }}>
+              복약 알림 받기
+            </Text>
+            <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+              각 식사 시간에 알림을 받아요
+            </Text>
           </View>
           <Switch value={master} onValueChange={setMaster} trackColor={{ true: colors.accent }} />
         </View>
-        <MealRow label="아침 복약" val={morning} setVal={setMorning} master={master} onTimePress={() => setPickerOpen('morning')} />
-        <MealRow label="점심 복약" val={lunch}   setVal={setLunch}   master={master} onTimePress={() => setPickerOpen('lunch')} />
-        <MealRow label="저녁 복약" val={dinner}  setVal={setDinner}  master={master} onTimePress={() => setPickerOpen('dinner')} />
+        <MealRow
+          label="아침 복약"
+          val={morning}
+          setVal={setMorning}
+          master={master}
+          onTimePress={() => setPickerOpen('morning')}
+        />
+        <MealRow
+          label="점심 복약"
+          val={lunch}
+          setVal={setLunch}
+          master={master}
+          onTimePress={() => setPickerOpen('lunch')}
+        />
+        <MealRow
+          label="저녁 복약"
+          val={dinner}
+          setVal={setDinner}
+          master={master}
+          onTimePress={() => setPickerOpen('dinner')}
+        />
       </Card>
 
       <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s14 }}>
-        <ToggleRow label="새 가이드 생성 알림"  sub="처방전 분석이 완료되었을 때"  val={newGuide}    onChange={setNewGuide} />
-        <ToggleRow label="OCR 처리 완료 알림"  sub="문서 OCR 분석이 완료됐을 때"  val={ocrComplete} onChange={setOcrComplete} />
-        <ToggleRow label="시스템 알림"         sub="서비스 공지 및 중요 안내"      val={systemAlarm} onChange={setSystemAlarm} />
-        <ToggleRow label="상담 답변 알림"      sub="AI 상담 응답이 도착했을 때"   val={chatReply}   onChange={setChatReply} />
-        <ToggleRow label="마케팅 정보 수신"                                         val={marketing}   onChange={setMarketing} />
+        <ToggleRow
+          label="새 가이드 생성 알림"
+          sub="처방전 분석이 완료되었을 때"
+          val={newGuide}
+          onChange={setNewGuide}
+        />
+        <ToggleRow
+          label="OCR 처리 완료 알림"
+          sub="문서 OCR 분석이 완료됐을 때"
+          val={ocrComplete}
+          onChange={setOcrComplete}
+        />
+        <ToggleRow
+          label="시스템 알림"
+          sub="서비스 공지 및 중요 안내"
+          val={systemAlarm}
+          onChange={setSystemAlarm}
+        />
+        <ToggleRow
+          label="상담 답변 알림"
+          sub="AI 상담 응답이 도착했을 때"
+          val={chatReply}
+          onChange={setChatReply}
+        />
+        <ToggleRow label="마케팅 정보 수신" val={marketing} onChange={setMarketing} />
       </Card>
 
-      <Button variant="primary" size="lg" borderRadius={radii.pill} onPress={save} fullWidth>저장하기</Button>
+      <Button variant="primary" size="lg" borderRadius={radii.pill} onPress={save} fullWidth>
+        저장하기
+      </Button>
 
       {/* Android: system time dialog (렌더링되면 즉시 다이얼로그 표시) */}
       {Platform.OS === 'android' && pickerOpen !== null && (
@@ -205,7 +275,11 @@ export function NotificationSettingsScreen({ navigation }: { navigation: NavProp
       {/* iOS: 하단 모달 spinner */}
       {Platform.OS === 'ios' && (
         <Modal visible={pickerOpen !== null} transparent animationType="fade">
-          <TouchableOpacity style={ps.backdrop} onPress={() => setPickerOpen(null)} activeOpacity={1}>
+          <TouchableOpacity
+            style={ps.backdrop}
+            onPress={() => setPickerOpen(null)}
+            activeOpacity={1}
+          >
             <View style={ps.sheet}>
               <DateTimePicker
                 value={pickerDate}
@@ -221,7 +295,9 @@ export function NotificationSettingsScreen({ navigation }: { navigation: NavProp
                 borderRadius={radii.pill}
                 onPress={() => setPickerOpen(null)}
                 fullWidth
-              >확인</Button>
+              >
+                확인
+              </Button>
             </View>
           </TouchableOpacity>
         </Modal>

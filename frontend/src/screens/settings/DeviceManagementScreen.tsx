@@ -23,9 +23,30 @@ type Device = {
 };
 
 const INITIAL_DEVICES: Device[] = [
-  { id: 'd1', name: 'MacBook Air · Safari', loc: '서울, 한국', at: '지금 사용 중', current: true, icon: 'doc' },
-  { id: 'd2', name: 'iPhone 15 · MediPT 앱', loc: '서울, 한국', at: '12시간 전', current: false, icon: 'device' },
-  { id: 'd3', name: 'Chrome · Windows', loc: '부산, 한국', at: '3일 전', current: false, icon: 'globe' },
+  {
+    id: 'd1',
+    name: 'MacBook Air · Safari',
+    loc: '서울, 한국',
+    at: '지금 사용 중',
+    current: true,
+    icon: 'doc',
+  },
+  {
+    id: 'd2',
+    name: 'iPhone 15 · MediPT 앱',
+    loc: '서울, 한국',
+    at: '12시간 전',
+    current: false,
+    icon: 'device',
+  },
+  {
+    id: 'd3',
+    name: 'Chrome · Windows',
+    loc: '부산, 한국',
+    at: '3일 전',
+    current: false,
+    icon: 'globe',
+  },
 ];
 
 type DeviceRowProps = {
@@ -37,7 +58,16 @@ type DeviceRowProps = {
 function DeviceRow({ device: d, isFirst, onRevoke }: DeviceRowProps) {
   return (
     <View style={[s.rowItem, !isFirst && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-      <View style={{ width: 40, height: 40, borderRadius: radii.icon, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: radii.icon,
+          backgroundColor: colors.accent50,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Icon name={d.icon} size={18} color={colors.accent700} />
       </View>
       <View style={{ flex: 1, marginLeft: spacing.s12 }}>
@@ -45,10 +75,14 @@ function DeviceRow({ device: d, isFirst, onRevoke }: DeviceRowProps) {
           <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}>{d.name}</Text>
           {d.current && <Badge variant="success">현재 기기</Badge>}
         </View>
-        <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{d.loc} · {d.at}</Text>
+        <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+          {d.loc} · {d.at}
+        </Text>
       </View>
       {!d.current && (
-        <Button variant="ghost" size="sm" onPress={() => onRevoke(d.id)}>로그아웃</Button>
+        <Button variant="ghost" size="sm" onPress={() => onRevoke(d.id)}>
+          로그아웃
+        </Button>
       )}
     </View>
   );
@@ -58,10 +92,20 @@ export function DeviceManagementScreen({ navigation }: { navigation: NavProp }) 
   const { flash } = useApp();
   const [devices, setDevices] = useState<Device[]>(INITIAL_DEVICES);
 
-  const revoke = (id: string) => { setDevices(prev => prev.filter(d => d.id !== id)); flash('해당 기기에서 로그아웃 했어요'); };
+  const revoke = (id: string) => {
+    setDevices(prev => prev.filter(d => d.id !== id));
+    flash('해당 기기에서 로그아웃 했어요');
+  };
 
   return (
-    <ScreenLayout title="로그인 기기 관리" back onBack={() => navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')} scrollable>
+    <ScreenLayout
+      title="로그인 기기 관리"
+      back
+      onBack={() =>
+        navigation.getState().index > 0 ? navigation.goBack() : navigation.navigate('Settings')
+      }
+      scrollable
+    >
       <Card shadow noPadding style={{ overflow: 'hidden', marginBottom: spacing.s20 }}>
         {devices.map((d, i) => (
           <DeviceRow key={d.id} device={d} isFirst={i === 0} onRevoke={revoke} />
@@ -70,9 +114,14 @@ export function DeviceManagementScreen({ navigation }: { navigation: NavProp }) 
       <Button
         variant="danger"
         size="md"
-        onPress={() => { setDevices(prev => prev.filter(d => d.current)); flash('다른 기기는 모두 로그아웃 했어요'); }}
+        onPress={() => {
+          setDevices(prev => prev.filter(d => d.current));
+          flash('다른 기기는 모두 로그아웃 했어요');
+        }}
         fullWidth
-      >다른 모든 기기 로그아웃</Button>
+      >
+        다른 모든 기기 로그아웃
+      </Button>
     </ScreenLayout>
   );
 }

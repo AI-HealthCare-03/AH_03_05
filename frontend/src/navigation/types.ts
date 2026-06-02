@@ -15,7 +15,9 @@ export type HomeStackParams = {
   OCRProcessing: { recordId?: number };
   OCRResult: { recordId?: number; inputMethod?: string };
   DrugCandidate: { medicationName?: string; drugIndex?: number };
-  DrugDosage: { drugIndex?: number; selectedDrug?: DrugSearchResult; medicationId?: number } | undefined;
+  DrugDosage:
+    | { drugIndex?: number; selectedDrug?: DrugSearchResult; medicationId?: number }
+    | undefined;
   DrugDetail: { drugId: number };
   GuideLoading: { recordId?: number };
   GuideResult: { guideId?: number };
@@ -24,7 +26,9 @@ export type HomeStackParams = {
 export type RecordsStackParams = {
   RecordList: undefined;
   RecordDetail: { recordId: number };
-  DrugDosage: { drugIndex?: number; selectedDrug?: DrugSearchResult; medicationId?: number } | undefined;
+  DrugDosage:
+    | { drugIndex?: number; selectedDrug?: DrugSearchResult; medicationId?: number }
+    | undefined;
   DrugDetail: { drugId: number };
 };
 
@@ -54,7 +58,9 @@ export type SettingsStackParams = {
 export type RootStackParams = {
   Auth: undefined;
   Onboarding: undefined;
-  Main: { screen?: string; params?: { screen?: string; params?: Record<string, unknown> } } | undefined;
+  Main:
+    | { screen?: string; params?: { screen?: string; params?: Record<string, unknown> } }
+    | undefined;
   UploadModal: undefined;
   MedicationAlarm: { meal?: 'morning' | 'lunch' | 'dinner' };
 };

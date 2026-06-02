@@ -51,7 +51,7 @@ interface BannerProps {
   variant: BannerVariant;
   title?: string;
   body?: string;
-  icon?: string | null;  // null = 아이콘 없음, undefined = variant 기본 아이콘
+  icon?: string | null; // null = 아이콘 없음, undefined = variant 기본 아이콘
   style?: ViewStyle;
 }
 
@@ -60,17 +60,19 @@ export function Banner({ variant, title, body, icon, style }: BannerProps) {
   const iconName = icon === null ? null : (icon ?? cfg.defaultIcon);
 
   return (
-    <View style={[
-      {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        backgroundColor: cfg.bg,
-        borderRadius: radii.md,
-        padding: spacing.s12,
-      },
-      cfg.border ? { borderWidth: 1, borderColor: cfg.border } : undefined,
-      style,
-    ]}>
+    <View
+      style={[
+        {
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          backgroundColor: cfg.bg,
+          borderRadius: radii.md,
+          padding: spacing.s12,
+        },
+        cfg.border ? { borderWidth: 1, borderColor: cfg.border } : undefined,
+        style,
+      ]}
+    >
       {iconName != null && (
         <View style={{ marginTop: 1 }}>
           <Icon name={iconName} size={16} color={cfg.iconColor} />
@@ -78,12 +80,14 @@ export function Banner({ variant, title, body, icon, style }: BannerProps) {
       )}
       <View style={{ flex: 1, marginLeft: iconName != null ? spacing.s8 : 0 }}>
         {title != null && (
-          <Text style={{
-            fontSize: typography.fz14,
-            fontWeight: typography.fw7,
-            color: cfg.titleColor,
-            marginBottom: body != null ? spacing.s2 : 0,
-          }}>
+          <Text
+            style={{
+              fontSize: typography.fz14,
+              fontWeight: typography.fw7,
+              color: cfg.titleColor,
+              marginBottom: body != null ? spacing.s2 : 0,
+            }}
+          >
             {title}
           </Text>
         )}

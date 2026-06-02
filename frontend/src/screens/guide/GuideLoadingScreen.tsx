@@ -57,19 +57,32 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
       if (abortRef.current) return;
 
       const guideId = created.guide_id;
-      const jobId   = created.job_id;
-      let attempt   = 0;
+      const jobId = created.job_id;
+      let attempt = 0;
 
       while (true) {
         if (abortRef.current) return;
-        if (Date.now() > deadline) { setPhase('timeout'); return; }
+        if (Date.now() > deadline) {
+          setPhase('timeout');
+          return;
+        }
 
         const job = await jobsApi.getProcessingJob(jobId);
         if (abortRef.current) return;
 
-        if (job.status === 'completed') { navigation.replace('GuideResult', { guideId }); return; }
-        if (job.status === 'failed')    { setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.'); setPhase('failed'); return; }
-        if (job.status === 'timeout')   { setPhase('timeout'); return; }
+        if (job.status === 'completed') {
+          navigation.replace('GuideResult', { guideId });
+          return;
+        }
+        if (job.status === 'failed') {
+          setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.');
+          setPhase('failed');
+          return;
+        }
+        if (job.status === 'timeout') {
+          setPhase('timeout');
+          return;
+        }
 
         setJobStatus(job.status);
         setStatusText(STATUS_TEXT[job.status] ?? '분석 중...');
@@ -86,38 +99,69 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     startGuide();
-    return () => { abortRef.current = true; };
+    return () => {
+      abortRef.current = true;
+    };
   }, []);
 
   const centerStyle = { paddingTop: Math.max(safeTop + spacing.s16, spacing.safeTop) };
 
   if (phase === 'failed' || phase === 'timeout') {
-    const msg = phase === 'timeout' ? '가이드 생성 시간이 초과됐어요. 다시 시도해주세요.' : errorMsg;
+    const msg =
+      phase === 'timeout' ? '가이드 생성 시간이 초과됐어요. 다시 시도해주세요.' : errorMsg;
     return (
       <ScreenLayout noHeader contentStyle={[s.loadingCenter, centerStyle]}>
         <Card shadow style={{ width: '90%', alignItems: 'center' }}>
           <View style={[s.spinner, { backgroundColor: colors.danger50 }]}>
             <Icon name="alert-circle" size={36} color={colors.danger} />
           </View>
-          <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7, marginBottom: spacing.s8, textAlign: 'center' }}>
+          <Text
+            style={{
+              fontSize: typography.fz17,
+              fontWeight: typography.fw7,
+              marginBottom: spacing.s8,
+              textAlign: 'center',
+            }}
+          >
             {phase === 'timeout' ? '시간 초과' : '생성 실패'}
           </Text>
-          <Text style={{ fontSize: typography.fz13, color: colors.muted, marginBottom: spacing.s20, textAlign: 'center' }}>
+          <Text
+            style={{
+              fontSize: typography.fz13,
+              color: colors.muted,
+              marginBottom: spacing.s20,
+              textAlign: 'center',
+            }}
+          >
             {msg}
           </Text>
           <View style={{ flexDirection: 'row', gap: spacing.s12 }}>
-            <Button variant="ghost" size="sm" onPress={() => {
-              navigation.goBack();
-              if (recordId) {
-                navigation.getParent()?.getParent()?.navigate('Main', {
-                  screen: 'RecordsTab',
-                  params: { screen: 'RecordDetail', params: { recordId } },
-                });
-              } else {
-                navigation.getParent()?.getParent()?.navigate('Main', { screen: 'HomeTab', params: { screen: 'Home' } });
-              }
-            }}>뒤로가기</Button>
-            <Button variant="primary" size="sm" onPress={startGuide}>다시 시도</Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={() => {
+                navigation.goBack();
+                if (recordId) {
+                  navigation
+                    .getParent()
+                    ?.getParent()
+                    ?.navigate('Main', {
+                      screen: 'RecordsTab',
+                      params: { screen: 'RecordDetail', params: { recordId } },
+                    });
+                } else {
+                  navigation
+                    .getParent()
+                    ?.getParent()
+                    ?.navigate('Main', { screen: 'HomeTab', params: { screen: 'Home' } });
+                }
+              }}
+            >
+              뒤로가기
+            </Button>
+            <Button variant="primary" size="sm" onPress={startGuide}>
+              다시 시도
+            </Button>
           </View>
         </Card>
       </ScreenLayout>
@@ -130,7 +174,13 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
         <View style={s.spinner}>
           <ActivityIndicator color={colors.accent700} size="large" />
         </View>
-        <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7, marginBottom: spacing.s4 }}>
+        <Text
+          style={{
+            fontSize: typography.fz17,
+            fontWeight: typography.fw7,
+            marginBottom: spacing.s4,
+          }}
+        >
           맞춤 가이드를 만들고 있어요
         </Text>
         <Text style={{ fontSize: typography.fz13, color: colors.muted, marginBottom: spacing.s20 }}>
@@ -140,7 +190,9 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
           progress={jobStatus ? (JOB_PROGRESS[jobStatus] ?? 40) : 20}
           style={{ alignSelf: 'stretch', marginBottom: spacing.s20 }}
         />
-        <Text style={{ fontSize: typography.fz12, color: colors.muted2 }}>최대 90초가 소요될 수 있어요</Text>
+        <Text style={{ fontSize: typography.fz12, color: colors.muted2 }}>
+          최대 90초가 소요될 수 있어요
+        </Text>
       </Card>
     </ScreenLayout>
   );
@@ -152,5 +204,13 @@ export default GuideLoadingScreen;
 
 const s = StyleSheet.create({
   loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  spinner:       { width: 84, height: 84, borderRadius: radii.pill, backgroundColor: colors.accent50, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.s16 },
+  spinner: {
+    width: 84,
+    height: 84,
+    borderRadius: radii.pill,
+    backgroundColor: colors.accent50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.s16,
+  },
 });

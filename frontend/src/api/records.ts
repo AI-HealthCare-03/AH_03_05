@@ -1,9 +1,15 @@
 import { apiClient } from './client';
 import type {
-  RecordUploadResponse, ManualInputResponse, RecordType,
-  RecordListResponse, RecordDetail,
-  RecordMedicationsResponse, RecordGuideResponse,
-  OcrResultResponse, OcrTextUpdateRequest, OcrTextUpdateResponse,
+  RecordUploadResponse,
+  ManualInputResponse,
+  RecordType,
+  RecordListResponse,
+  RecordDetail,
+  RecordMedicationsResponse,
+  RecordGuideResponse,
+  OcrResultResponse,
+  OcrTextUpdateRequest,
+  OcrTextUpdateResponse,
 } from './types';
 
 export interface UploadFile {
@@ -14,7 +20,7 @@ export interface UploadFile {
 
 export async function uploadRecord(
   file: UploadFile | globalThis.File,
-  record_type: RecordType,
+  record_type: RecordType
 ): Promise<RecordUploadResponse> {
   const form = new FormData();
   if ('uri' in file) {
@@ -74,7 +80,7 @@ export async function getOcrResult(recordId: number): Promise<OcrResultResponse>
 
 export async function updateOcrText(
   recordId: number,
-  data: OcrTextUpdateRequest,
+  data: OcrTextUpdateRequest
 ): Promise<OcrTextUpdateResponse> {
   const res = await apiClient.patch<OcrTextUpdateResponse>(`/records/${recordId}/ocr-text`, data);
   return res.data;

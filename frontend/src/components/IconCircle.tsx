@@ -25,18 +25,20 @@ export function IconCircle({
   style,
 }: IconCircleProps) {
   return (
-    <View style={[
-      {
-        width: size,
-        height: size,
-        borderRadius,
-        backgroundColor,
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      borderColor ? { borderWidth: 1, borderColor } : undefined,
-      style,
-    ]}>
+    <View
+      style={[
+        {
+          width: size,
+          height: size,
+          borderRadius,
+          backgroundColor,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        borderColor ? { borderWidth: 1, borderColor } : undefined,
+        style,
+      ]}
+    >
       <Icon name={icon} size={iconSize ?? Math.round(size * 0.42)} color={color} />
     </View>
   );

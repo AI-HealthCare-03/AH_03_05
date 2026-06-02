@@ -15,7 +15,15 @@ interface SearchBarProps {
   style?: ViewStyle;
 }
 
-export function SearchBar({ value, onChangeText, placeholder = '검색', onSubmit, autoFocus, action, style }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChangeText,
+  placeholder = '검색',
+  onSubmit,
+  autoFocus,
+  action,
+  style,
+}: SearchBarProps) {
   const [focused, setFocused] = useState(false);
   return (
     <Card
@@ -35,7 +43,9 @@ export function SearchBar({ value, onChangeText, placeholder = '검색', onSubmi
     >
       <Icon name="search" size={16} color={focused ? colors.accent : colors.muted} />
       <TextInput
-        style={{ flex: 1, fontSize: typography.fz14, color: colors.ink, outlineStyle: 'none' } as any}
+        style={
+          { flex: 1, fontSize: typography.fz14, color: colors.ink, outlineStyle: 'none' } as any
+        }
         placeholder={placeholder}
         placeholderTextColor={colors.muted2}
         value={value}

@@ -1,5 +1,15 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Linking } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Linking,
+} from 'react-native';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
@@ -22,7 +32,13 @@ const GREETING: ChatMessageItem = {
   content: '안녕하세요 👋 어떤 점이 궁금하신가요?',
 };
 
-export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, onFirstMessage, onMessageSent }: Props) {
+export function ChatSessionPane({
+  sessionId,
+  cachedMessages,
+  onMessagesChange,
+  onFirstMessage,
+  onMessageSent,
+}: Props) {
   const [messages, setMessages] = useState<ChatMessageItem[]>(cachedMessages ?? [GREETING]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -52,7 +68,8 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
       return;
     }
     setMessages([GREETING]);
-    chatApi.getChatMessages(Number(sessionId), { limit: 50 })
+    chatApi
+      .getChatMessages(Number(sessionId), { limit: 50 })
       .then(res => {
         const msgs = res.items.length > 0 ? res.items : [GREETING];
         setMessages(msgs);
@@ -73,7 +90,10 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
     setInput('');
     inputRef.current?.clear?.();
     // web: Enter keypress adds '\n' to textarea after this sync clear — catch it
-    requestAnimationFrame(() => { setInput(''); inputRef.current?.clear?.(); });
+    requestAnimationFrame(() => {
+      setInput('');
+      inputRef.current?.clear?.();
+    });
     setSendError('');
 
     const isFirst = messages.length === 1 && messages[0].message_id === -1;
@@ -121,7 +141,14 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
       {/* 의료 안내 배너 */}
       <View style={ps.noticeBanner}>
         <Icon name="alert-circle" size={13} color={colors.muted2} />
-        <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s4, flex: 1 }}>
+        <Text
+          style={{
+            fontSize: typography.fz11,
+            color: colors.muted,
+            marginLeft: spacing.s4,
+            flex: 1,
+          }}
+        >
           AI 답변은 의료 진단을 대체하지 않습니다.
         </Text>
       </View>
@@ -131,17 +158,31 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
         style={{ flex: 1, minHeight: 0 }}
         contentContainerStyle={{ padding: spacing.s16, paddingBottom: spacing.s16 }}
       >
-        {messages.map((msg, i) => <Bubble key={msg.message_id ?? i} msg={msg} />)}
+        {messages.map((msg, i) => (
+          <Bubble key={msg.message_id ?? i} msg={msg} />
+        ))}
         {sending && (
           <View style={[s.bubbleRow, { alignItems: 'center', gap: spacing.s8 }]}>
-            <View style={s.aiAvatar}><Text style={{ fontSize: 10, fontWeight: typography.fw7, color: colors.accent700 }}>AI</Text></View>
+            <View style={s.aiAvatar}>
+              <Text style={{ fontSize: 10, fontWeight: typography.fw7, color: colors.accent700 }}>
+                AI
+              </Text>
+            </View>
             <ActivityIndicator color={colors.accent} size="small" />
           </View>
         )}
       </ScrollView>
 
       {sendError ? (
-        <Text style={{ fontSize: typography.fz12, color: colors.danger, textAlign: 'center', paddingVertical: spacing.s4, paddingHorizontal: spacing.s16 }}>
+        <Text
+          style={{
+            fontSize: typography.fz12,
+            color: colors.danger,
+            textAlign: 'center',
+            paddingVertical: spacing.s4,
+            paddingHorizontal: spacing.s16,
+          }}
+        >
           {sendError}
         </Text>
       ) : null}
@@ -164,7 +205,9 @@ export function ChatSessionPane({ sessionId, cachedMessages, onMessagesChange, o
           returnKeyType="send"
           multiline
         />
-        <Button variant="primary" size="sm" leftIcon="send" onPress={send} disabled={sending}>전송</Button>
+        <Button variant="primary" size="sm" leftIcon="send" onPress={send} disabled={sending}>
+          전송
+        </Button>
       </View>
     </KeyboardAvoidingView>
   );
@@ -176,11 +219,13 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
   const isSafe = msg.safety_flag === true;
 
   const submitFeedback = (rating: number, reportType?: string) => {
-    feedbacksApi.createFeedback({
-      chat_message_id: msg.message_id,
-      rating,
-      ...(reportType ? { report_type: reportType } : {}),
-    }).catch(() => {});
+    feedbacksApi
+      .createFeedback({
+        chat_message_id: msg.message_id,
+        rating,
+        ...(reportType ? { report_type: reportType } : {}),
+      })
+      .catch(() => {});
   };
 
   return (
@@ -188,14 +233,18 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
       <View style={[s.bubbleRow, isUser && { justifyContent: 'flex-end' }]}>
         {!isUser && (
           <View style={s.aiAvatar}>
-            <Text style={{ fontSize: 10, fontWeight: typography.fw7, color: colors.accent700 }}>AI</Text>
+            <Text style={{ fontSize: 10, fontWeight: typography.fw7, color: colors.accent700 }}>
+              AI
+            </Text>
           </View>
         )}
-        <View style={[
-          s.bubble,
-          isUser ? s.bubbleUser : s.bubbleAI,
-          isSafe && { borderWidth: 1.5, borderColor: colors.danger },
-        ]}>
+        <View
+          style={[
+            s.bubble,
+            isUser ? s.bubbleUser : s.bubbleAI,
+            isSafe && { borderWidth: 1.5, borderColor: colors.danger },
+          ]}
+        >
           {!isUser && msg.category && (
             <View style={{ alignSelf: 'flex-end', marginBottom: spacing.s4 }}>
               <CategoryBadge category={msg.category} />
@@ -203,18 +252,49 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
           )}
           {isSafe && (
             <View style={{ marginBottom: spacing.s8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, marginBottom: spacing.s4 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.s4,
+                  marginBottom: spacing.s4,
+                }}
+              >
                 <Icon name="alert-circle" size={13} color={colors.danger} />
-                <Text style={{ fontSize: typography.fz11, color: colors.danger, fontWeight: typography.fw6 }}>주의가 필요한 답변입니다</Text>
+                <Text
+                  style={{
+                    fontSize: typography.fz11,
+                    color: colors.danger,
+                    fontWeight: typography.fw6,
+                  }}
+                >
+                  주의가 필요한 답변입니다
+                </Text>
               </View>
               {msg.safety_notice && (
-                <View style={{ backgroundColor: colors.danger50, borderRadius: radii.sm, padding: spacing.s8 }}>
-                  <Text style={{ fontSize: typography.fz12, color: colors.danger, lineHeight: 18 }}>{msg.safety_notice}</Text>
+                <View
+                  style={{
+                    backgroundColor: colors.danger50,
+                    borderRadius: radii.sm,
+                    padding: spacing.s8,
+                  }}
+                >
+                  <Text style={{ fontSize: typography.fz12, color: colors.danger, lineHeight: 18 }}>
+                    {msg.safety_notice}
+                  </Text>
                 </View>
               )}
             </View>
           )}
-          <Text style={{ fontSize: typography.fz13, lineHeight: 20, color: isUser ? colors.white : colors.ink }}>{msg.content}</Text>
+          <Text
+            style={{
+              fontSize: typography.fz13,
+              lineHeight: 20,
+              color: isUser ? colors.white : colors.ink,
+            }}
+          >
+            {msg.content}
+          </Text>
         </View>
         {isUser && (
           <View style={s.userAvatar}>
@@ -228,25 +308,66 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
           {msg.rag_sources && msg.rag_sources.length > 0 && (
             <RagSourcesSection sources={msg.rag_sources} />
           )}
-          <View style={{ flexDirection: 'row', gap: spacing.s8, marginLeft: 36, marginTop: spacing.s4 }}>
+          <View
+            style={{ flexDirection: 'row', gap: spacing.s8, marginLeft: 36, marginTop: spacing.s4 }}
+          >
             <TouchableOpacity
               disabled={!!fb}
-              style={[ps.feedbackBtn, { borderColor: fb === 'good' ? colors.accent : colors.hairline, backgroundColor: fb === 'good' ? colors.accent50 : 'transparent', opacity: fb && fb !== 'good' ? 0.4 : 1 }]}
-              onPress={() => { if (fb) return; setFb('good'); submitFeedback(4); }}>
+              style={[
+                ps.feedbackBtn,
+                {
+                  borderColor: fb === 'good' ? colors.accent : colors.hairline,
+                  backgroundColor: fb === 'good' ? colors.accent50 : 'transparent',
+                  opacity: fb && fb !== 'good' ? 0.4 : 1,
+                },
+              ]}
+              onPress={() => {
+                if (fb) return;
+                setFb('good');
+                submitFeedback(4);
+              }}
+            >
               <Text style={{ fontSize: typography.fz12 }}>👍</Text>
-              <Text style={{ fontSize: typography.fz11, color: fb === 'good' ? colors.accent700 : colors.muted }}>도움됨</Text>
+              <Text
+                style={{
+                  fontSize: typography.fz11,
+                  color: fb === 'good' ? colors.accent700 : colors.muted,
+                }}
+              >
+                도움됨
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               disabled={!!fb}
-              style={[ps.feedbackBtn, { borderColor: fb === 'bad' ? colors.danger : colors.hairline, backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent', opacity: fb && fb !== 'bad' ? 0.4 : 1 }]}
-              onPress={() => { if (fb) return; setFb('bad'); submitFeedback(2); }}>
+              style={[
+                ps.feedbackBtn,
+                {
+                  borderColor: fb === 'bad' ? colors.danger : colors.hairline,
+                  backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent',
+                  opacity: fb && fb !== 'bad' ? 0.4 : 1,
+                },
+              ]}
+              onPress={() => {
+                if (fb) return;
+                setFb('bad');
+                submitFeedback(2);
+              }}
+            >
               <Text style={{ fontSize: typography.fz12 }}>👎</Text>
-              <Text style={{ fontSize: typography.fz11, color: fb === 'bad' ? colors.danger : colors.muted }}>별로</Text>
+              <Text
+                style={{
+                  fontSize: typography.fz11,
+                  color: fb === 'bad' ? colors.danger : colors.muted,
+                }}
+              >
+                별로
+              </Text>
             </TouchableOpacity>
             {isSafe && (
               <TouchableOpacity
                 style={[ps.feedbackBtn, { borderColor: colors.danger }]}
-                onPress={() => submitFeedback(2, 'chat_error')}>
+                onPress={() => submitFeedback(2, 'chat_error')}
+              >
                 <Text style={{ fontSize: typography.fz11, color: colors.danger }}>신고하기</Text>
               </TouchableOpacity>
             )}
@@ -258,7 +379,15 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
 }
 
 const ps = StyleSheet.create({
-  feedbackBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.s3, paddingHorizontal: spacing.s8, paddingVertical: spacing.s4, borderRadius: radii.sm, borderWidth: 1 },
+  feedbackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.s3,
+    paddingHorizontal: spacing.s8,
+    paddingVertical: spacing.s4,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+  },
   noticeBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -273,17 +402,26 @@ const ps = StyleSheet.create({
 // ─── Inline helper components ────────────────────────────────────────────────
 
 const CATEGORY_STYLE: Record<string, { bg: string; fg: string }> = {
-  복약:    { bg: colors.accent50,   fg: colors.accent700 },
-  부작용:  { bg: colors.danger50,   fg: colors.danger },
-  생활습관: { bg: colors.success50,  fg: colors.success },
-  일반:    { bg: colors.surface2,   fg: colors.muted },
+  복약: { bg: colors.accent50, fg: colors.accent700 },
+  부작용: { bg: colors.danger50, fg: colors.danger },
+  생활습관: { bg: colors.success50, fg: colors.success },
+  일반: { bg: colors.surface2, fg: colors.muted },
 };
 
 function CategoryBadge({ category }: { category: string }) {
   const style = CATEGORY_STYLE[category] ?? { bg: colors.surface2, fg: colors.muted };
   return (
-    <View style={{ backgroundColor: style.bg, borderRadius: radii.pill, paddingHorizontal: spacing.s8, paddingVertical: spacing.s2 }}>
-      <Text style={{ fontSize: typography.fz11, color: style.fg, fontWeight: typography.fw6 }}>{category}</Text>
+    <View
+      style={{
+        backgroundColor: style.bg,
+        borderRadius: radii.pill,
+        paddingHorizontal: spacing.s8,
+        paddingVertical: spacing.s2,
+      }}
+    >
+      <Text style={{ fontSize: typography.fz11, color: style.fg, fontWeight: typography.fw6 }}>
+        {category}
+      </Text>
     </View>
   );
 }
@@ -294,16 +432,32 @@ function SummarySection({ summary }: { summary: string }) {
     <View style={{ marginLeft: 36, marginTop: spacing.s4 }}>
       <TouchableOpacity
         onPress={() => setExpanded(p => !p)}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, alignSelf: 'flex-start' }}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.s4,
+          alignSelf: 'flex-start',
+        }}
         activeOpacity={0.7}
       >
         <Icon name="info" size={11} color={colors.muted} />
-        <Text style={{ fontSize: typography.fz11, color: colors.muted }}>요약 {expanded ? '접기' : '보기'}</Text>
+        <Text style={{ fontSize: typography.fz11, color: colors.muted }}>
+          요약 {expanded ? '접기' : '보기'}
+        </Text>
         <Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={11} color={colors.muted} />
       </TouchableOpacity>
       {expanded && (
-        <View style={{ backgroundColor: colors.accent50, borderRadius: radii.sm, padding: spacing.s8, marginTop: spacing.s4 }}>
-          <Text style={{ fontSize: typography.fz12, color: colors.ink2, lineHeight: 18 }}>{summary}</Text>
+        <View
+          style={{
+            backgroundColor: colors.accent50,
+            borderRadius: radii.sm,
+            padding: spacing.s8,
+            marginTop: spacing.s4,
+          }}
+        >
+          <Text style={{ fontSize: typography.fz12, color: colors.ink2, lineHeight: 18 }}>
+            {summary}
+          </Text>
         </View>
       )}
     </View>
@@ -315,22 +469,34 @@ function RagSourcesSection({ sources }: { sources: RagSource[] }) {
   const overflow = sources.length - 3;
   return (
     <View style={{ marginLeft: 36, marginTop: spacing.s6 }}>
-      <Text style={{ fontSize: typography.fz11, color: colors.muted, marginBottom: spacing.s4 }}>참고 자료</Text>
+      <Text style={{ fontSize: typography.fz11, color: colors.muted, marginBottom: spacing.s4 }}>
+        참고 자료
+      </Text>
       {displayed.map(src => (
         <TouchableOpacity
           key={src.source_id}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, paddingVertical: spacing.s2 }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.s4,
+            paddingVertical: spacing.s2,
+          }}
           onPress={() => Linking.openURL(src.source_url)}
           activeOpacity={0.7}
         >
           <Icon name="link" size={11} color={colors.accent} />
-          <Text style={{ fontSize: typography.fz11, color: colors.accent, flex: 1 }} numberOfLines={1}>
+          <Text
+            style={{ fontSize: typography.fz11, color: colors.accent, flex: 1 }}
+            numberOfLines={1}
+          >
             {src.organization_name} · {src.guideline_title}
           </Text>
         </TouchableOpacity>
       ))}
       {overflow > 0 && (
-        <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }}>외 {overflow}개</Text>
+        <Text style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }}>
+          외 {overflow}개
+        </Text>
       )}
     </View>
   );

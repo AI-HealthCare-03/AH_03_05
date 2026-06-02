@@ -113,7 +113,11 @@ export default function AppNavigator() {
     return <View style={{ flex: 1, backgroundColor: colors.canvas }} />;
   }
 
-  const initialRoute: keyof RootStackParams = !user.loggedIn ? "Auth" : !user.profileComplete ? "Onboarding" : "Main";
+  const initialRoute: keyof RootStackParams = !user.loggedIn
+    ? 'Auth'
+    : !user.profileComplete
+      ? 'Onboarding'
+      : 'Main';
 
   return (
     <View style={styles.root}>
@@ -122,7 +126,11 @@ export default function AppNavigator() {
           <RootStack.Screen name="Auth" component={AuthNavigator} />
           <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
           <RootStack.Screen name="Main" component={MainNavigator} />
-          <RootStack.Screen name="UploadModal" component={UploadModalScreen} options={{ presentation: 'transparentModal' }} />
+          <RootStack.Screen
+            name="UploadModal"
+            component={UploadModalScreen}
+            options={{ presentation: 'transparentModal' }}
+          />
           <RootStack.Screen name="MedicationAlarm" component={MedicationAlarmScreen} />
         </RootStack.Navigator>
       </NavigationContainer>

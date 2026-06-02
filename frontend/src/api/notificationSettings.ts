@@ -7,7 +7,7 @@ export async function getNotificationSettings(): Promise<NotificationSettingsRes
 }
 
 export async function updateNotificationSettings(
-  data: NotificationSettingsUpdate,
+  data: NotificationSettingsUpdate
 ): Promise<NotificationSettingsResponse> {
   const res = await apiClient.put<NotificationSettingsResponse>('/notification-settings/', data);
   return res.data;

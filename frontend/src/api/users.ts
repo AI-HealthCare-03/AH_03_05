@@ -1,7 +1,10 @@
 import { apiClient } from './client';
 import type {
-  UserInfo, UpdateUserRequest,
-  ChangePasswordRequest, ConsentsResponse, ConsentType,
+  UserInfo,
+  UpdateUserRequest,
+  ChangePasswordRequest,
+  ConsentsResponse,
+  ConsentType,
 } from './types';
 
 export async function getMe(): Promise<UserInfo> {

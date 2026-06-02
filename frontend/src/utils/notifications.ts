@@ -6,8 +6,8 @@ type MealKey = 'morning' | 'lunch' | 'dinner';
 
 const MEAL_BODY: Record<MealKey, string> = {
   morning: '아침 복약 시간입니다',
-  lunch:   '점심 복약 시간입니다',
-  dinner:  '저녁 복약 시간입니다',
+  lunch: '점심 복약 시간입니다',
+  dinner: '저녁 복약 시간입니다',
 };
 
 function parseTime(time: string): { hour: number; minute: number } {
@@ -24,8 +24,8 @@ export async function scheduleMedicationNotifications(settings: NotifSettings): 
 
   const meals: [MealKey, { on: boolean; time: string }][] = [
     ['morning', settings.morning],
-    ['lunch',   settings.lunch],
-    ['dinner',  settings.dinner],
+    ['lunch', settings.lunch],
+    ['dinner', settings.dinner],
   ];
 
   for (const [key, state] of meals) {

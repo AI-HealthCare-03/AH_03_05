@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View, Text, TextInput, StyleSheet,
-  TextInputProps, ViewStyle,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, TextInputProps, ViewStyle } from 'react-native';
 import Icon from './Icon';
 import { colors, radii, spacing, typography } from '../theme';
 
@@ -49,10 +46,21 @@ export default function Input({
         )}
         <TextInput
           multiline={multiline}
-          style={[s.input, icon && { marginLeft: spacing.s8 }, { outlineStyle: 'none' } as any, style]}
+          style={[
+            s.input,
+            icon && { marginLeft: spacing.s8 },
+            { outlineStyle: 'none' } as any,
+            style,
+          ]}
           placeholderTextColor={colors.muted2}
-          onFocus={(e) => { setFocused(true); onFocus?.(e); }}
-          onBlur={(e) => { setFocused(false); onBlur?.(e); }}
+          onFocus={e => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={e => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
           {...props}
         />
       </View>
