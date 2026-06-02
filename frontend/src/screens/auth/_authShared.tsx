@@ -87,7 +87,7 @@ export const styles = StyleSheet.create({
   agreeCircle: {
     width: 18,
     height: 18,
-    borderRadius: 9,
+    borderRadius: radii.r9,
     borderColor: colors.hairlineStrong,
     alignItems: "center",
     justifyContent: "center",

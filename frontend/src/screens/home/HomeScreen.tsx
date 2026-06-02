@@ -337,7 +337,7 @@ export default function HomeScreen({ navigation }: any) {
             const checked = checkedSchedules.has(item.id);
             return (
               <View key={item.id} style={[s.drugRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-                <View style={{ width: 4, height: 32, borderRadius: 2, backgroundColor: item.color }} />
+                <View style={{ width: 4, height: 32, borderRadius: radii.r2, backgroundColor: item.color }} />
                 <View style={{ flex: 1, marginLeft: spacing.s12 }}>
                   <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>{item.drug_name}</Text>
                   <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{item.dosage} · {item.timing}</Text>
@@ -384,7 +384,7 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>미복용</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.s6 }}>
-              <View style={{ width: 14, height: 4, borderRadius: 2, backgroundColor: colors.hairlineStrong }} />
+              <View style={{ width: 14, height: 4, borderRadius: radii.r2, backgroundColor: colors.hairlineStrong }} />
               <Text style={{ fontSize: typography.fz11, color: colors.muted }}>예정</Text>
             </View>
           </View>
@@ -419,7 +419,7 @@ export default function HomeScreen({ navigation }: any) {
 
           {drugsForDay.map((d, i) => (
             <View key={d.id} style={[s.drugRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline }]}>
-              <View style={{ width: 4, height: 32, borderRadius: 2, backgroundColor: d.color }} />
+              <View style={{ width: 4, height: 32, borderRadius: radii.r2, backgroundColor: d.color }} />
               <View style={{ flex: 1, marginLeft: spacing.s12 }}>
                 <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: colors.ink }}>{d.name}</Text>
                 <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{d.freq} · {d.time}</Text>

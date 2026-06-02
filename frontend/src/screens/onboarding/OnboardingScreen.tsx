@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   containerDesktop: { padding: spacing.s48, paddingVertical: spacing.s40, alignItems: 'center' },
   brandRow: { marginBottom: spacing.s20 },
   progressRow: { flexDirection: 'row', gap: spacing.s6, marginBottom: spacing.s20, width: '100%' },
-  progressBar: { height: 4, borderRadius: 2 },
+  progressBar: { height: 4, borderRadius: radii.r2 },
   card: { width: '100%', backgroundColor: colors.surface, borderRadius: radii.lg, padding: spacing.s24, borderWidth: 0.5, borderColor: colors.hairline },
   stepLabel: { fontSize: typography.fz12, fontWeight: typography.fw7, color: colors.accent, marginBottom: spacing.s4, letterSpacing: 0.5 },
   title: { fontSize: typography.fz22, fontWeight: typography.fw7, color: colors.ink, marginBottom: spacing.s6 },

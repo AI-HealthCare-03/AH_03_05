@@ -299,7 +299,7 @@ const s = StyleSheet.create({
   scrimCenter: { flex: 1, backgroundColor: colors.scrim, alignItems: 'center', justifyContent: 'center' },
   modal: { backgroundColor: colors.surface, borderTopLeftRadius: radii.xl, borderTopRightRadius: radii.xl, padding: spacing.s20 },
   modalCenter: { backgroundColor: colors.surface, borderRadius: radii.xl, padding: spacing.s20 },
-  modalHandle: { width: 36, height: 4, backgroundColor: colors.hairlineStrong, borderRadius: 2, alignSelf: 'center', marginBottom: spacing.s16 },
+  modalHandle: { width: 36, height: 4, backgroundColor: colors.hairlineStrong, borderRadius: radii.r2, alignSelf: 'center', marginBottom: spacing.s16 },
   modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.s14 },
   modalTitle: { fontSize: typography.fz17, fontWeight: typography.fw7, color: colors.ink },
   modalSub: { fontSize: typography.fz13, color: colors.muted },

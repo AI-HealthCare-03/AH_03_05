@@ -236,7 +236,7 @@ export function RecordDetailScreen({ navigation, route }: any) {
                 activeOpacity={med.drug_ref_id ? 0.7 : 1}
                 onPress={() => med.drug_ref_id && navigation.navigate("DrugDetail", { drugId: med.drug_ref_id })}
               >
-                <View style={{ width: 4, height: 36, borderRadius: 2, backgroundColor: accentColor }} />
+                <View style={{ width: 4, height: 36, borderRadius: radii.r2, backgroundColor: accentColor }} />
                 <View style={{ flex: 1, marginLeft: spacing.s12 }}>
                   <Text style={{ fontSize: typography.fz14, fontWeight: typography.fw6, color: med.drug_ref_id ? colors.accent700 : colors.ink }}>
                     {med.drug_name}

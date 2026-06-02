@@ -57,13 +57,16 @@ export const colors = {
 };
 
 export const radii = {
+  r2: 2,
   xs: 3,
-  sm: 8,
   checkbox: 6,
+  sm: 8,
+  r9: 9,
   icon: 10,
-  bubble: 14,
   md: 12,
+  bubble: 14,
   lg: 18,
+  r16: 16,
   xl: 20,
   pill: 9999,
 };
