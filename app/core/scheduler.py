@@ -7,7 +7,7 @@ from app.models.medical_records import MedicalRecord
 
 scheduler = AsyncIOScheduler()
 
-EXPIRY_DAYS = 30
+EXPIRY_DAYS = 90
 
 
 async def delete_expired_records() -> None:
