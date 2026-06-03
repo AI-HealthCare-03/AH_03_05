@@ -1,6 +1,6 @@
 """
 delete_expired_records() 단위 테스트.
-30일 경과 소프트딜리트 레코드만 영구 삭제되는지 검증.
+90일 경과 소프트딜리트 레코드만 영구 삭제되는지 검증.
 """
 
 from datetime import UTC, datetime, timedelta
@@ -38,7 +38,7 @@ async def _create_user(email: str) -> User:
 
 class TestBatchDeleteExpiredRecords(TestCase):
     async def test_expired_record_is_deleted(self):
-        """30일 초과 소프트딜리트 레코드는 영구 삭제된다."""
+        """90일 초과 소프트딜리트 레코드는 영구 삭제된다."""
         user = await _create_user("batch_expired@example.com")
         record = await MedicalRecord.create(
             user=user,
@@ -54,7 +54,7 @@ class TestBatchDeleteExpiredRecords(TestCase):
         assert result is None
 
     async def test_recent_deleted_record_is_not_deleted(self):
-        """30일 미만 소프트딜리트 레코드는 영구 삭제되지 않는다."""
+        """90일 미만 소프트딜리트 레코드는 영구 삭제되지 않는다."""
         user = await _create_user("batch_recent@example.com")
         record = await MedicalRecord.create(
             user=user,

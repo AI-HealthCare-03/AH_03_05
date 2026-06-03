@@ -12,7 +12,7 @@ EXPIRY_DAYS = 90
 
 async def delete_expired_records() -> None:
     """
-    소프트딜리트 후 30일이 경과한 진료기록을 영구 삭제한다.
+    소프트딜리트 후 90일이 경과한 진료기록을 영구 삭제한다.
     매일 자정에 실행.
     """
     threshold = datetime.now(UTC) - timedelta(days=EXPIRY_DAYS)
