@@ -455,7 +455,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
             </View>
             {!codeError && (
               <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
-                이메일로 발송된 6자리 코드를 입력해주세요. (데모: 123456)
+                이메일로 발송된 6자리 코드를 입력해주세요.
               </Text>
             )}
           </View>
