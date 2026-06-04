@@ -118,9 +118,11 @@ git push
 
 ## 6. 팀원들이 할 것 (마이그레이션 파일 포함된 PR 머지 후)
 
+> ✅ 로컬 환경: `docker compose up -d --build fastapi` 시 자동 적용됨 (별도 실행 불필요)
+
+prod 환경은 배포 후 수동 실행 필요:
 ```bash
-# git pull 후 마이그레이션 적용만 하면 됨
-DB_HOST=localhost DB_PORT=5433 uv run --group app aerich upgrade
+DB_HOST=postgresql DB_PORT=5432 uv run --group app aerich upgrade
 ```
 
 ---
