@@ -75,3 +75,12 @@ export async function logout(): Promise<LogoutResponse> {
     await tokenStore.clear();
   }
 }
+
+export async function revokeAllDevices(): Promise<LogoutResponse> {
+  try {
+    const res = await apiClient.delete<LogoutResponse>('/users/me/devices');
+    return res.data;
+  } finally {
+    await tokenStore.clear();
+  }
+}
