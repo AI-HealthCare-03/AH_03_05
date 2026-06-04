@@ -200,3 +200,13 @@ class AuthService:
     async def check_email_exists(self, email: str | EmailStr) -> None:
         if await User.exists(email=email):
             raise DuplicateEmailException()
+
+    async def revoke_all_tokens(self, user: User) -> int:
+        """해당 유저의 모든 refresh token을 revoke한다. 전체 기기 로그아웃."""
+        from datetime import UTC, datetime
+
+        from app.models.auth_tokens import AuthToken
+
+        count = await AuthToken.filter(user=user, revoked_at=None).count()
+        await AuthToken.filter(user=user, revoked_at=None).update(revoked_at=datetime.now(UTC))
+        return count
