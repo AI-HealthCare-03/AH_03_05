@@ -35,7 +35,7 @@ export const s = StyleSheet.create({
   },
   bubbleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: spacing.s8,
     marginBottom: spacing.s14,
   },

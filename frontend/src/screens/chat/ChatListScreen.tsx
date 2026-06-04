@@ -192,7 +192,7 @@ export function ChatListScreen({ navigation, route }: Props) {
                 selected && { backgroundColor: colors.accent50, borderRadius: radii.lg },
               ]}
               onPress={() => openSession(c)}
-              onLongPress={() => handleDelete(c.session_id)}
+              onLongPress={!isDesktop ? () => handleDelete(c.session_id) : undefined}
               delayLongPress={400}
               activeOpacity={0.7}
             >
@@ -214,11 +214,24 @@ export function ChatListScreen({ navigation, route }: Props) {
                 >
                   {c.title}
                 </Text>
-                <Text
-                  style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s8 }}
-                >
-                  {formatRelativeTime(c.updated_at)}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
+                  <Text
+                    style={{ fontSize: typography.fz11, color: colors.muted }}
+                  >
+                    {formatRelativeTime(c.updated_at)}
+                  </Text>
+                  {isDesktop && (
+                    <TouchableOpacity
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      onPress={e => {
+                        e.stopPropagation();
+                        handleDelete(c.session_id);
+                      }}
+                    >
+                      <Icon name="trash" size={13} color={colors.muted} />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
               {c.last_message_preview ? (
                 <Text
