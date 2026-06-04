@@ -215,14 +215,6 @@ export function RecordDetailScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', gap: spacing.s8, alignItems: 'center' }}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  leftIcon="edit"
-                  onPress={() => flash('편집 기능은 준비 중이에요.')}
-                >
-                  편집
-                </Button>
                 <Button variant="danger" size="sm" leftIcon="trash" onPress={handleDelete}>
                   삭제
                 </Button>
