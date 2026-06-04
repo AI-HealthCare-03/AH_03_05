@@ -33,6 +33,7 @@ const GREETING: ChatMessageItem = {
   content: '안녕하세요 👋 어떤 점이 궁금하신가요?',
 };
 
+
 export function ChatSessionPane({
   sessionId,
   cachedMessages,
