@@ -69,3 +69,27 @@ class MedicationDosageUpdateResponse(BaseModel):
     duration: str | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ─── [신규] 진료기록별 약품 목록 조회 DTO ───
+class RecordMedicationItem(BaseModel):
+    id: int = Field(serialization_alias="medication_id")
+    drug_name: str
+    ingredient_name: str | None = None
+    manufacturer: str | None = None
+    dosage: str | None = None
+    frequency: str | None = None
+    timing: str | None = None
+    duration: str | None = None
+    caution: str | None = None
+    side_effect: str | None = None
+    is_verified: bool
+    review_status: str
+    api_status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RecordMedicationsResponse(BaseModel):
+    record_id: int
+    medications: list[RecordMedicationItem]
