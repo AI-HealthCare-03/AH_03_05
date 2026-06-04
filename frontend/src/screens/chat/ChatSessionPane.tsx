@@ -403,14 +403,25 @@ const ps = StyleSheet.create({
 
 // ─── Inline helper components ────────────────────────────────────────────────
 
-const CATEGORY_STYLE: Record<string, { bg: string; fg: string }> = {
-  복약: { bg: colors.accent50, fg: colors.accent700 },
-  부작용: { bg: colors.danger50, fg: colors.danger },
-  생활습관: { bg: colors.success50, fg: colors.success },
-  일반: { bg: colors.surface2, fg: colors.muted },
+type MessageCategory = 'general' | 'side_effect' | 'dosage_timing' | 'lifestyle' | 'emergency';
+
+const CATEGORY_LABEL: Record<MessageCategory, string> = {
+  general: '일반',
+  side_effect: '부작용',
+  dosage_timing: '복용 시간·용량',
+  lifestyle: '생활습관',
+  emergency: '응급',
 };
 
-function CategoryBadge({ category }: { category: string }) {
+const CATEGORY_STYLE: Record<MessageCategory, { bg: string; fg: string }> = {
+  general: { bg: colors.surface2, fg: colors.muted },
+  side_effect: { bg: colors.danger50, fg: colors.danger },
+  dosage_timing: { bg: colors.accent50, fg: colors.accent700 },
+  lifestyle: { bg: colors.success50, fg: colors.success },
+  emergency: { bg: colors.danger50, fg: colors.danger },
+};
+
+function CategoryBadge({ category }: { category: MessageCategory }) {
   const style = CATEGORY_STYLE[category] ?? { bg: colors.surface2, fg: colors.muted };
   return (
     <View
@@ -422,7 +433,7 @@ function CategoryBadge({ category }: { category: string }) {
       }}
     >
       <Text style={{ fontSize: typography.fz11, color: style.fg, fontWeight: typography.fw6 }}>
-        {category}
+        {CATEGORY_LABEL[category]}
       </Text>
     </View>
   );
