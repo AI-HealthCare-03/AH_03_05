@@ -70,31 +70,15 @@ export function RecordDetailScreen({ navigation, route }: Props) {
                   doctor_name: r.doctor_name ?? '김민수',
                   total_days: r.total_days ?? 30,
                   notes: r.notes ?? '고혈압·당뇨 정기 처방, 14일분',
-                  file_name: r.file_name ?? '처방전.jpg',
-                  file_size: r.file_size ?? '1.8MB',
                 }
               : r
           );
-        } else if (__DEV__) {
-          setRecord({
-            record_id: 10,
-            record_type: 'prescription',
-            status: 'ocr_completed',
-            uploaded_at: '2026-05-11T10:00:00',
-            ocr_confidence: 0.91,
-            hospital_name: '서울 내과 의원',
-            doctor_name: '김민수',
-            total_days: 30,
-            notes: '고혈압·당뇨 정기 처방, 14일분',
-            file_name: '처방전.jpg',
-            file_size: '1.8MB',
-          });
         } else {
           setError(mapApiError((rec as PromiseRejectedResult).reason));
         }
 
         if (meds.status === 'fulfilled') {
-          setMedications(meds.value.medications);
+          setMedications(meds.value.medications ?? []);
         } else {
           setMedsError(true);
         }

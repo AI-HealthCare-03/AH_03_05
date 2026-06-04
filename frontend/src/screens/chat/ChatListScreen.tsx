@@ -91,12 +91,16 @@ export function ChatListScreen({ navigation, route }: Props) {
         text: '삭제',
         style: 'destructive',
         onPress: async () => {
-          setSessions(prev => prev.filter(s => s.session_id !== sessionId));
+          let snapshot: ChatSession[] = [];
+          setSessions(prev => {
+            snapshot = prev;
+            return prev.filter(s => s.session_id !== sessionId);
+          });
           if (selectedId === String(sessionId)) setSelectedId(null);
-          // TODO: [BE 대기] DELETE /chat/sessions/{session_id} 구현 완료 후 오류 처리 보강
           try {
             await chatApi.deleteChatSession(sessionId);
           } catch (e) {
+            setSessions(snapshot);
             setError(extractApiError(e));
           }
         },
