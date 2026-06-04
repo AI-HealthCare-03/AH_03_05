@@ -10,8 +10,10 @@ from app.dtos.medications import (
     MedicationDosageUpdateResponse,
     MedicationVerifyRequest,
     MedicationVerifyResponse,
+    RecordMedicationsResponse,
 )
 from app.exceptions.common import NotFoundException
+from app.models.medical_records import MedicalRecord
 from app.models.medications import Medication  # 스프린트 3 ORM 모델
 from app.models.users import User
 from app.services.medications import MedicationDosageService, MedicationVerifyService
@@ -135,3 +137,16 @@ async def update_medication_dosage(
         timing=medication.timing,
         duration=medication.duration,
     )
+
+
+@records_medications_router.get("", response_model=RecordMedicationsResponse, status_code=200)
+async def list_record_medications(
+    record_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+) -> RecordMedicationsResponse:
+    """해당 진료기록의 약품 목록을 조회한다. 본인 소유 record만."""
+    record = await MedicalRecord.get_or_none(id=record_id, user_id=user.id)
+    if record is None:
+        raise NotFoundException(detail="해당 record를 찾을 수 없습니다.")
+    medications = await Medication.filter(record_id=record_id, user_id=user.id).order_by("created_at")
+    return {"record_id": record_id, "medications": medications}
