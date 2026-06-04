@@ -99,11 +99,8 @@ export function RecordDetailScreen({ navigation, route }: Props) {
           setMedsError(true);
         }
 
-        // TODO: [BE 대기] GET /records/{record_id}/guide 미구현 — 구현 완료 후 __DEV__ 분기 제거
         if (gd.status === 'fulfilled') {
           setGuide(gd.value);
-        } else if (__DEV__) {
-          setGuide({ record_id: 10, guide_id: 50, status: 'completed' });
         }
       } finally {
         setLoading(false);
@@ -369,7 +366,6 @@ export function RecordDetailScreen({ navigation, route }: Props) {
         </Card>
 
         {/* ── 가이드 상태 ── */}
-        {/* TODO: [BE 대기] GET /records/{record_id}/guide 미구현 — 구현 완료 후 __DEV__ 분기 제거 */}
         <Card shadow style={{ marginBottom: spacing.s14 }}>
           <SectionHeader icon="wand" iconColor={colors.accent700} label="복약 가이드" />
           {!guide ? (

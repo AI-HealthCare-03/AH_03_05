@@ -172,17 +172,13 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
 
   useFocusEffect(
     useCallback(() => {
-      notificationsApi
-        .getUnreadCount()
-        .then(res => {
-          setUnreadCount(res.unread_count);
-        })
-        .catch(() => flash('알림 개수를 불러오지 못했어요'));
-
-      notificationsApi
-        .getNotifications()
-        .then(res => {
-          const mapped: Notification[] = res.items.map(item => {
+      Promise.all([
+        notificationsApi.getUnreadCount(),
+        notificationsApi.getNotifications(),
+      ])
+        .then(([unread, notifRes]) => {
+          setUnreadCount(unread.unread_count);
+          const mapped: Notification[] = notifRes.items.map(item => {
             const d = item.created_at ? new Date(item.created_at) : new Date();
             return {
               id: String(item.notification_id),
@@ -197,7 +193,7 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
           });
           setNotifications(mapped);
         })
-        .catch(() => flash('알림 목록을 불러오지 못했어요'));
+        .catch(() => flash('알림을 불러오지 못했어요'));
 
       recordsApi
         .getRecords({ size: 1 })
