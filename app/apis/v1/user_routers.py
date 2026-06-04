@@ -12,6 +12,7 @@ from app.dtos.users import (
     WithdrawResponse,
 )
 from app.models.users import User
+from app.services.auth import AuthService
 from app.services.users import UserManageService
 
 user_router = APIRouter(prefix="/users", tags=["users"])
@@ -52,3 +53,12 @@ async def withdraw_user(
 ) -> WithdrawResponse:
     await user_manage_service.withdraw_user(user, request.password)
     return WithdrawResponse(detail="회원탈퇴가 완료되었습니다.")
+
+
+@user_router.delete("/me/devices", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_all_devices(
+    user: Annotated[User, Depends(get_request_user)],
+    auth_service: Annotated[AuthService, Depends(AuthService)],
+) -> None:
+    """전체 기기 로그아웃. 해당 유저의 모든 refresh token을 revoke한다."""
+    await auth_service.revoke_all_tokens(user)

@@ -270,3 +270,30 @@ class TestUserMeApis(TestCase):
         # Then
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["nickname"] == "두번째닉네임"
+
+
+class TestRevokeAllDevicesAPI(TestCase):
+    async def test_revoke_all_devices_success(self):
+        """전체 기기 로그아웃 성공 시 204 반환."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "devices_ok@example.com",
+                    "password": "Password123!",
+                    "name": "기기로그아웃테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            login = await client.post(
+                "/api/v1/auth/login", json={"email": "devices_ok@example.com", "password": "Password123!"}
+            )
+            headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+            response = await client.delete("/api/v1/users/me/devices", headers=headers)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    async def test_revoke_all_devices_unauthorized(self):
+        """미인증 시 401 반환."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.delete("/api/v1/users/me/devices")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
