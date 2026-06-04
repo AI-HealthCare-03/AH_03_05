@@ -33,6 +33,7 @@ const GREETING: ChatMessageItem = {
   content: '안녕하세요 👋 어떤 점이 궁금하신가요?',
 };
 
+
 export function ChatSessionPane({
   sessionId,
   cachedMessages,
@@ -218,7 +219,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
   const [fb, setFb] = useState<'good' | 'bad' | null>(null);
   const { flash } = useApp();
   const isUser = msg.sender_type === 'user';
-  const isSafe = msg.safety_flag === true;
+  const isFlagged = msg.safety_flag === true;
 
   const submitFeedback = (rating: number, reportType?: string) => {
     feedbacksApi
@@ -244,7 +245,14 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
           style={[
             s.bubble,
             isUser ? s.bubbleUser : s.bubbleAI,
-            isSafe && { borderWidth: 1.5, borderColor: colors.danger },
+            !isUser && msg.category && CATEGORY_BUBBLE_BG[msg.category] != null && {
+              backgroundColor: CATEGORY_BUBBLE_BG[msg.category],
+            },
+            !isUser && msg.category === 'emergency' && !isFlagged && {
+              borderColor: colors.danger,
+              borderWidth: 1,
+            },
+            isFlagged && { borderWidth: 1.5, borderColor: colors.danger },
           ]}
         >
           {!isUser && msg.category && (
@@ -252,7 +260,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
               <CategoryBadge category={msg.category} />
             </View>
           )}
-          {isSafe && (
+          {isFlagged && (
             <View style={{ marginBottom: spacing.s8 }}>
               <View
                 style={{
@@ -365,7 +373,7 @@ function Bubble({ msg }: { msg: ChatMessageItem }) {
                 별로
               </Text>
             </TouchableOpacity>
-            {isSafe && (
+            {isFlagged && (
               <TouchableOpacity
                 style={[ps.feedbackBtn, { borderColor: colors.danger }]}
                 onPress={() => submitFeedback(2, 'chat_error')}
@@ -418,7 +426,14 @@ const CATEGORY_STYLE: Record<MessageCategory, { bg: string; fg: string }> = {
   side_effect: { bg: colors.danger50, fg: colors.danger },
   dosage_timing: { bg: colors.accent50, fg: colors.accent700 },
   lifestyle: { bg: colors.success50, fg: colors.success },
-  emergency: { bg: colors.danger50, fg: colors.danger },
+  emergency: { bg: colors.danger, fg: colors.white },
+};
+
+const CATEGORY_BUBBLE_BG: Partial<Record<MessageCategory, string>> = {
+  side_effect: colors.danger50,
+  dosage_timing: colors.accent50,
+  lifestyle: colors.success50,
+  emergency: colors.danger50,
 };
 
 function CategoryBadge({ category }: { category: MessageCategory }) {
