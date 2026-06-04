@@ -36,7 +36,7 @@ export function ChatListScreen({ navigation, route }: Props) {
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messagesCache, setMessagesCache] = useState<Record<string, ChatMessageItem[]>>({});
-  const { isDesktop } = useBreakpoint();
+  const { isDesktop, isTabletOrAbove } = useBreakpoint();
 
   useEffect(() => {
     (async () => {
@@ -192,6 +192,7 @@ export function ChatListScreen({ navigation, route }: Props) {
               session={c}
               selected={selected}
               isDesktop={isDesktop}
+              isTablet={isTabletOrAbove && !isDesktop}
               onPress={() => openSession(c)}
               onDelete={() => handleDelete(c.session_id)}
             />
@@ -345,6 +346,7 @@ const ds = StyleSheet.create({
   paneSubtitle: { fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 },
   iconBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   sessionRow: { paddingVertical: spacing.s12, paddingHorizontal: spacing.s16 },
+  deleteIconBtn: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.s12 },
   swipeDelete: {
     backgroundColor: colors.danger,
     justifyContent: 'center',
@@ -364,62 +366,66 @@ function SessionRow({
   session,
   selected,
   isDesktop,
+  isTablet,
   onPress,
   onDelete,
 }: {
   session: ChatSession;
   selected: boolean;
   isDesktop: boolean;
+  isTablet: boolean;
   onPress: () => void;
   onDelete: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
+  const showDeleteBtn = isTablet || (isDesktop && hovered);
 
   const rowContent = (
-    <TouchableOpacity
-      style={[
-        ds.sessionRow,
-        selected && { backgroundColor: colors.accent50, borderRadius: radii.lg },
-      ]}
-      onPress={onPress}
-      activeOpacity={0.7}
+    <View
+      style={{ flexDirection: 'row', alignItems: 'stretch' }}
       {...(isDesktop
-        ? {
-            onMouseEnter: () => setHovered(true),
-            onMouseLeave: () => setHovered(false),
-          }
+        ? { onMouseEnter: () => setHovered(true), onMouseLeave: () => setHovered(false) }
         : {})}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text
-          style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, flex: 1 }}
-          numberOfLines={1}
-        >
-          {session.title}
-        </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
-          <Text style={{ fontSize: typography.fz11, color: colors.muted }}>
+      <TouchableOpacity
+        style={[
+          ds.sessionRow,
+          { flex: 1 },
+          selected && { backgroundColor: colors.accent50, borderRadius: radii.lg },
+        ]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text
+            style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, flex: 1 }}
+            numberOfLines={1}
+          >
+            {session.title}
+          </Text>
+          <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s6 }}>
             {formatRelativeTime(session.updated_at)}
           </Text>
-          {isDesktop && hovered && (
-            <TouchableOpacity
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              onPress={e => { e.stopPropagation(); onDelete(); }}
-            >
-              <Icon name="x" size={12} color={colors.muted2} />
-            </TouchableOpacity>
-          )}
         </View>
-      </View>
-      {session.last_message_preview ? (
-        <Text
-          style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }}
-          numberOfLines={1}
+        {session.last_message_preview ? (
+          <Text
+            style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }}
+            numberOfLines={1}
+          >
+            {session.last_message_preview}
+          </Text>
+        ) : null}
+      </TouchableOpacity>
+      {(isDesktop || isTablet) && (
+        <TouchableOpacity
+          style={[ds.deleteIconBtn, { opacity: showDeleteBtn ? 1 : 0 }]}
+          onPress={onDelete}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          {session.last_message_preview}
-        </Text>
-      ) : null}
-    </TouchableOpacity>
+          <Icon name="x" size={12} color={colors.muted2} />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 
   if (Platform.OS !== 'web') {
