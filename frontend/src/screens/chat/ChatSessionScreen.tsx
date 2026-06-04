@@ -51,17 +51,12 @@ export function ChatSessionScreen({ navigation, route }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={TAB_BAR_HEIGHT}
     >
-      {isDesktop && (
-        <View style={[cs.header1, { paddingTop: Math.max(safeTop, spacing.safeTop) }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={cs.iconBtn}>
-            <Icon name="arrow-left" size={16} color={colors.ink2} />
-          </TouchableOpacity>
-          <Text style={[cs.title, { marginLeft: spacing.s8 }]} numberOfLines={1}>
-            건강 상담
-          </Text>
-        </View>
-      )}
-      <View style={cs.header2}>
+      <View
+        style={[
+          cs.header2,
+          isDesktop && { paddingTop: Math.max(safeTop, spacing.safeTop) },
+        ]}
+      >
         <TouchableOpacity onPress={() => navigation.navigate('ChatList')} style={cs.iconBtn}>
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
@@ -98,16 +93,6 @@ export function ChatSessionScreen({ navigation, route }: Props) {
 }
 
 const cs = StyleSheet.create({
-  header1: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: spacing.s12,
-    paddingBottom: spacing.s14,
-    paddingHorizontal: spacing.s16,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.hairline,
-  },
   header2: {
     flexDirection: 'row',
     alignItems: 'center',
