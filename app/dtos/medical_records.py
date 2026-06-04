@@ -31,7 +31,17 @@ class MedicalRecordDetailResponse(BaseSerializerModel):
     id: int = Field(serialization_alias="record_id")
     record_type: str
     status: str
+    file_url: str | None = None
+    original_filename: str | None = Field(default=None, serialization_alias="file_name")
+    content_type: str | None = None
+    file_size_bytes: int | None = Field(default=None, serialization_alias="file_size")
+    ocr_text: str | None = None
+    ocr_edited_text: str | None = None
     ocr_confidence: float | None = None
+    input_method: str | None = None
+    image_expires_at: datetime | None = None
+    uploaded_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class ManualInputRequest(BaseModel):
