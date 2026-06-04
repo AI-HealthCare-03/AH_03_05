@@ -7,7 +7,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography, radii } from '../../theme';
@@ -185,63 +187,14 @@ export function ChatListScreen({ navigation, route }: Props) {
           const sid = String(c.session_id);
           const selected = isDesktop && selectedId === sid;
           return (
-            <TouchableOpacity
+            <SessionRow
               key={sid}
-              style={[
-                ds.sessionRow,
-                selected && { backgroundColor: colors.accent50, borderRadius: radii.lg },
-              ]}
+              session={c}
+              selected={selected}
+              isDesktop={isDesktop}
               onPress={() => openSession(c)}
-              onLongPress={!isDesktop ? () => handleDelete(c.session_id) : undefined}
-              delayLongPress={400}
-              activeOpacity={0.7}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: typography.fz13,
-                    fontWeight: typography.fw6,
-                    color: colors.ink,
-                    flex: 1,
-                  }}
-                  numberOfLines={1}
-                >
-                  {c.title}
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
-                  <Text
-                    style={{ fontSize: typography.fz11, color: colors.muted }}
-                  >
-                    {formatRelativeTime(c.updated_at)}
-                  </Text>
-                  {isDesktop && (
-                    <TouchableOpacity
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      onPress={e => {
-                        e.stopPropagation();
-                        handleDelete(c.session_id);
-                      }}
-                    >
-                      <Icon name="x" size={12} color={colors.muted2} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-              {c.last_message_preview ? (
-                <Text
-                  style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }}
-                  numberOfLines={1}
-                >
-                  {c.last_message_preview}
-                </Text>
-              ) : null}
-            </TouchableOpacity>
+              onDelete={() => handleDelete(c.session_id)}
+            />
           );
         })
       )}
@@ -392,6 +345,98 @@ const ds = StyleSheet.create({
   paneSubtitle: { fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 },
   iconBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   sessionRow: { paddingVertical: spacing.s12, paddingHorizontal: spacing.s16 },
+  swipeDelete: {
+    backgroundColor: colors.danger,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.s20,
+  },
+  swipeDeleteText: {
+    color: colors.white,
+    fontSize: typography.fz13,
+    fontWeight: typography.fw6,
+  },
 });
 
 export default ChatListScreen;
+
+function SessionRow({
+  session,
+  selected,
+  isDesktop,
+  onPress,
+  onDelete,
+}: {
+  session: ChatSession;
+  selected: boolean;
+  isDesktop: boolean;
+  onPress: () => void;
+  onDelete: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const rowContent = (
+    <TouchableOpacity
+      style={[
+        ds.sessionRow,
+        selected && { backgroundColor: colors.accent50, borderRadius: radii.lg },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+      {...(isDesktop
+        ? {
+            onMouseEnter: () => setHovered(true),
+            onMouseLeave: () => setHovered(false),
+          }
+        : {})}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text
+          style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, flex: 1 }}
+          numberOfLines={1}
+        >
+          {session.title}
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
+          <Text style={{ fontSize: typography.fz11, color: colors.muted }}>
+            {formatRelativeTime(session.updated_at)}
+          </Text>
+          {isDesktop && hovered && (
+            <TouchableOpacity
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              onPress={e => { e.stopPropagation(); onDelete(); }}
+            >
+              <Icon name="x" size={12} color={colors.muted2} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+      {session.last_message_preview ? (
+        <Text
+          style={{ fontSize: typography.fz11, color: colors.muted, marginTop: spacing.s2 }}
+          numberOfLines={1}
+        >
+          {session.last_message_preview}
+        </Text>
+      ) : null}
+    </TouchableOpacity>
+  );
+
+  if (Platform.OS !== 'web') {
+    return (
+      <Swipeable
+        friction={2}
+        rightThreshold={60}
+        overshootLeft={false}
+        renderRightActions={() => (
+          <TouchableOpacity style={ds.swipeDelete} onPress={onDelete}>
+            <Text style={ds.swipeDeleteText}>삭제</Text>
+          </TouchableOpacity>
+        )}
+      >
+        {rowContent}
+      </Swipeable>
+    );
+  }
+  return rowContent;
+}
