@@ -375,3 +375,88 @@ class TestChatSessionDeleteAPI(TestCase):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.delete("/api/v1/chat/sessions/1")
             assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+
+
+class TestChatMessageCategory(TestCase):
+    """#6 메시지 카테고리 분류 테스트."""
+
+    async def test_classify_message_unit(self):
+        from app.models.chat_messages import MessageCategory
+        from app.services.chat import _classify_message
+
+        assert _classify_message("두통이 너무 심해요") == MessageCategory.SIDE_EFFECT
+        assert _classify_message("이 약 언제 먹어야 하나요?") == MessageCategory.DOSAGE_TIMING
+        assert _classify_message("운동해도 괜찮을까요?") == MessageCategory.LIFESTYLE
+        assert _classify_message("안녕하세요") == MessageCategory.GENERAL
+
+    async def test_send_message_response_includes_category(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "cat_resp@example.com")
+            record = await _create_record("cat_resp@example.com")
+            create_response = await client.post(
+                "/api/v1/chat/sessions",
+                json={"record_id": record.id},
+                headers=headers,
+            )
+            session_id = create_response.json()["session_id"]
+
+            response = await client.post(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                json={"message": "이 약 언제 먹어야 하나요?"},
+                headers=headers,
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert "category" in body
+        assert body["category"] == "dosage_timing"
+
+    async def test_message_category_saved_to_db(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "cat_db@example.com")
+            record = await _create_record("cat_db@example.com")
+            create_response = await client.post(
+                "/api/v1/chat/sessions",
+                json={"record_id": record.id},
+                headers=headers,
+            )
+            session_id = create_response.json()["session_id"]
+
+            await client.post(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                json={"message": "부작용이 걱정돼요"},
+                headers=headers,
+            )
+
+        messages = await ChatMessage.filter(session_id=session_id).all()
+        assert len(messages) == 2
+        for m in messages:
+            assert m.category == "side_effect"
+
+    async def test_list_messages_includes_category(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "cat_list@example.com")
+            record = await _create_record("cat_list@example.com")
+            create_response = await client.post(
+                "/api/v1/chat/sessions",
+                json={"record_id": record.id},
+                headers=headers,
+            )
+            session_id = create_response.json()["session_id"]
+            await client.post(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                json={"message": "운동해도 되나요?"},
+                headers=headers,
+            )
+
+            response = await client.get(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                headers=headers,
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        items = response.json()["items"]
+        assert len(items) >= 1
+        for item in items:
+            assert "category" in item
+            assert item["category"] == "lifestyle"
