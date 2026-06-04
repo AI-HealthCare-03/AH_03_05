@@ -69,3 +69,63 @@ class TestFeedbackAPI(TestCase):
             response = await client.post("/api/v1/feedbacks", json={"guide_id": 1})
 
         assert response.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+
+
+class TestFeedbackSummaryAPI(TestCase):
+    async def test_summary_empty(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "fb_sum_empty@example.com")
+            response = await client.get("/api/v1/feedbacks/summary", headers=headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["total_count"] == 0
+        assert body["average_rating"] is None
+        assert body["low_rated_items"] == []
+        assert body["rating_distribution"] == {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0}
+
+    async def test_summary_aggregates_ratings(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "fb_sum_agg@example.com")
+            user = await User.get(email="fb_sum_agg@example.com")
+            guide = await Guide.create(user=user)
+            # 평점 5, 4, 1 등록 (1점은 개선 필요 대상)
+            for rating in (5, 4, 1):
+                await client.post(
+                    "/api/v1/feedbacks",
+                    json={"guide_id": guide.id, "rating": rating},
+                    headers=headers,
+                )
+            response = await client.get("/api/v1/feedbacks/summary", headers=headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["total_count"] == 3
+        assert body["rating_distribution"]["5"] == 1
+        assert body["rating_distribution"]["4"] == 1
+        assert body["rating_distribution"]["1"] == 1
+        assert body["average_rating"] == round((5 + 4 + 1) / 3, 2)
+        # 1~2점은 개선 필요 목록에 포함
+        assert len(body["low_rated_items"]) == 1
+        assert body["low_rated_items"][0]["rating"] == 1
+
+    async def test_summary_counts_reports(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "fb_sum_report@example.com")
+            user = await User.get(email="fb_sum_report@example.com")
+            guide = await Guide.create(user=user)
+            await client.post(
+                "/api/v1/feedbacks",
+                json={"guide_id": guide.id, "report_type": "inaccurate", "is_safety_report": True},
+                headers=headers,
+            )
+            response = await client.get("/api/v1/feedbacks/summary", headers=headers)
+
+        body = response.json()
+        assert body["report_count"] == 1
+        assert body["safety_report_count"] == 1
+
+    async def test_summary_unauthorized(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/api/v1/feedbacks/summary")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
