@@ -117,6 +117,7 @@ export function ChatSessionPane({
         content: res.assistant_message,
         safety_flag: res.safety_flag,
         safety_notice: res.safety_notice,
+        category: res.category,
         created_at: new Date().toISOString(),
         rag_sources: ragSources.length > 0 ? ragSources : undefined,
       };

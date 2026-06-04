@@ -443,6 +443,7 @@ export interface SendMessageResponse {
   assistant_message: string;
   safety_flag: boolean;
   safety_notice?: string;
+  category?: 'general' | 'side_effect' | 'dosage_timing' | 'lifestyle' | 'emergency';
 }
 
 // ─── Notifications ────────────────────────────────────────────────────────────

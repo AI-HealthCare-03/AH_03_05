@@ -30,3 +30,8 @@ htmlcov/
 # Office temporary files (Excel/Word)
 ~$*
 secrets/
+
+# Claude Code
+CLAUDE.md
+.claude/
+*.log
