@@ -377,16 +377,8 @@ function SessionRow({
   onPress: () => void;
   onDelete: () => void;
 }) {
-  const [hovered, setHovered] = useState(false);
-  const showDeleteBtn = isTablet || (isDesktop && hovered);
-
   const rowContent = (
-    <View
-      style={{ flexDirection: 'row', alignItems: 'stretch' }}
-      {...(isDesktop
-        ? { onMouseEnter: () => setHovered(true), onMouseLeave: () => setHovered(false) }
-        : {})}
-    >
+    <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
       <TouchableOpacity
         style={[
           ds.sessionRow,
@@ -418,7 +410,7 @@ function SessionRow({
       </TouchableOpacity>
       {(isDesktop || isTablet) && (
         <TouchableOpacity
-          style={[ds.deleteIconBtn, { opacity: showDeleteBtn ? 1 : 0 }]}
+          style={ds.deleteIconBtn}
           onPress={onDelete}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
