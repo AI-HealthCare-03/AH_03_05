@@ -228,7 +228,7 @@ export function ChatListScreen({ navigation, route }: Props) {
                         handleDelete(c.session_id);
                       }}
                     >
-                      <Icon name="trash" size={13} color={colors.muted} />
+                      <Icon name="x" size={12} color={colors.muted2} />
                     </TouchableOpacity>
                   )}
                 </View>
