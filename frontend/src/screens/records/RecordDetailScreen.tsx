@@ -78,7 +78,7 @@ export function RecordDetailScreen({ navigation, route }: Props) {
         }
 
         if (meds.status === 'fulfilled') {
-          setMedications(meds.value.medications);
+          setMedications(meds.value.medications ?? []);
         } else {
           setMedsError(true);
         }
