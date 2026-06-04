@@ -88,3 +88,8 @@ class RecordMedicationItem(BaseModel):
     api_status: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class RecordMedicationsResponse(BaseModel):
+    record_id: int
+    medications: list[RecordMedicationItem]

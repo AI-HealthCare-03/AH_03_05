@@ -43,9 +43,11 @@ class TestRecordMedicationsAPI(TestCase):
             response = await client.get(f"/api/v1/records/{record.id}/medications", headers=headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 2
-        assert {m["drug_name"] for m in data} == {"타이레놀", "아목시실린"}
-        assert "medication_id" in data[0]
+        assert data["record_id"] == record.id
+        meds = data["medications"]
+        assert len(meds) == 2
+        assert {m["drug_name"] for m in meds} == {"타이레놀", "아목시실린"}
+        assert "medication_id" in meds[0]
 
     async def test_unknown_record_404(self):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
