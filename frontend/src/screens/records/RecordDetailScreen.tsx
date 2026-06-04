@@ -61,7 +61,18 @@ export function RecordDetailScreen({ navigation, route }: Props) {
         ]);
 
         if (rec.status === 'fulfilled') {
-          setRecord(rec.value);
+          const r = rec.value;
+          setRecord(
+            __DEV__
+              ? {
+                  ...r,
+                  hospital_name: r.hospital_name ?? '서울 내과 의원',
+                  doctor_name: r.doctor_name ?? '김민수',
+                  total_days: r.total_days ?? 30,
+                  notes: r.notes ?? '고혈압·당뇨 정기 처방, 14일분',
+                }
+              : r
+          );
         } else {
           setError(mapApiError((rec as PromiseRejectedResult).reason));
         }
