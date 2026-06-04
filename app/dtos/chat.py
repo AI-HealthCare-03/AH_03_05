@@ -34,6 +34,7 @@ class ChatMessageResponse(BaseModel):
     assistant_message: str
     safety_flag: bool
     safety_notice: str | None
+    category: str | None = None
 
 
 # --- 세션 목록 조회 ---
@@ -66,6 +67,7 @@ class ChatMessageListItem(BaseModel):
     content: str
     safety_flag: bool
     safety_notice: str | None
+    category: str | None = None
     created_at: datetime
 
 

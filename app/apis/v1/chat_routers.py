@@ -169,6 +169,7 @@ async def list_chat_messages(
                 content=m.content,
                 safety_flag=m.safety_flag,
                 safety_notice=m.safety_notice,
+                category=m.category.value if m.category else None,
                 created_at=m.created_at,
             )
             for m in messages
