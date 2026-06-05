@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokenStore } from '../api/tokenStore';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -106,6 +107,7 @@ export interface NotifSettings {
 
 interface AppState {
   isReady: boolean;
+  isOffline: boolean;
   user: User;
   setUser: (u: User) => void;
   drugs: Drug[];
@@ -284,6 +286,7 @@ const seedChats: Chat[] = [
 const AppCtx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { isOffline } = useNetworkStatus();
   const [user, setUserState] = useState<User>(defaultUser);
   const [drugs, setDrugs] = useState<Drug[]>(seedDrugs);
   const [records, setRecords] = useState<Record[]>(seedRecords);
@@ -408,6 +411,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AppState>(
     () => ({
       isReady,
+      isOffline,
       user,
       setUser,
       drugs,
@@ -439,6 +443,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       isReady,
+      isOffline,
       user,
       drugs,
       records,
