@@ -47,6 +47,21 @@ class TestConsentAPI(TestCase):
         assert response.status_code == status.HTTP_200_OK
         assert len(response.json()["consents"]) == 5
 
+    async def test_signup_sets_agreed_at_for_agreed_consents(self):
+        # 가입 시 동의한 항목은 agreed_at이 채워지고, 비동의 항목은 null이어야 한다
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "consent_agreedat@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+            response = await client.get("/api/v1/users/me/consents", headers=headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        consents = response.json()["consents"]
+        for c in consents:
+            if c["is_agreed"]:
+                assert c["agreed_at"] is not None, f"{c['consent_type']} 동의했는데 agreed_at이 null"
+            else:
+                assert c["agreed_at"] is None
+
     async def test_get_consents_unauthorized(self):
         # Given
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
