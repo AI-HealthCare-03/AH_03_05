@@ -104,6 +104,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
       setUploadError('JPG, PNG, PDF 형식만 업로드 가능합니다.');
       return;
     }
+    // fileSize가 undefined이면 검증 생략 — 서버 413으로 처리
     if (fileSize !== undefined && fileSize > MAX_BYTES) {
       setUploadError('10MB 이하 파일만 업로드 가능합니다.');
       return;
