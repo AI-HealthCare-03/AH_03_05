@@ -80,8 +80,10 @@ class AuthService:
             raise TooManyRequestsException(detail="로그인 시도 횟수를 초과했습니다. 10분 후 다시 시도해주세요.")
         user = await User.get_or_none(email=email)
         if not user or not verify_password(data.password, user.password_hash):
-            await redis_client.incr(redis_key)
-            await redis_client.expire(redis_key, LOGIN_FAIL_TTL)
+            new_count = await redis_client.incr(redis_key)
+            # 첫 실패 시에만 TTL 설정 — 매번 갱신하면 잠금 우회 가능
+            if new_count == 1:
+                await redis_client.expire(redis_key, LOGIN_FAIL_TTL)
             raise InvalidCredentialsException()
         if user.status == UserStatus.WITHDRAWN:
             raise WithdrawnUserException()
@@ -132,10 +134,10 @@ class AuthService:
             raise TooManyRequestsException(detail="잠시 후 다시 시도해주세요. (1분 cooldown)")
         user = await User.get_or_none(email=email)
         if not user:
-            return  # 보안상 존재 여부 노출 안 함
+            return
         code = "".join(secrets.choice(string.digits) for _ in range(6))
         redis_key = f"pw_reset:{email}"
-        await redis_client.set(redis_key, code, ex=600)  # 10분 TTL
+        await redis_client.set(redis_key, code, ex=600)
         await redis_client.set(cooldown_key, "1", ex=PW_RESET_COOLDOWN_TTL)
         body = f"""
         <h2>MediPT 비밀번호 재설정</h2>
@@ -155,7 +157,6 @@ class AuthService:
             if fail_count >= PW_RESET_FAIL_LIMIT:
                 await redis_client.delete(redis_key)
                 await redis_client.delete(fail_key)
-                raise BadRequestException(detail="인증 코드가 올바르지 않거나 만료되었습니다.")
             raise BadRequestException(detail="인증 코드가 올바르지 않거나 만료되었습니다.")
         user = await User.get_or_none(email=email)
         if not user:
@@ -174,7 +175,7 @@ class AuthService:
             raise TooManyRequestsException(detail="잠시 후 다시 시도해주세요.", retry_after=retry_after)
         code = "".join(secrets.choice(string.digits) for _ in range(6))
         redis_key = f"email_verify:{email}"
-        await redis_client.set(redis_key, code, ex=600)  # 10분 TTL
+        await redis_client.set(redis_key, code, ex=600)
         await redis_client.set(cooldown_key, "1", ex=PW_RESET_COOLDOWN_TTL)
         body = f"""
         <h2>MediPT 이메일 인증</h2>
