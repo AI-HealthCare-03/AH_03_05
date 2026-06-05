@@ -91,8 +91,24 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
     navigation.goBack();
   };
 
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+  const MAX_BYTES = 10 * 1024 * 1024;
+
   const doUpload = async (file: UploadFile | globalThis.File) => {
     setUploadError('');
+
+    const mimeType = 'uri' in file ? file.type : (file as globalThis.File).type;
+    const fileSize = 'uri' in file ? file.size : (file as globalThis.File).size;
+
+    if (!ALLOWED_TYPES.includes(mimeType)) {
+      setUploadError('JPG, PNG, PDF 형식만 업로드 가능합니다.');
+      return;
+    }
+    if (fileSize !== undefined && fileSize > MAX_BYTES) {
+      setUploadError('10MB 이하 파일만 업로드 가능합니다.');
+      return;
+    }
+
     setUploading(true);
     try {
       const res = await uploadRecord(file, TYPE_MAP[type]);
@@ -106,7 +122,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
     } catch (e: any) {
       setUploading(false);
       if (e?.response?.status === 413) {
-        setUploadError('파일 크기가 너무 큽니다. 10MB 이하의 파일을 업로드해주세요.');
+        setUploadError('10MB 이하 파일만 업로드 가능합니다.');
       } else {
         setUploadError(e?.response?.data?.detail ?? e?.message ?? '업로드에 실패했습니다.');
       }
@@ -117,10 +133,10 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
     const input = document.createElement('input');
     input.type = 'file';
     if (srcId === 'camera') {
-      input.accept = 'image/*';
+      input.accept = 'image/jpeg,image/png';
       (input as any).capture = 'environment';
     } else if (srcId === 'gallery') {
-      input.accept = 'image/*';
+      input.accept = 'image/jpeg,image/png';
     } else {
       input.accept = 'application/pdf';
     }
@@ -182,6 +198,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
         uri: a.uri,
         name: a.fileName ?? `photo_${Date.now()}.jpg`,
         type: a.mimeType ?? 'image/jpeg',
+        size: a.fileSize,
       });
     } else if (srcId === 'gallery') {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -200,6 +217,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
         uri: a.uri,
         name: a.fileName ?? `image_${Date.now()}.jpg`,
         type: a.mimeType ?? 'image/jpeg',
+        size: a.fileSize,
       });
     } else if (srcId === 'pdf') {
       const result = await DocumentPicker.getDocumentAsync({
@@ -208,7 +226,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
       });
       if (result.canceled || !result.assets?.length) return;
       const a = result.assets[0];
-      await doUpload({ uri: a.uri, name: a.name, type: a.mimeType ?? 'application/pdf' });
+      await doUpload({ uri: a.uri, name: a.name, type: a.mimeType ?? 'application/pdf', size: a.size });
     }
   };
 
