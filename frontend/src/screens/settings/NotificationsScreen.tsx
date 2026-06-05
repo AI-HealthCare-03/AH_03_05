@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, SectionList } from 'react-native';
 import { useApp, type Notification } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
@@ -20,7 +20,11 @@ type NotificationRowProps = {
   onPress: () => void;
 };
 
-function NotificationRow({ item: n, isFirst, onPress }: NotificationRowProps) {
+const NotificationRow = React.memo(function NotificationRow({
+  item: n,
+  isFirst,
+  onPress,
+}: NotificationRowProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -42,12 +46,14 @@ function NotificationRow({ item: n, isFirst, onPress }: NotificationRowProps) {
             gap: spacing.s8,
           }}
         >
-          <Text
-            style={{ fontSize: typography.fz14, fontWeight: typography.fw6, flex: 1 }}
-            numberOfLines={1}
-          >
-            {n.title}
-          </Text>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text
+              style={{ fontSize: typography.fz14, fontWeight: typography.fw6 }}
+              numberOfLines={1}
+            >
+              {n.title}
+            </Text>
+          </View>
           <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{n.time}</Text>
         </View>
         <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s4 }}>
@@ -68,7 +74,7 @@ function NotificationRow({ item: n, isFirst, onPress }: NotificationRowProps) {
       )}
     </TouchableOpacity>
   );
-}
+});
 
 function mapNotifType(t: string): Notification['type'] {
   if (t.includes('medication') || t.includes('alarm')) return 'medication';
@@ -85,6 +91,8 @@ function mapNotifIcon(t: string): string {
   if (t.includes('chat')) return 'chat';
   return 'bell';
 }
+
+type Section = { title: string; data: Notification[] };
 
 export function NotificationsScreen({ navigation }: { navigation: NavProp }) {
   const { notifications, setNotifications, flash, markNotificationRead } = useApp();
@@ -115,7 +123,7 @@ export function NotificationsScreen({ navigation }: { navigation: NavProp }) {
       .catch(() => setLoadError('알림을 불러오지 못했어요. 잠시 후 다시 시도해주세요.'));
   }, []);
 
-  const handleNotifPress = (n: Notification) => {
+  const handleNotifPress = useCallback((n: Notification) => {
     const id = n.id;
     if (id != null && !Number.isNaN(Number(id))) {
       markNotificationRead(id);
@@ -129,9 +137,9 @@ export function NotificationsScreen({ navigation }: { navigation: NavProp }) {
         {}
       );
     }
-  };
+  }, [markNotificationRead, flash, navigation]);
 
-  const markAll = async () => {
+  const markAll = useCallback(async () => {
     try {
       await notificationsApi.markAllNotificationsRead();
       setNotifications(notifications.map(n => ({ ...n, unread: false })));
@@ -139,9 +147,9 @@ export function NotificationsScreen({ navigation }: { navigation: NavProp }) {
     } catch {
       flash('읽음 처리에 실패했어요. 다시 시도해주세요.');
     }
-  };
+  }, [notifications, setNotifications, flash]);
 
-  const clear = async () => {
+  const clear = useCallback(async () => {
     const prev = notifications;
     setNotifications([]);
     try {
@@ -155,25 +163,55 @@ export function NotificationsScreen({ navigation }: { navigation: NavProp }) {
       setNotifications(prev);
       flash('알림 삭제에 실패했어요. 다시 시도해주세요.');
     }
-  };
+  }, [notifications, setNotifications, flash]);
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const isToday = (n: { date: string }) => new Date(n.date) >= todayStart;
-  const today = notifications.filter(isToday);
-  const earlier = notifications.filter(n => !isToday(n));
 
-  const right =
-    notifications.length > 0 ? (
-      <View style={{ flexDirection: 'row', gap: spacing.s8 }}>
-        <Button variant="ghost" size="sm" onPress={markAll}>
-          모두 읽음
-        </Button>
-        <Button variant="ghost" size="sm" onPress={clear}>
-          모두 지우기
-        </Button>
-      </View>
-    ) : null;
+  const sections = useMemo<Section[]>(() => {
+    const today = notifications.filter(isToday);
+    const earlier = notifications.filter(n => !isToday(n));
+    return [
+      { title: '오늘', data: today },
+      { title: '이전', data: earlier },
+    ].filter(s => s.data.length > 0);
+  }, [notifications]);
+
+  const keyExtractor = useCallback((item: Notification) => item.id, []);
+
+  const renderItem = useCallback(({ item, index }: { item: Notification; index: number }) => (
+    <NotificationRow
+      item={item}
+      isFirst={index === 0}
+      onPress={() => handleNotifPress(item)}
+    />
+  ), [handleNotifPress]);
+
+  const renderSectionHeader = useCallback(({ section }: { section: Section }) => (
+    <Text
+      style={{
+        fontSize: typography.fz12,
+        color: colors.muted,
+        paddingHorizontal: spacing.s4,
+        marginBottom: spacing.s8,
+        marginTop: spacing.s2,
+      }}
+    >
+      {section.title}
+    </Text>
+  ), []);
+
+  const renderSectionFooter = useCallback(() => (
+    <View style={{ height: spacing.s18 }} />
+  ), []);
+
+  const right = notifications.length > 0 ? (
+    <View style={{ flexDirection: 'row', gap: spacing.s8 }}>
+      <Button variant="ghost" size="sm" onPress={markAll}>모두 읽음</Button>
+      <Button variant="ghost" size="sm" onPress={clear}>모두 지우기</Button>
+    </View>
+  ) : null;
 
   const errorBanner = loadError ? (
     <View
@@ -204,37 +242,17 @@ export function NotificationsScreen({ navigation }: { navigation: NavProp }) {
   }
 
   return (
-    <ScreenLayout title="알림" back onBack={() => navigation.goBack()} right={right} scrollable>
+    <ScreenLayout title="알림" back onBack={() => navigation.goBack()} right={right} scrollable={false}>
       {errorBanner}
-      {[
-        { label: '오늘', items: today },
-        { label: '이전', items: earlier },
-      ].map(g =>
-        g.items.length > 0 ? (
-          <View key={g.label} style={{ marginBottom: spacing.s18 }}>
-            <Text
-              style={{
-                fontSize: typography.fz12,
-                color: colors.muted,
-                paddingHorizontal: spacing.s4,
-                marginBottom: spacing.s8,
-              }}
-            >
-              {g.label}
-            </Text>
-            <Card shadow noPadding style={{ overflow: 'hidden' }}>
-              {g.items.map((n, i) => (
-                <NotificationRow
-                  key={n.id}
-                  item={n}
-                  isFirst={i === 0}
-                  onPress={() => handleNotifPress(n)}
-                />
-              ))}
-            </Card>
-          </View>
-        ) : null
-      )}
+      <SectionList
+        sections={sections}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        renderSectionFooter={renderSectionFooter}
+        stickySectionHeadersEnabled={false}
+        contentContainerStyle={{ padding: spacing.s16 }}
+      />
     </ScreenLayout>
   );
 }
