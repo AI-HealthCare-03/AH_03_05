@@ -112,7 +112,7 @@ export function ChatSessionPane({
         ragApi.searchGuidelines(text).catch(() => [] as RagSource[]),
       ]);
       const aiMsg: ChatMessageItem = {
-        message_id: res.message_id,
+        message_id: Date.now(),
         sender_type: 'assistant',
         content: res.assistant_message,
         safety_flag: res.safety_flag,
@@ -123,6 +123,14 @@ export function ChatSessionPane({
       };
       updateMessages(prev => [...prev, aiMsg]);
       onMessageSent?.(aiMsg.content);
+      // BE ChatMessageResponse에 message_id 미포함 → 백그라운드 재조회로 실제 ID 반영
+      chatApi.getChatMessages(Number(sessionId), { limit: 50 })
+        .then(fetched => {
+          if (fetched.items.length > 0) {
+            updateMessages(() => fetched.items);
+          }
+        })
+        .catch(() => {});
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 429) {

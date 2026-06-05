@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import { colors, spacing, typography, radii } from '../../theme';
@@ -40,20 +41,29 @@ export function ChatListScreen({ navigation, route }: Props) {
   const { isDesktop, isTabletOrAbove, width: screenWidth } = useBreakpoint();
   const openSwipeableRef = useRef<Swipeable | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const res = await chatApi.getChatSessions({ limit: 20, offset: 0 });
-        setSessions(res.items);
-      } catch (err: any) {
-        setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.');
-      } finally {
-        setLoading(false);
-      }
-    })();
+  const fetchSessions = useCallback(async () => {
+    setError('');
+    try {
+      const res = await chatApi.getChatSessions({ limit: 20, offset: 0 });
+      setSessions(res.items);
+    } catch (err: any) {
+      setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchSessions();
+  }, [fetchSessions]);
+
+  // 모바일: 채팅 세션에서 돌아올 때 목록 갱신 (타이틀 업데이트 반영)
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) fetchSessions();
+    }, [fetchSessions, loading])
+  );
 
   useEffect(() => {
     if (route?.params?.sessionId) {
