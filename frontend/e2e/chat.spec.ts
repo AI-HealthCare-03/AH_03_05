@@ -127,7 +127,7 @@ test('TC-16: 응급 증상 키워드 → 즉시 응급 안내', async ({ page })
 
   // 응급 안내 또는 경고 배너 표시 확인
   await expect(
-    page.getByText(/119|응급실|주의가 필요한 답변/)
+    page.getByText(/119|응급실|주의가 필요한 답변/).first()
   ).toBeVisible({ timeout: 30_000 });
 });
 

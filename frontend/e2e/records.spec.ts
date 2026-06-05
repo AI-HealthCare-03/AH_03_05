@@ -45,7 +45,7 @@ test('TC-23: 진료기록 필터링', async ({ page }) => {
   await page.waitForTimeout(1_000);
 
   // 필터가 활성화됐는지 확인 (에러 없이 렌더링)
-  await expect(page.getByText('처방전')).toBeVisible();
+  await expect(page.getByText('처방전').first()).toBeVisible();
 });
 
 /**

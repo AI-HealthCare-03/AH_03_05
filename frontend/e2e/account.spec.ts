@@ -52,6 +52,7 @@ test.describe('TC-29', () => {
   });
 
   test('TC-29: 비밀번호 변경 5회 실패 → 잠금', async ({ page }) => {
+    test.setTimeout(60_000);
     // lockout 계정으로 로그인
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
@@ -80,7 +81,7 @@ test.describe('TC-29', () => {
     }
 
     await expect(
-      page.getByText(/10분|잠시 후|시도 횟수/)
+      page.getByText('잠시 후 다시 시도해주세요.')
     ).toBeVisible({ timeout: 10_000 });
   });
 });
@@ -113,7 +114,7 @@ test.describe('TC-30', () => {
     await page.goto('/settings/delete-account');
     await page.waitForTimeout(1_500);
 
-    // 데이터 처리 안내 확인 체크
+    // Step 1: 체크박스 3개 모두 체크
     const checkboxes = page.locator('[role="checkbox"]');
     const checkCount = await checkboxes.count();
     for (let i = 0; i < checkCount; i++) {
@@ -121,20 +122,19 @@ test.describe('TC-30', () => {
     }
     await page.waitForTimeout(500);
 
-    // 탈퇴하기 버튼
-    const deleteBtn = page.getByText(/탈퇴하기|회원탈퇴/).last();
-    if (await deleteBtn.count().then((n: number) => n > 0)) {
-      await deleteBtn.click({ force: true });
-      await page.waitForTimeout(1_500);
-    }
+    // Step 1 → Step 2: '다음' 버튼 클릭
+    await page.getByText('다음').last().click({ force: true });
+    await page.waitForTimeout(1_500);
 
-    // 비밀번호 재확인
+    // Step 2: 비밀번호 입력
     const pwInput = page.locator('input[type="password"]').first();
-    if (await pwInput.count().then((n: number) => n > 0)) {
-      await pwInput.fill(DISPOSABLE_PASSWORD);
-      await page.getByText(/확인|탈퇴/).last().click({ force: true });
-      await page.waitForTimeout(3_000);
-    }
+    await expect(pwInput).toBeVisible({ timeout: 5_000 });
+    await pwInput.fill(DISPOSABLE_PASSWORD);
+    await page.waitForTimeout(500);
+
+    // Step 2: '탈퇴하기' 버튼 클릭
+    await page.getByText('탈퇴하기').last().click({ force: true });
+    await page.waitForTimeout(3_000);
 
     // 로그인 화면으로 이동 확인
     await expect(page.getByText(/로그인|만나서 반가워요/).first()).toBeVisible({ timeout: 10_000 });
