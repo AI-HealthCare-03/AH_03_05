@@ -37,7 +37,7 @@ export function ChatListScreen({ navigation, route }: Props) {
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messagesCache, setMessagesCache] = useState<Record<string, ChatMessageItem[]>>({});
-  const { isDesktop, isTabletOrAbove } = useBreakpoint();
+  const { isDesktop, isTabletOrAbove, width: screenWidth } = useBreakpoint();
   const openSwipeableRef = useRef<Swipeable | null>(null);
 
   useEffect(() => {
@@ -158,7 +158,7 @@ export function ChatListScreen({ navigation, route }: Props) {
       session={c}
       selected={isDesktop && String(c.session_id) === selectedId}
       isDesktop={isDesktop}
-      isTablet={isTabletOrAbove && !isDesktop}
+      isTablet={screenWidth >= 600 && !isDesktop}
       onPress={openSession}
       onDelete={handleDelete}
       openSwipeableRef={openSwipeableRef}
@@ -246,7 +246,7 @@ export function ChatListScreen({ navigation, route }: Props) {
                   session={c}
                   selected={isDesktop && String(c.session_id) === selectedId}
                   isDesktop={isDesktop}
-                  isTablet={isTabletOrAbove && !isDesktop}
+                  isTablet={screenWidth >= 600 && !isDesktop}
                   onPress={openSession}
                   onDelete={handleDelete}
                   openSwipeableRef={openSwipeableRef}
