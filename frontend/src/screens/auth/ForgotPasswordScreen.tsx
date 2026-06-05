@@ -162,7 +162,7 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
         </Button>
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: spacing.s16 }}>
           <Text style={{ fontSize: typography.fz13, color: colors.muted }}>기억나셨나요? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')} accessibilityRole="link">
             <Text style={{ fontSize: typography.fz13, color: colors.accent }}>로그인</Text>
           </TouchableOpacity>
         </View>

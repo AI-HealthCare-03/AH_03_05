@@ -276,6 +276,7 @@ export function ChatListScreen({ navigation, route }: Props) {
                   onPress={() => setSelectedId(null)}
                   style={ds.iconBtn}
                   accessibilityLabel="뒤로"
+                  accessibilityRole="link"
                 >
                   <Icon name="arrow-left" size={16} color={colors.ink2} />
                 </TouchableOpacity>
@@ -406,6 +407,7 @@ const SessionRow = React.memo(function SessionRow({
           selected && { backgroundColor: colors.accent50, borderRadius: radii.lg },
         ]}
         onPress={() => onPress(session)}
+        accessibilityRole="link"
         activeOpacity={0.7}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -435,6 +437,8 @@ const SessionRow = React.memo(function SessionRow({
           style={ds.deleteIconBtn}
           onPress={() => onDelete(session.session_id)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="삭제"
+          accessibilityRole="button"
         >
           <Icon name="x" size={12} color={colors.muted2} />
         </TouchableOpacity>
@@ -456,7 +460,7 @@ const SessionRow = React.memo(function SessionRow({
           openSwipeableRef.current = swipeableRef.current;
         }}
         renderRightActions={() => (
-          <TouchableOpacity style={ds.swipeDelete} onPress={() => onDelete(session.session_id)}>
+          <TouchableOpacity style={ds.swipeDelete} onPress={() => onDelete(session.session_id)} accessibilityRole="button" accessibilityLabel="삭제">
             <Text style={ds.swipeDeleteText}>삭제</Text>
           </TouchableOpacity>
         )}

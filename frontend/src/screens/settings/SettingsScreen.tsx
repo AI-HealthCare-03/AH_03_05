@@ -165,6 +165,8 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
                       gap: spacing.s8,
                       alignSelf: 'flex-start',
                     }}
+                    accessibilityRole="button"
+                    accessibilityLabel="닉네임 편집"
                   >
                     <Text style={{ fontSize: typography.fz17, fontWeight: typography.fw7 }}>
                       {user.nickname || user.name}

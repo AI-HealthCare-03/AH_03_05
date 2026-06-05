@@ -179,6 +179,7 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
           key={t}
           style={[s.chip, filter === t && s.chipActive]}
           onPress={() => setFilter(t)}
+          accessibilityRole="checkbox"
         >
           <Text
             style={[

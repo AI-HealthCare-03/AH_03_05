@@ -33,6 +33,7 @@ const NotificationRow = React.memo(function NotificationRow({
         !isFirst && { borderTopWidth: 0.5, borderTopColor: colors.hairline },
         n.unread && { backgroundColor: colors.accent50 },
       ]}
+      accessibilityRole="link"
     >
       <View style={s.notifIcon}>
         <Icon name={n.icon} size={14} color={colors.accent700} />

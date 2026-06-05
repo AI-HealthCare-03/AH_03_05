@@ -97,12 +97,14 @@ export function GuideResultScreen({ navigation, route }: Props) {
         <TouchableOpacity
           style={[s.tabBtn, tab === 'med' && s.tabBtnActive]}
           onPress={() => setTab('med')}
+          accessibilityRole="checkbox"
         >
           <Text style={[s.tabText, tab === 'med' && s.tabTextActive]}>💊 복약 안내</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[s.tabBtn, tab === 'life' && s.tabBtnActive]}
           onPress={() => setTab('life')}
+          accessibilityRole="checkbox"
         >
           <Text style={[s.tabText, tab === 'life' && s.tabTextActive]}>🚶 생활습관</Text>
         </TouchableOpacity>
@@ -182,6 +184,8 @@ export function GuideResultScreen({ navigation, route }: Props) {
                   opacity: feedback && feedback !== 'good' ? 0.4 : 1,
                 },
               ]}
+              accessibilityRole="button"
+              accessibilityLabel="도움됨"
               onPress={async () => {
                 if (feedback) return;
                 setFeedback('good');
@@ -215,6 +219,8 @@ export function GuideResultScreen({ navigation, route }: Props) {
                   opacity: feedback && feedback !== 'bad' ? 0.4 : 1,
                 },
               ]}
+              accessibilityRole="button"
+              accessibilityLabel="별로"
               onPress={() => {
                 if (!feedback) setCommentVisible(true);
               }}

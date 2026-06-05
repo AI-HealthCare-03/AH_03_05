@@ -150,6 +150,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                     key={a}
                     style={[styles.chip, form.age === a && styles.chipActive]}
                     onPress={() => set('age', a)}
+                    accessibilityRole="checkbox"
                   >
                     <Text style={[styles.chipText, form.age === a && styles.chipTextActive]}>
                       {a}
@@ -165,6 +166,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                     key={sv}
                     style={[styles.chip, styles.chipGrow, form.sex === sv && styles.chipActive]}
                     onPress={() => set('sex', sv)}
+                    accessibilityRole="checkbox"
                   >
                     <Text style={[styles.chipText, form.sex === sv && styles.chipTextActive]}>
                       {sv}

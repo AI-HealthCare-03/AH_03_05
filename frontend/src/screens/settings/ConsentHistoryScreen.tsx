@@ -218,6 +218,8 @@ export function ConsentHistoryScreen({ navigation }: { navigation: NavProp }) {
                 <View style={{ flexDirection: 'row', gap: spacing.s12 }}>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('LegalDoc', { docKey: DOC_KEY[c.type] })}
+                    accessibilityRole="button"
+                    accessibilityLabel="전문 보기"
                   >
                     <Text style={{ fontSize: typography.fz12, color: colors.accent }}>
                       전문 보기
