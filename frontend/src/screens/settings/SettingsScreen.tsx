@@ -35,7 +35,10 @@ const MENU_SECTIONS: { icon: string; label: string; to: keyof SettingsStackParam
     { icon: 'lock', label: '비밀번호 변경', to: 'PasswordChange' },
     { icon: 'device', label: '로그인 기기 관리', to: 'DeviceManagement' },
   ],
-  [{ icon: 'list', label: '약관 동의 내역', to: 'ConsentHistory' }],
+  [
+    { icon: 'list', label: '약관 동의 내역', to: 'ConsentHistory' },
+    { icon: 'star', label: '피드백 통계', to: 'FeedbackSummary' },
+  ],
 ];
 
 export function SettingsScreen({ navigation }: { navigation: NavProp }) {
