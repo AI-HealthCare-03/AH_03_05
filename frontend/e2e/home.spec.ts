@@ -42,5 +42,5 @@ test('TC-11: 약품 복약 체크', async ({ page }) => {
   await expect(page.getByText('완료').first()).toBeVisible({ timeout: 5_000 });
 
   // 토스트 메시지 확인
-  await expect(page.getByText('복약 체크 완료 🎉')).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByText('복약 체크 완료 🎉').first()).toBeVisible({ timeout: 5_000 });
 });

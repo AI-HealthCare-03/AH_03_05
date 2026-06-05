@@ -40,7 +40,7 @@ test('TC-25: 건강 프로필 수정', async ({ page }) => {
   await page.getByText('저장').click({ force: true });
   await page.waitForTimeout(1_500);
 
-  await expect(page.getByText('건강 정보가 저장되었습니다')).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByText('건강 정보가 저장되었습니다').first()).toBeVisible({ timeout: 5_000 });
 });
 
 /**

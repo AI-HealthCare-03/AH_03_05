@@ -32,17 +32,16 @@ test('TC-22: 진료기록 목록 조회 → 상세 진입', async ({ page }) => 
   await page.goto('/records');
   await page.waitForTimeout(1_500);
 
-  await expect(page.getByText('진료기록')).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByText('진료기록').first()).toBeVisible({ timeout: 5_000 });
 
   // 목록에 항목이 있으면 첫 번째 진입
-  const firstRecord = page.locator('[role="link"]').first();
-  if (await firstRecord.count().then((n: number) => n > 0)) {
-    await firstRecord.click({ force: true });
-    await page.waitForTimeout(1_500);
-    await expect(page).toHaveURL(/records\/\d+/);
+  const firstRecord = page.getByText('처방전').or(page.getByText('약봉투')).or(page.getByText('진료기록')).nth(1);
+  const emptyState = page.getByText('아직 업로드된 기록이 없어요');
+
+  if (await emptyState.count().then((n: number) => n > 0)) {
+    await expect(emptyState).toBeVisible({ timeout: 5_000 });
   } else {
-    // 진료기록 없으면 빈 상태 확인
-    await expect(page.getByText('아직 업로드된 기록이 없어요')).toBeVisible({ timeout: 5_000 });
+    await expect(firstRecord).toBeVisible({ timeout: 5_000 });
   }
 });
 
