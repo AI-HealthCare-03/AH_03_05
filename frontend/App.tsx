@@ -6,6 +6,7 @@ import { AppProvider } from './src/context/AppContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
 import Toast from './src/components/Toast';
+import OfflineBanner from './src/components/OfflineBanner';
 
 // 앱이 라이트 모드 전용 — 웹은 index.html meta color-scheme으로 처리
 if (Platform.OS !== 'web') {
@@ -45,6 +46,7 @@ export default function App() {
       <AppProvider>
         <AppNavigator />
         <Toast />
+        <OfflineBanner />
       </AppProvider>
     </GestureHandlerRootView>
   );
