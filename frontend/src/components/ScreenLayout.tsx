@@ -50,7 +50,7 @@ export default function ScreenLayout({
   const headerContent = header ?? (
     <>
       {back && (
-        <TouchableOpacity onPress={onBack} style={s.iconBtn}>
+        <TouchableOpacity onPress={onBack} style={s.iconBtn} accessibilityLabel="뒤로가기" accessibilityRole="button">
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
       )}
