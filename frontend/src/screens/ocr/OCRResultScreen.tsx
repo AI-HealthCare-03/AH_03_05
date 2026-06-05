@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Banner from '../../components/Banner';
@@ -34,12 +34,16 @@ export function OCRResultScreen({ navigation, route }: Props) {
   const [error, setError] = useState('');
   const [imageRemoved, setImageRemoved] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [ocrText, setOcrText] = useState('');
+  const [textExpanded, setTextExpanded] = useState(false);
+  const [savingText, setSavingText] = useState(false);
 
   useEffect(() => {
     if (!recordId) return;
     (async () => {
       try {
         const res = await recordsApi.getOcrResult(recordId);
+        setOcrText(res.ocr_edited_text ?? res.ocr_text ?? '');
         setCandidates(res.medication_candidates ?? []);
         setOcrSession({
           ...ocrSession,
@@ -188,6 +192,73 @@ export function OCRResultScreen({ navigation, route }: Props) {
           title="OCR 인식이 완료됐어요"
           style={{ marginBottom: spacing.s14 }}
         />
+      )}
+
+      {recordId && inputMethod !== 'manual' && (
+        <Card shadow style={{ marginBottom: spacing.s14 }}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+            onPress={() => setTextExpanded(p => !p)}
+            accessibilityRole="button"
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8 }}>
+              <Icon name="edit" size={14} color={colors.ink2} />
+              <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink2 }}>
+                인식 텍스트 직접 수정
+              </Text>
+            </View>
+            <Icon name={textExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.muted} />
+          </TouchableOpacity>
+          {textExpanded && (
+            <View style={{ marginTop: spacing.s12 }}>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: colors.hairlineStrong,
+                  borderRadius: 8,
+                  padding: spacing.s12,
+                  fontSize: typography.fz13,
+                  color: colors.ink,
+                  minHeight: 100,
+                  textAlignVertical: 'top',
+                }}
+                multiline
+                value={ocrText}
+                onChangeText={setOcrText}
+                placeholder="인식된 텍스트를 수정해주세요"
+                placeholderTextColor={colors.muted2}
+              />
+              <TouchableOpacity
+                style={{
+                  marginTop: spacing.s8,
+                  alignSelf: 'flex-end',
+                  backgroundColor: savingText ? colors.hairline : colors.accent,
+                  paddingHorizontal: spacing.s16,
+                  paddingVertical: spacing.s8,
+                  borderRadius: 8,
+                }}
+                disabled={savingText}
+                onPress={async () => {
+                  setSavingText(true);
+                  try {
+                    await recordsApi.updateOcrText(recordId, { ocr_edited_text: ocrText });
+                    flash('텍스트가 저장됐어요');
+                    setTextExpanded(false);
+                  } catch (e) {
+                    flash(extractApiError(e));
+                  } finally {
+                    setSavingText(false);
+                  }
+                }}
+              >
+                {savingText
+                  ? <ActivityIndicator size="small" color={colors.white} />
+                  : <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.white }}>저장</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          )}
+        </Card>
       )}
 
       <Card shadow>
