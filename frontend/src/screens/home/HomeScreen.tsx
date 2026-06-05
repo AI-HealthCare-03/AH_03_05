@@ -82,7 +82,7 @@ function MonthCalendar({
   return (
     <View>
       <View style={s.calHeader}>
-        <TouchableOpacity onPress={onPrev} style={s.iconBtn} accessibilityLabel="이전 달">
+        <TouchableOpacity onPress={onPrev} style={s.iconBtn} accessibilityLabel="이전 달" accessibilityRole="button">
           <Icon name="chevron-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s10 }}>
@@ -90,12 +90,12 @@ function MonthCalendar({
             {y}년 {m}월
           </Text>
           {showTodayBtn && (
-            <TouchableOpacity onPress={onToday} style={s.chipSmall}>
+            <TouchableOpacity onPress={onToday} style={s.chipSmall} accessibilityRole="button" accessibilityLabel="오늘로 이동">
               <Text style={{ fontSize: typography.fz11, color: colors.accent700 }}>오늘</Text>
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity onPress={onNext} style={s.iconBtn} accessibilityLabel="다음 달">
+        <TouchableOpacity onPress={onNext} style={s.iconBtn} accessibilityLabel="다음 달" accessibilityRole="button">
           <Icon name="chevron-right" size={16} color={colors.ink2} />
         </TouchableOpacity>
       </View>
@@ -123,6 +123,7 @@ function MonthCalendar({
               key={day}
               style={[s.calCell, isToday && s.calToday, isSelected && !isToday && s.calSelected]}
               onPress={() => onDayClick(day)}
+              accessibilityRole="button"
             >
               <Text
                 style={[
@@ -308,6 +309,7 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
                       navigation.navigate('GuideResult', { guideId: recentGuideId });
                   }}
                   disabled={recentGuideId == null}
+                  accessibilityRole="link"
                   style={[s.conditionChip, recentGuideId == null && { opacity: 0.55 }]}
                 >
                   <Text
@@ -758,6 +760,8 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
                     disabled={selectedStatus !== 'today'}
                     onPress={() => markDose(d.id)}
                     activeOpacity={0.6}
+                    accessibilityRole="button"
+                    accessibilityLabel="복약 완료"
                   >
                     <Badge variant="success">완료</Badge>
                   </TouchableOpacity>
@@ -766,7 +770,7 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
                 ) : d.status === '예정' ? (
                   <Text style={{ fontSize: typography.fz12, color: colors.muted }}>예정</Text>
                 ) : (
-                  <TouchableOpacity style={s.chipBtn} onPress={() => markDose(d.id)}>
+                  <TouchableOpacity style={s.chipBtn} onPress={() => markDose(d.id)} accessibilityRole="button" accessibilityLabel="복약 체크">
                     <Text style={{ fontSize: typography.fz12, color: colors.accent700 }}>
                       복약 체크
                     </Text>

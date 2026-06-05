@@ -87,6 +87,7 @@ function ChipField({ label, fieldKey, options, value, onSelect }: ChipFieldProps
             key={o}
             style={[s.chip, value === o && s.chipActive]}
             onPress={() => onSelect(fieldKey, o)}
+            accessibilityRole="checkbox"
           >
             <Text
               style={[

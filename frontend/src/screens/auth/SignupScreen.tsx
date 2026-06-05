@@ -66,6 +66,7 @@ function AgreeRow({
         onPress={onPress}
         style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: spacing.s10 }}
         activeOpacity={0.7}
+        accessibilityRole="checkbox"
       >
         <View
           style={[
@@ -91,6 +92,7 @@ function AgreeRow({
           onPress={onPressExtra}
           disabled={!onPressExtra}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
         >
           <Text
             style={{
@@ -583,7 +585,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: spacing.s16 }}>
         <Text style={{ fontSize: typography.fz13, color: colors.muted }}>이미 계정이 있나요? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} accessibilityRole="link">
           <Text style={{ fontSize: typography.fz13, color: colors.accent }}>로그인</Text>
         </TouchableOpacity>
       </View>
@@ -634,6 +636,8 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
               <TouchableOpacity
                 onPress={() => setTermsModal(null)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityLabel="닫기"
+                accessibilityRole="button"
               >
                 <Icon name="x" size={20} color={colors.ink2} />
               </TouchableOpacity>

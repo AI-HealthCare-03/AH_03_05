@@ -169,7 +169,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
               <Text style={{ fontSize: typography.fz13, color: colors.muted }}>
                 아직 계정이 없으신가요?{' '}
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+              <TouchableOpacity onPress={() => navigation.navigate('Signup')} accessibilityRole="link">
                 <Text style={{ fontSize: typography.fz13, color: colors.accent }}>회원가입</Text>
               </TouchableOpacity>
             </View>
@@ -226,6 +226,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
           <TouchableOpacity
             onPress={() => navigation.navigate('ForgotPassword')}
             style={{ alignSelf: 'flex-end', marginTop: spacing.s6 }}
+            accessibilityRole="link"
           >
             <Text style={{ fontSize: typography.fz12, color: colors.accent }}>비밀번호 찾기</Text>
           </TouchableOpacity>
@@ -247,7 +248,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
           <Text style={{ fontSize: typography.fz13, color: colors.muted }}>
             아직 계정이 없으신가요?{' '}
           </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Signup')} accessibilityRole="link">
             <Text style={{ fontSize: typography.fz13, color: colors.accent }}>회원가입</Text>
           </TouchableOpacity>
         </View>

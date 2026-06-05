@@ -337,6 +337,8 @@ const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
                 setFb('good');
                 submitFeedback(4);
               }}
+              accessibilityRole="button"
+              accessibilityLabel="도움됨"
             >
               <Text style={{ fontSize: typography.fz12 }}>👍</Text>
               <Text
@@ -363,6 +365,8 @@ const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
                 setFb('bad');
                 submitFeedback(2);
               }}
+              accessibilityRole="button"
+              accessibilityLabel="별로"
             >
               <Text style={{ fontSize: typography.fz12 }}>👎</Text>
               <Text
@@ -378,6 +382,8 @@ const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
               <TouchableOpacity
                 style={[ps.feedbackBtn, { borderColor: colors.danger }]}
                 onPress={() => submitFeedback(2, 'chat_error')}
+                accessibilityRole="button"
+                accessibilityLabel="신고하기"
               >
                 <Text style={{ fontSize: typography.fz11, color: colors.danger }}>신고하기</Text>
               </TouchableOpacity>

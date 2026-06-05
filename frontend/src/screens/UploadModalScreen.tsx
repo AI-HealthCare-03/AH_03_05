@@ -50,7 +50,7 @@ type SourceCardProps = {
 
 function SourceCard({ src, onPress }: SourceCardProps) {
   return (
-    <TouchableOpacity style={[s.srcCard, { flex: 1 }]} onPress={() => onPress(src.id)}>
+    <TouchableOpacity style={[s.srcCard, { flex: 1 }]} onPress={() => onPress(src.id)} accessibilityRole="button">
       <View style={s.srcIcon}>
         <Icon name={src.icon} size={14} color={colors.accent700} />
       </View>
@@ -314,6 +314,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
                 key={t.id}
                 style={[s.typeCard, type === t.id && s.typeCardActive]}
                 onPress={() => setType(t.id)}
+                accessibilityRole="checkbox"
               >
                 <View
                   style={[

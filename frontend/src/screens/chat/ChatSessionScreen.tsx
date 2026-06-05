@@ -57,7 +57,7 @@ export function ChatSessionScreen({ navigation, route }: Props) {
           isDesktop && { paddingTop: Math.max(safeTop, spacing.safeTop) },
         ]}
       >
-        <TouchableOpacity onPress={() => navigation.navigate('ChatList')} style={cs.iconBtn}>
+        <TouchableOpacity onPress={() => navigation.navigate('ChatList')} style={cs.iconBtn} accessibilityLabel="뒤로가기" accessibilityRole="button">
           <Icon name="arrow-left" size={16} color={colors.ink2} />
         </TouchableOpacity>
         <View style={{ flex: 1, marginLeft: spacing.s8 }}>

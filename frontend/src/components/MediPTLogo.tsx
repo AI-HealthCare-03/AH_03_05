@@ -25,6 +25,8 @@ export default function MediPTLogo({ width = 140 }: Props) {
         }}
         style={{ width, height }}
         resizeMode="contain"
+        accessibilityLabel="MediPT 로고"
+        accessibilityIgnoresInvertColors
       />
     );
   }
@@ -34,5 +36,5 @@ export default function MediPTLogo({ width = 140 }: Props) {
       ? require('../../assets/logo-dark.png')
       : require('../../assets/logo-light.png');
 
-  return <Image source={logoSource} style={{ width: 120, height: 34 }} resizeMode="contain" />;
+  return <Image source={logoSource} style={{ width: 120, height: 34 }} resizeMode="contain" accessibilityLabel="MediPT 로고" accessibilityIgnoresInvertColors />;
 }
