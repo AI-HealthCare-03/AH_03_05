@@ -8,6 +8,7 @@ import {
   Alert,
   Linking,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
@@ -111,24 +112,25 @@ export function RecordDetailScreen({ navigation, route }: Props) {
 
   const handleDelete = () => {
     if (!recordId) return;
+    const doDelete = async () => {
+      try {
+        await recordsApi.deleteRecord(recordId);
+        flash('진료기록이 삭제됐습니다.');
+        navigation.goBack();
+      } catch {
+        flash('진료기록 삭제에 실패했습니다.');
+      }
+    };
+    if (Platform.OS === 'web') {
+      if (window.confirm('이 기록과 연결된 약품 정보, 가이드가 모두 삭제돼요. 삭제 후에는 복구가 불가능해요.')) doDelete();
+      return;
+    }
     Alert.alert(
       '기록 삭제',
       '이 기록과 연결된 약품 정보, 가이드가 모두 삭제돼요. 삭제 후에는 복구가 불가능해요.',
       [
         { text: '취소', style: 'cancel' },
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await recordsApi.deleteRecord(recordId);
-              flash('진료기록이 삭제됐습니다.');
-              navigation.goBack();
-            } catch {
-              flash('진료기록 삭제에 실패했습니다.');
-            }
-          },
-        },
+        { text: '삭제', style: 'destructive', onPress: doDelete },
       ]
     );
   };

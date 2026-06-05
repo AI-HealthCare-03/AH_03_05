@@ -87,26 +87,29 @@ export function ChatListScreen({ navigation, route }: Props) {
   };
 
   const handleDelete = (sessionId: number) => {
+    const doDelete = async () => {
+      let snapshot: ChatSession[] = [];
+      setSessions(prev => {
+        snapshot = prev;
+        return prev.filter(s => s.session_id !== sessionId);
+      });
+      if (selectedId === String(sessionId)) setSelectedId(null);
+      try {
+        await chatApi.deleteChatSession(sessionId);
+      } catch (e) {
+        setSessions(snapshot);
+        setError(extractApiError(e));
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('이 상담을 삭제하시겠어요?')) doDelete();
+      return;
+    }
+
     Alert.alert('상담 삭제', '이 상담을 삭제하시겠어요?', [
       { text: '취소', style: 'cancel' },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          let snapshot: ChatSession[] = [];
-          setSessions(prev => {
-            snapshot = prev;
-            return prev.filter(s => s.session_id !== sessionId);
-          });
-          if (selectedId === String(sessionId)) setSelectedId(null);
-          try {
-            await chatApi.deleteChatSession(sessionId);
-          } catch (e) {
-            setSessions(snapshot);
-            setError(extractApiError(e));
-          }
-        },
-      },
+      { text: '삭제', style: 'destructive', onPress: doDelete },
     ]);
   };
 
