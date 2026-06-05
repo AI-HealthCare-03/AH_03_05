@@ -1,4 +1,5 @@
 from unittest.mock import AsyncMock, patch
+
 from tortoise.contrib.test import TestCase
 
 
@@ -7,6 +8,7 @@ class TestSendEmail(TestCase):
         """send_email이 aiosmtplib.send를 올바른 인자로 호출한다."""
         with patch("app.core.smtp.aiosmtplib.send", new_callable=AsyncMock) as mock_send:
             from app.core.smtp import send_email
+
             await send_email(
                 to="test@example.com",
                 subject="테스트 제목",
@@ -22,6 +24,7 @@ class TestSendEmail(TestCase):
         """send_email이 수신자·제목·발신자 헤더를 올바르게 설정한다."""
         with patch("app.core.smtp.aiosmtplib.send", new_callable=AsyncMock) as mock_send:
             from app.core.smtp import send_email
+
             await send_email(
                 to="recipient@example.com",
                 subject="헤더 테스트",
