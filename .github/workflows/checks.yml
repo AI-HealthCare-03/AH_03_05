@@ -106,8 +106,9 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: steps.check_tests.outputs.has_tests == 'true'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           flags: backend
           fail_ci_if_error: false
