@@ -2,13 +2,13 @@ import json
 import os
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from app.services.guideline_loader import get_disease_names, get_guideline_context
 
 load_dotenv()
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 MODEL = "gpt-4o-mini"
 # 동일 입력 결과 편차 최소화를 위한 고정 seed (재현성 확보)
 LLM_SEED = 42
@@ -219,7 +219,7 @@ _logic에서 의사 소견 항목과 가이드라인 추가 항목을 먼저 정
 총 3개 이상의 LIFESTYLE 항목을 JSON 형식으로 생성해주세요."""
 
 
-def generate_guide(health_profile: dict) -> dict:
+async def generate_guide(health_profile: dict) -> dict:
     chronic_diseases = health_profile.get("chronic_diseases", [])
     age = health_profile.get("age", 0)
     medications = health_profile.get("medications", [])
@@ -229,7 +229,7 @@ def generate_guide(health_profile: dict) -> dict:
 
     # ── 1호출: 복약 가이드 생성 ──
     try:
-        med_response = client.chat.completions.create(
+        med_response = await client.chat.completions.create(
             model=MODEL,
             messages=[
                 {
@@ -258,7 +258,7 @@ def generate_guide(health_profile: dict) -> dict:
 
     # ── 2호출: 생활습관 가이드 생성 ──
     try:
-        lifestyle_response = client.chat.completions.create(
+        lifestyle_response = await client.chat.completions.create(
             model=MODEL,
             messages=[
                 {

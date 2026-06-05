@@ -27,32 +27,32 @@ def health_profile():
 class TestLLMReproducibility:
     """동일 입력 결과 편차 최소화: 고정 seed 전달 검증."""
 
-    def test_chatbot_seed_is_fixed(self):
+    async def test_chatbot_seed_is_fixed(self):
         # seed 상수가 두 서비스에서 동일하게 정의돼 있어야 한다
         assert CHATBOT_SEED == GUIDE_SEED
         assert isinstance(CHATBOT_SEED, int)
 
-    def test_chatbot_call_passes_seed(self, mock_chat_normal, health_profile):
-        chat("암로디핀 식전에 먹어도 되나요?", health_profile)
+    async def test_chatbot_call_passes_seed(self, mock_chat_normal, health_profile):
+        await chat("암로디핀 식전에 먹어도 되나요?", health_profile)
         # OpenAI create()가 seed=LLM_SEED로 호출됐는지 검증
         assert mock_chat_normal.called
         kwargs = mock_chat_normal.call_args.kwargs
         assert kwargs["seed"] == CHATBOT_SEED
 
-    def test_chatbot_temperature_unchanged(self, mock_chat_normal, health_profile):
+    async def test_chatbot_temperature_unchanged(self, mock_chat_normal, health_profile):
         # seed 추가가 기존 temperature 설정을 건드리지 않았는지 확인
-        chat("운동 언제 하면 좋아요?", health_profile)
+        await chat("운동 언제 하면 좋아요?", health_profile)
         kwargs = mock_chat_normal.call_args.kwargs
         assert kwargs["temperature"] == 0.5
 
-    def test_guide_calls_pass_seed(self, mock_generate_guide_hypertension, health_profile):
-        generate_guide(health_profile)
+    async def test_guide_calls_pass_seed(self, mock_generate_guide_hypertension, health_profile):
+        await generate_guide(health_profile)
         # generate_guide는 OpenAI를 2번 호출(복약->생활습관), 둘 다 seed 전달돼야 함
         assert mock_generate_guide_hypertension.call_count == 2
         for call in mock_generate_guide_hypertension.call_args_list:
             assert call.kwargs["seed"] == GUIDE_SEED
 
-    def test_guide_temperature_unchanged(self, mock_generate_guide_hypertension, health_profile):
-        generate_guide(health_profile)
+    async def test_guide_temperature_unchanged(self, mock_generate_guide_hypertension, health_profile):
+        await generate_guide(health_profile)
         for call in mock_generate_guide_hypertension.call_args_list:
             assert call.kwargs["temperature"] == 0.3
