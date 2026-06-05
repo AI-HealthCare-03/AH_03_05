@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -37,6 +37,7 @@ export function ChatListScreen({ navigation, route }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messagesCache, setMessagesCache] = useState<Record<string, ChatMessageItem[]>>({});
   const { isDesktop, isTabletOrAbove } = useBreakpoint();
+  const openSwipeableRef = useRef<Swipeable | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -74,7 +75,7 @@ export function ChatListScreen({ navigation, route }: Props) {
     }
   }, [isDesktop, navigation]);
 
-  const openSession = (c: ChatSession) => {
+  const openSession = useCallback((c: ChatSession) => {
     if (isDesktop) {
       setSelectedId(String(c.session_id));
     } else {
@@ -84,16 +85,16 @@ export function ChatListScreen({ navigation, route }: Props) {
         subtitle: c.last_message_preview,
       });
     }
-  };
+  }, [isDesktop, navigation]);
 
-  const handleDelete = (sessionId: number) => {
+  const handleDelete = useCallback((sessionId: number) => {
     const doDelete = async () => {
       let snapshot: ChatSession[] = [];
       setSessions(prev => {
         snapshot = prev;
         return prev.filter(s => s.session_id !== sessionId);
       });
-      if (selectedId === String(sessionId)) setSelectedId(null);
+      setSelectedId(prev => (prev === String(sessionId) ? null : prev));
       try {
         await chatApi.deleteChatSession(sessionId);
       } catch (e) {
@@ -111,7 +112,7 @@ export function ChatListScreen({ navigation, route }: Props) {
       { text: '취소', style: 'cancel' },
       { text: '삭제', style: 'destructive', onPress: doDelete },
     ]);
-  };
+  }, []);
 
   const handleFirstMessage = (text: string) => {
     const title = text.slice(0, 15);
@@ -134,13 +135,24 @@ export function ChatListScreen({ navigation, route }: Props) {
     );
   };
 
-  const filtered = sessions.filter(
-    c => !query || c.title.toLowerCase().includes(query.toLowerCase())
+  const retryLoad = useCallback(() => {
+    setLoading(true);
+    setError('');
+    chatApi
+      .getChatSessions({ limit: 20, offset: 0 })
+      .then(res => setSessions(res.items))
+      .catch(() => setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = useMemo(
+    () => sessions.filter(c => !query || c.title.toLowerCase().includes(query.toLowerCase())),
+    [sessions, query]
   );
 
   const selectedSession = sessions.find(c => String(c.session_id) === selectedId);
-
-  const searchBar = <SearchBar value={query} onChangeText={setQuery} />;
+  const showSidebar = isDesktop || !selectedId;
+  const showPane = isDesktop || !!selectedId;
 
   const sessionList = (
     <>
@@ -160,19 +172,7 @@ export function ChatListScreen({ navigation, route }: Props) {
           >
             {error}
           </Text>
-          <Button
-            variant="ghost"
-            size="sm"
-            onPress={() => {
-              setLoading(true);
-              setError('');
-              chatApi
-                .getChatSessions({ limit: 20, offset: 0 })
-                .then(res => setSessions(res.items))
-                .catch(() => setError('상담 목록을 불러오지 못했어요. 다시 시도해주세요.'))
-                .finally(() => setLoading(false));
-            }}
-          >
+          <Button variant="ghost" size="sm" onPress={retryLoad}>
             다시 시도
           </Button>
         </View>
@@ -186,29 +186,24 @@ export function ChatListScreen({ navigation, route }: Props) {
       ) : filtered.length === 0 ? (
         <EmptyState icon="search" message="검색 결과가 없어요." />
       ) : (
-        filtered.map(c => {
-          const sid = String(c.session_id);
-          const selected = isDesktop && selectedId === sid;
-          return (
-            <SessionRow
-              key={sid}
-              session={c}
-              selected={selected}
-              isDesktop={isDesktop}
-              isTablet={isTabletOrAbove && !isDesktop}
-              onPress={() => openSession(c)}
-              onDelete={() => handleDelete(c.session_id)}
-            />
-          );
-        })
+        filtered.map(c => (
+          <SessionRow
+            key={String(c.session_id)}
+            session={c}
+            selected={isDesktop && String(c.session_id) === selectedId}
+            isDesktop={isDesktop}
+            isTablet={isTabletOrAbove && !isDesktop}
+            onPress={openSession}
+            onDelete={handleDelete}
+            openSwipeableRef={openSwipeableRef}
+          />
+        ))
       )}
     </>
   );
 
-  // Both panels stay in the tree at all times — visibility toggled via display:none.
-  // This prevents ChatSessionPane from remounting on resize (no flicker).
-  const showSidebar = isDesktop || !selectedId;
-  const showPane = isDesktop || !!selectedId;
+  const showSidebarDisplay = isDesktop || !selectedId;
+  const showPaneDisplay = isDesktop || !!selectedId;
 
   return (
     <View
@@ -226,16 +221,15 @@ export function ChatListScreen({ navigation, route }: Props) {
               ]
             : {
                 flex: 1,
-                paddingHorizontal: spacing.s8,
-                paddingTop: Math.max(safeTop, spacing.safeTop),
-                paddingBottom: spacing.s24,
+                paddingHorizontal: spacing.s12,
+                paddingTop: Math.max(safeTop + spacing.s8, spacing.safeTop),
+                paddingBottom: spacing.s12,
               }
         }
       >
-        {/* Sidebar — always mounted; hidden on mobile when a session is open */}
         <Card
           shadow
-          style={[isDesktop ? ds.sidebar : { flex: 1 }, !showSidebar && { display: 'none' as any }]}
+          style={[isDesktop ? ds.sidebar : { flex: 1 }, !showSidebarDisplay && { display: 'none' as any }]}
         >
           <View style={ds.sidebarHeader}>
             <Text style={ds.sidebarTitle}>상담 목록</Text>
@@ -244,17 +238,16 @@ export function ChatListScreen({ navigation, route }: Props) {
             </Button>
           </View>
           <View style={{ paddingHorizontal: spacing.s16, marginBottom: spacing.s8 }}>
-            {searchBar}
+            <SearchBar value={query} onChangeText={setQuery} />
           </View>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>
             {sessionList}
           </ScrollView>
         </Card>
 
-        {/* Pane — always mounted; hidden on mobile when no session is selected */}
         <Card
           shadow
-          style={[isDesktop ? ds.pane : { flex: 1 }, !showPane && { display: 'none' as any }]}
+          style={[isDesktop ? ds.pane : { flex: 1 }, !showPaneDisplay && { display: 'none' as any }]}
         >
           {selectedId ? (
             <>
@@ -365,21 +358,25 @@ const ds = StyleSheet.create({
 
 export default ChatListScreen;
 
-function SessionRow({
+const SessionRow = React.memo(function SessionRow({
   session,
   selected,
   isDesktop,
   isTablet,
   onPress,
   onDelete,
+  openSwipeableRef,
 }: {
   session: ChatSession;
   selected: boolean;
   isDesktop: boolean;
   isTablet: boolean;
-  onPress: () => void;
-  onDelete: () => void;
+  onPress: (session: ChatSession) => void;
+  onDelete: (sessionId: number) => void;
+  openSwipeableRef: React.MutableRefObject<Swipeable | null>;
 }) {
+  const swipeableRef = useRef<Swipeable>(null);
+
   const rowContent = (
     <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
       <TouchableOpacity
@@ -388,16 +385,18 @@ function SessionRow({
           { flex: 1 },
           selected && { backgroundColor: colors.accent50, borderRadius: radii.lg },
         ]}
-        onPress={onPress}
+        onPress={() => onPress(session)}
         activeOpacity={0.7}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text
-            style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink, flex: 1 }}
-            numberOfLines={1}
-          >
-            {session.title}
-          </Text>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text
+              style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }}
+              numberOfLines={1}
+            >
+              {session.title}
+            </Text>
+          </View>
           <Text style={{ fontSize: typography.fz11, color: colors.muted, marginLeft: spacing.s6 }}>
             {formatRelativeTime(session.updated_at)}
           </Text>
@@ -414,7 +413,7 @@ function SessionRow({
       {(isDesktop || isTablet) && (
         <TouchableOpacity
           style={ds.deleteIconBtn}
-          onPress={onDelete}
+          onPress={() => onDelete(session.session_id)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Icon name="x" size={12} color={colors.muted2} />
@@ -426,11 +425,18 @@ function SessionRow({
   if (Platform.OS !== 'web') {
     return (
       <Swipeable
+        ref={swipeableRef}
         friction={2}
         rightThreshold={60}
         overshootLeft={false}
+        onSwipeableOpen={() => {
+          if (openSwipeableRef.current && openSwipeableRef.current !== swipeableRef.current) {
+            openSwipeableRef.current.close();
+          }
+          openSwipeableRef.current = swipeableRef.current;
+        }}
         renderRightActions={() => (
-          <TouchableOpacity style={ds.swipeDelete} onPress={onDelete}>
+          <TouchableOpacity style={ds.swipeDelete} onPress={() => onDelete(session.session_id)}>
             <Text style={ds.swipeDeleteText}>삭제</Text>
           </TouchableOpacity>
         )}
@@ -440,4 +446,4 @@ function SessionRow({
     );
   }
   return rowContent;
-}
+});

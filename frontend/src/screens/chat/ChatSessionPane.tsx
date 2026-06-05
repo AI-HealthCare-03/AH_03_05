@@ -219,7 +219,7 @@ export function ChatSessionPane({
 function Bubble({ msg }: { msg: ChatMessageItem }) {
   const [fb, setFb] = useState<'good' | 'bad' | null>(null);
   const { flash } = useApp();
-  const isUser = msg.sender_type === 'user';
+  const isUser = msg.sender_type?.toLowerCase() === 'user';
   const isFlagged = msg.safety_flag === true;
 
   const submitFeedback = (rating: number, reportType?: string) => {
