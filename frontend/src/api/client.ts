@@ -68,14 +68,6 @@ export function extractApiError(error: unknown): string {
     const status = error.response?.status;
     const data = error.response?.data;
 
-    console.error('[API Error]', {
-      status,
-      url: error.config?.url,
-      method: error.config?.method,
-      data,
-      code: error.code,
-    });
-
     if (status === 401) return '로그인이 필요합니다.';
     if (status === 403) return '권한이 없습니다.';
     if (status === 404) return '요청한 정보를 찾을 수 없습니다.';
@@ -90,6 +82,5 @@ export function extractApiError(error: unknown): string {
     if (!error.response) return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
     return '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
   }
-  console.error('[Unknown Error]', error);
   return '알 수 없는 오류가 발생했습니다.';
 }

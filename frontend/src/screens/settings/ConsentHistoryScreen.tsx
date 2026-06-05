@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Switch, ActivityIndicator } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
-import { colors, spacing, typography } from '../../theme';
+import { colors, radii, spacing, typography } from '../../theme';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -30,43 +30,20 @@ interface ConsentRow {
   agreedAt: string | null;
 }
 
-// Static fallback — shown while loading or on fetch failure
+// BE 응답 매핑용 약관 타입·명칭 템플릿 (agreedAt은 BE에서만 채워짐)
 const STATIC_CONSENTS: ConsentRow[] = [
-  {
-    type: 'terms',
-    name: '서비스 이용약관',
-    required: true,
-    agreed: true,
-    agreedAt: '2026.05.01 14:23',
-  },
-  {
-    type: 'privacy',
-    name: '개인정보 처리방침',
-    required: true,
-    agreed: true,
-    agreedAt: '2026.05.01 14:23',
-  },
-  {
-    type: 'sensitive_health',
-    name: '민감 건강정보 수집·이용 동의',
-    required: true,
-    agreed: true,
-    agreedAt: '2026.05.01 14:23',
-  },
-  {
-    type: 'ai_analysis',
-    name: 'AI 분석 활용 동의',
-    required: true,
-    agreed: true,
-    agreedAt: '2026.05.01 14:23',
-  },
+  { type: 'terms', name: '서비스 이용약관', required: true, agreed: false, agreedAt: null },
+  { type: 'privacy', name: '개인정보 처리방침', required: true, agreed: false, agreedAt: null },
+  { type: 'sensitive_health', name: '민감 건강정보 수집·이용 동의', required: true, agreed: false, agreedAt: null },
+  { type: 'ai_analysis', name: 'AI 분석 활용 동의', required: true, agreed: false, agreedAt: null },
   { type: 'marketing', name: '마케팅 수신 동의', required: false, agreed: false, agreedAt: null },
 ];
 
 export function ConsentHistoryScreen({ navigation }: { navigation: NavProp }) {
   const { flash } = useApp();
-  const [consents, setConsents] = useState<ConsentRow[]>(STATIC_CONSENTS);
+  const [consents, setConsents] = useState<ConsentRow[]>([]);
   const [loadingConsents, setLoadingConsents] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [togglingType, setTogglingType] = useState<ConsentType | null>(null);
 
   useEffect(() => {
@@ -89,24 +66,28 @@ export function ConsentHistoryScreen({ navigation }: { navigation: NavProp }) {
         );
       })
       .catch(() => {
-        /* silent — keep static fallback */
+        setLoadError(true);
       })
       .finally(() => setLoadingConsents(false));
   }, []);
 
   const toggleMarketing = async (value: boolean) => {
+    const prev = consents;
     setTogglingType('marketing');
+    // 낙관적 업데이트
+    setConsents(c =>
+      c.map(item =>
+        item.type === 'marketing'
+          ? { ...item, agreed: value, agreedAt: value ? new Date().toLocaleString('ko-KR') : null }
+          : item
+      )
+    );
     try {
       await usersApi.updateConsent('marketing', value);
-      setConsents(prev =>
-        prev.map(c =>
-          c.type === 'marketing'
-            ? { ...c, agreed: value, agreedAt: value ? new Date().toLocaleString('ko-KR') : null }
-            : c
-        )
-      );
       flash(value ? '마케팅 수신에 동의했어요' : '마케팅 수신 동의를 철회했어요');
     } catch {
+      // 실패 시 롤백
+      setConsents(prev);
       flash('변경에 실패했어요. 다시 시도해주세요.');
     } finally {
       setTogglingType(null);
@@ -124,6 +105,24 @@ export function ConsentHistoryScreen({ navigation }: { navigation: NavProp }) {
       }
       scrollable
     >
+      {loadError && (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.s8,
+            backgroundColor: colors.danger50,
+            borderRadius: radii.sm,
+            padding: spacing.s12,
+            marginBottom: spacing.s14,
+          }}
+        >
+          <Icon name="alert" size={14} color={colors.danger} />
+          <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>
+            동의 내역을 불러오지 못했어요. 잠시 후 다시 시도해주세요.
+          </Text>
+        </View>
+      )}
       <View style={[s.banner, { backgroundColor: colors.accent50, marginBottom: spacing.s14 }]}>
         <Icon name="info" size={16} color={colors.accent700} />
         <Text
