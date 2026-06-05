@@ -29,3 +29,20 @@ class FeedbackResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class LowRatedItem(BaseModel):
+    feedback_id: int
+    guide_id: int | None
+    chat_message_id: int | None
+    rating: int | None
+    comment: str | None
+
+
+class FeedbackSummaryResponse(BaseModel):
+    total_count: int = Field(description="총 피드백 수")
+    rating_distribution: dict[str, int] = Field(description="별점별 건수 (1~5)")
+    average_rating: float | None = Field(description="평균 별점")
+    report_count: int = Field(description="신고 건수")
+    safety_report_count: int = Field(description="안전 신고 건수")
+    low_rated_items: list[LowRatedItem] = Field(description="개선 필요 대상 (1~2점)")
