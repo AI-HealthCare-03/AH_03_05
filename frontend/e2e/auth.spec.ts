@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const TEST_EMAIL = 'ui_test@test.com';
-const TEST_PASSWORD = 'Test1234!';
+import { TEST_EMAIL, TEST_PASSWORD } from './helpers';
 
 /**
  * TC-02 | 로그인 성공
@@ -22,7 +20,7 @@ test('TC-02: 로그인 성공', async ({ page }) => {
 
   // 온보딩이 뜨면 건너뛰기
   const skipAll = page.getByText('건너뛰고 둘러보기');
-  if (await skipAll.count().then(n => n > 0)) {
+  if (await skipAll.count().then((n: number) => n > 0)) {
     await skipAll.click({ force: true });
     await page.waitForTimeout(2_000);
   }
@@ -69,13 +67,19 @@ test('TC-05: 토큰 만료 → 자동 갱신', async ({ page }) => {
   await page.waitForTimeout(2_000);
 
   const skipAll = page.getByText('건너뛰고 둘러보기');
-  if (await skipAll.count().then(n => n > 0)) {
+  if (await skipAll.count().then((n: number) => n > 0)) {
     await skipAll.click({ force: true });
     await page.waitForTimeout(2_000);
   }
 
-  // 2. access token을 만료된 값으로 교체 (refresh token은 유지)
+  // 2. profileComplete=true 보존 + access token만 만료값으로 교체
   await page.evaluate(() => {
+    const stored = localStorage.getItem('medipt_user');
+    if (stored) {
+      const u = JSON.parse(stored);
+      u.profileComplete = true;
+      localStorage.setItem('medipt_user', JSON.stringify(u));
+    }
     localStorage.setItem('medipt_access_token', 'expired.invalid.token');
   });
 
@@ -104,7 +108,7 @@ test('TC-07: 전체 기기 로그아웃', async ({ page }) => {
   await page.waitForTimeout(2_000);
 
   const skipAll = page.getByText('건너뛰고 둘러보기');
-  if (await skipAll.count().then(n => n > 0)) {
+  if (await skipAll.count().then((n: number) => n > 0)) {
     await skipAll.click({ force: true });
     await page.waitForTimeout(2_000);
   }
