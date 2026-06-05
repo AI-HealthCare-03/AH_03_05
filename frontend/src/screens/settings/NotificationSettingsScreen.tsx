@@ -55,7 +55,7 @@ function MealRow({ label, val, setVal, master, onTimePress }: MealRowProps) {
       </View>
 
       {Platform.OS === 'web' ? (
-        // @ts-ignore — web only HTML element
+        // @ts-expect-error — web only HTML element
         <input
           type="time"
           value={val.time}

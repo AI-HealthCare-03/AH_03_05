@@ -77,12 +77,11 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
     if (!recordId) return;
 
     let pollTimer: ReturnType<typeof setInterval>;
-    let progressTimer: ReturnType<typeof setInterval>;
     let pollCount = 0;
     const MAX_POLLS = 30;
 
     // 3초마다 step 1씩 증가, 최대 STEPS.length - 1(75%)에서 대기
-    progressTimer = setInterval(() => {
+    const progressTimer = setInterval(() => {
       setStep(s => Math.min(s + 1, STEPS.length - 1));
     }, 3000);
 
