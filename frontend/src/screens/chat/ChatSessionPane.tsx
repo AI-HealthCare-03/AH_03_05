@@ -112,7 +112,7 @@ export function ChatSessionPane({
         ragApi.searchGuidelines(text).catch(() => [] as RagSource[]),
       ]);
       const aiMsg: ChatMessageItem = {
-        message_id: Date.now(),
+        message_id: res.message_id,
         sender_type: 'assistant',
         content: res.assistant_message,
         safety_flag: res.safety_flag,
