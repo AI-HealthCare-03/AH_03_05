@@ -63,13 +63,14 @@ export default function OnboardingScreen({ navigation, route }: Props) {
   const [error, setError] = useState('');
   const [pendingNav, setPendingNav] = useState(false);
 
-  // Navigate only after AppProvider has re-rendered with the updated context.
-  // Calling navigation.reset() immediately after setUser() races against
-  // React's async state commit — HomeScreen would mount with stale context.
+  // Navigate only after both setUser and setPendingNav have been committed.
+  // Clearing pendingNav immediately prevents re-firing when user context
+  // propagates subsequent renders (was causing race condition).
   useEffect(() => {
     if (!pendingNav) return;
+    setPendingNav(false);
     navigation.reset({ index: 0, routes: [{ name: 'Main' as never }] });
-  }, [pendingNav, user.profileComplete, navigation]);
+  }, [pendingNav, navigation]);
 
   const next = async () => {
     if (step === 1) {
