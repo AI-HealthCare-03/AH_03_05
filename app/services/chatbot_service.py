@@ -11,6 +11,8 @@ load_dotenv()
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 MODEL = "gpt-4o-mini"
+# 동일 입력 결과 편차 최소화를 위한 고정 seed (재현성 확보)
+LLM_SEED = 42
 
 
 def build_chatbot_system_prompt(guideline_context: str) -> str:
@@ -147,6 +149,7 @@ def chat(
                 },
             ],
             temperature=0.5,
+            seed=LLM_SEED,
             response_format={"type": "json_object"},
             timeout=30.0,
         )
