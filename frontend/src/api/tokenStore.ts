@@ -31,9 +31,7 @@ export const tokenStore = {
         AsyncStorage.setItem(KEYS.access, access),
         AsyncStorage.setItem(KEYS.refresh, refresh),
       ]);
-    } catch (e) {
-      console.error('[tokenStore.save] AsyncStorage 토큰 저장 실패 — 자동 로그인 불가:', e);
-    }
+    } catch {}
   },
 
   async clear() {

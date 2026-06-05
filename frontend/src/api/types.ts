@@ -490,3 +490,20 @@ export interface CreateFeedbackResponse {
   feedback_id: number;
   review_status: 'pending';
 }
+
+export interface FeedbackLowRatedItem {
+  feedback_id: number;
+  guide_id: number | null;
+  chat_message_id: number | null;
+  rating: number | null;
+  comment: string | null;
+}
+
+export interface FeedbackSummaryResponse {
+  total_count: number;
+  rating_distribution: Record<string, number>;
+  average_rating: number | null;
+  report_count: number;
+  safety_report_count: number;
+  low_rated_items: FeedbackLowRatedItem[];
+}

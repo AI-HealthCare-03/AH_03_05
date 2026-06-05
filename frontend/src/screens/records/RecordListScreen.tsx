@@ -224,7 +224,8 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
     );
   }
 
-  if (error) {
+  // 초기 로드 실패 (기록 없음) — 전체 에러 화면
+  if (error && records.length === 0) {
     return (
       <ScreenLayout {...headerProps} scrollable={false}>
         <EmptyState
@@ -247,6 +248,27 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
 
   return (
     <ScreenLayout {...headerProps} scrollable={false}>
+      {/* 새로고침 실패 시 상단 에러 배너 (기존 목록 유지) */}
+      {error ? (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.s8,
+            backgroundColor: colors.danger50,
+            paddingHorizontal: spacing.s16,
+            paddingVertical: spacing.s10,
+          }}
+        >
+          <Icon name="alert" size={14} color={colors.danger} />
+          <Text style={{ fontSize: typography.fz13, color: colors.danger, flex: 1 }}>
+            {error}
+          </Text>
+          <Button variant="ghost" size="sm" onPress={fetchRecords}>
+            다시 시도
+          </Button>
+        </View>
+      ) : null}
       <FlatList
         data={records}
         keyExtractor={keyExtractor}
