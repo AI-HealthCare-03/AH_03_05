@@ -37,19 +37,25 @@ const MEAL_BODY: Record<MealKey, string> = {
 
 export function MedicationAlarmScreen({ navigation, route }: Props) {
   const meal: MealKey = route?.params?.meal ?? 'morning';
-  const { notifSettings } = useApp();
+  const { notifSettings, drugs } = useApp();
   const insets = useSafeAreaInsets();
   const [snoozing, setSnoozing] = useState<number | null>(null);
   const [done, setDone] = useState(false);
 
   const mealState = notifSettings[meal];
   const timeDisplay = formatTimePeriod(mealState.time);
-  // TODO: NotifSettings에 drugs 필드 추가 시 연결
-  const drugNames: string[] = [];
 
-  const handleComplete = async () => {
-    // TODO: BE 연결 — POST /medications/checkin { meal, checked_at: new Date().toISOString() }
-    // await medicationApi.checkIn({ meal, checked_at: new Date().toISOString() });
+  const MEAL_KEYWORD: Record<MealKey, string> = {
+    morning: '아침',
+    lunch: '점심',
+    dinner: '저녁',
+  };
+  const drugNames = drugs
+    .filter(d => d.time.includes(MEAL_KEYWORD[meal]))
+    .map(d => d.name);
+
+  const handleComplete = () => {
+    // checkin 엔드포인트(POST /medication-checkins)는 Sprint 3 구현 예정
     setDone(true);
     dismiss();
   };
