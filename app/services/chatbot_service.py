@@ -2,14 +2,14 @@ import json
 import os
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from app.services.guideline_loader import get_disease_names, get_guideline_context
 from app.services.safety_filter import check_safety, get_safety_response
 
 load_dotenv()
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 MODEL = "gpt-4o-mini"
 # 동일 입력 결과 편차 최소화를 위한 고정 seed (재현성 확보)
 LLM_SEED = 42
@@ -111,7 +111,7 @@ safety_flag 판단 기준에 해당하면 반드시 safety_flag를 true로 설�
 JSON 형식으로 반환해주세요."""
 
 
-def chat(
+async def chat(
     user_input: str,
     health_profile: dict,
     conversation_history: list | None = None,
@@ -136,7 +136,7 @@ def chat(
 
     # LLM 호출
     try:
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model=MODEL,
             messages=[
                 {

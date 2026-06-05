@@ -91,7 +91,7 @@ class ChatService:
             ]
 
             # LLM 호출
-            result = llm_chat(
+            result = await llm_chat(
                 user_input=message,
                 health_profile=health_profile,
                 conversation_history=conversation_history,

@@ -68,7 +68,7 @@ class GuideService:
 
         # 6. LLM 호출 (실패해도 Guide는 FAILED로 마무리)
         try:
-            llm_result = generate_guide(health_profile_dict)
+            llm_result = await generate_guide(health_profile_dict)
         except Exception as e:
             guide.status = GuideStatus.FAILED
             guide.disclaimer = DEFAULT_DISCLAIMER
