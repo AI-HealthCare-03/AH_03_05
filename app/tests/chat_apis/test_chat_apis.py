@@ -460,3 +460,42 @@ class TestChatMessageCategory(TestCase):
         for item in items:
             assert "category" in item
             assert item["category"] == "lifestyle"
+
+
+class TestChatSessionTitle(TestCase):
+    async def test_title_set_on_first_message(self):
+        """첫 메시지 전송 시 세션 title이 자동 생성된다."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "title_test@example.com")
+            create = await client.post("/api/v1/chat/sessions", json={}, headers=headers)
+            session_id = create.json()["session_id"]
+            await client.post(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                json={"message": "이 약 언제 먹어야 하나요?"},
+                headers=headers,
+            )
+            sessions = await client.get("/api/v1/chat/sessions", headers=headers)
+        items = sessions.json()["items"]
+        session = next(s for s in items if s["session_id"] == session_id)
+        assert session["title"] == "이 약 언제 먹어야 하나요?"
+
+    async def test_title_not_overwritten_on_second_message(self):
+        """두 번째 메시지 전송 시 title이 변경되지 않는다."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "title_test2@example.com")
+            create = await client.post("/api/v1/chat/sessions", json={}, headers=headers)
+            session_id = create.json()["session_id"]
+            await client.post(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                json={"message": "이 약 언제 먹어야 하나요?"},
+                headers=headers,
+            )
+            await client.post(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                json={"message": "두 번째 메시지입니다"},
+                headers=headers,
+            )
+            sessions = await client.get("/api/v1/chat/sessions", headers=headers)
+        items = sessions.json()["items"]
+        session = next(s for s in items if s["session_id"] == session_id)
+        assert session["title"] == "이 약 언제 먹어야 하나요?"

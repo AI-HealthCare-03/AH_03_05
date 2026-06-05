@@ -128,6 +128,8 @@ class ChatService:
             )
             session.last_message_at = assistant_msg.created_at
             session.last_message_preview = assistant_text[:100]
+            if not session.title:
+                session.title = message[:15]
             await session.save()
 
         return {
