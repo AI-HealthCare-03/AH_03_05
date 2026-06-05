@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   StyleSheet,
   ActivityIndicator,
   Alert,
@@ -150,58 +150,35 @@ export function ChatListScreen({ navigation, route }: Props) {
     [sessions, query]
   );
 
-  const selectedSession = sessions.find(c => String(c.session_id) === selectedId);
-  const showSidebar = isDesktop || !selectedId;
-  const showPane = isDesktop || !!selectedId;
+  const keyExtractor = useCallback((item: ChatSession) => String(item.session_id), []);
 
-  const sessionList = (
-    <>
-      {loading ? (
-        <View style={{ alignItems: 'center', padding: spacing.s48 }}>
-          <ActivityIndicator color={colors.accent} size="large" />
-        </View>
-      ) : error ? (
-        <View style={{ alignItems: 'center', padding: spacing.s48 }}>
-          <Text
-            style={{
-              fontSize: typography.fz14,
-              color: colors.muted,
-              textAlign: 'center',
-              marginBottom: spacing.s16,
-            }}
-          >
-            {error}
-          </Text>
-          <Button variant="ghost" size="sm" onPress={retryLoad}>
-            다시 시도
-          </Button>
-        </View>
-      ) : sessions.length === 0 ? (
-        <EmptyState
-          icon="chat"
-          title="아직 상담 내역이 없어요"
-          message="복약·생활습관 관련 궁금한 점을 물어보세요."
-          action={{ label: '새 상담 시작하기', onPress: startNew }}
-        />
-      ) : filtered.length === 0 ? (
-        <EmptyState icon="search" message="검색 결과가 없어요." />
-      ) : (
-        filtered.map(c => (
-          <SessionRow
-            key={String(c.session_id)}
-            session={c}
-            selected={isDesktop && String(c.session_id) === selectedId}
-            isDesktop={isDesktop}
-            isTablet={isTabletOrAbove && !isDesktop}
-            onPress={openSession}
-            onDelete={handleDelete}
-            openSwipeableRef={openSwipeableRef}
-          />
-        ))
-      )}
-    </>
+  const renderItem = useCallback(({ item: c }: { item: ChatSession }) => (
+    <SessionRow
+      session={c}
+      selected={isDesktop && String(c.session_id) === selectedId}
+      isDesktop={isDesktop}
+      isTablet={isTabletOrAbove && !isDesktop}
+      onPress={openSession}
+      onDelete={handleDelete}
+      openSwipeableRef={openSwipeableRef}
+    />
+  ), [isDesktop, selectedId, isTabletOrAbove, openSession, handleDelete, openSwipeableRef]);
+
+  const listEmpty = useMemo(() =>
+    sessions.length === 0 ? (
+      <EmptyState
+        icon="chat"
+        title="아직 상담 내역이 없어요"
+        message="복약·생활습관 관련 궁금한 점을 물어보세요."
+        action={{ label: '새 상담 시작하기', onPress: startNew }}
+      />
+    ) : (
+      <EmptyState icon="search" message="검색 결과가 없어요." />
+    ),
+    [sessions.length, startNew]
   );
 
+  const selectedSession = sessions.find(c => String(c.session_id) === selectedId);
   const showSidebarDisplay = isDesktop || !selectedId;
   const showPaneDisplay = isDesktop || !!selectedId;
 
@@ -240,9 +217,36 @@ export function ChatListScreen({ navigation, route }: Props) {
           <View style={{ paddingHorizontal: spacing.s16, marginBottom: spacing.s8 }}>
             <SearchBar value={query} onChangeText={setQuery} />
           </View>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>
-            {sessionList}
-          </ScrollView>
+          {loading ? (
+            <View style={{ alignItems: 'center', padding: spacing.s48 }}>
+              <ActivityIndicator color={colors.accent} size="large" />
+            </View>
+          ) : error ? (
+            <View style={{ alignItems: 'center', padding: spacing.s48 }}>
+              <Text
+                style={{
+                  fontSize: typography.fz14,
+                  color: colors.muted,
+                  textAlign: 'center',
+                  marginBottom: spacing.s16,
+                }}
+              >
+                {error}
+              </Text>
+              <Button variant="ghost" size="sm" onPress={retryLoad}>
+                다시 시도
+              </Button>
+            </View>
+          ) : (
+            <FlatList
+              data={filtered}
+              keyExtractor={keyExtractor}
+              renderItem={renderItem}
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingVertical: spacing.s4, flexGrow: 1 }}
+              ListEmptyComponent={listEmpty}
+            />
+          )}
         </Card>
 
         <Card

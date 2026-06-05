@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, FlatList } from 'react-native';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -38,7 +38,13 @@ function cardTitle(r: RecordSummary): string {
   return r.hospital_name ?? RECORD_LABEL[r.record_type];
 }
 
-function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
+const RecordRow = React.memo(function RecordRow({
+  r,
+  onPress,
+}: {
+  r: RecordSummary;
+  onPress: () => void;
+}) {
   const chip = statusChip(r.status);
   return (
     <Card shadow noPadding onPress={onPress}>
@@ -113,7 +119,9 @@ function RecordRow({ r, onPress }: { r: RecordSummary; onPress: () => void }) {
       </View>
     </Card>
   );
-}
+});
+
+const ItemSeparator = () => <View style={{ height: spacing.s12 }} />;
 
 export function RecordListScreen({ navigation }: { navigation: NavProp }) {
   const [filter, setFilter] = useState('전체');
@@ -149,6 +157,42 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
     fetchRecords();
   }, [fetchRecords]);
 
+  const keyExtractor = useCallback((item: RecordSummary) => String(item.record_id), []);
+
+  const renderItem = useCallback(({ item: r }: { item: RecordSummary }) => (
+    <RecordRow
+      r={r}
+      onPress={() => navigation.navigate('RecordDetail', { recordId: r.record_id })}
+    />
+  ), [navigation]);
+
+  const onRefresh = useCallback(() => fetchRecords(true), [fetchRecords]);
+
+  const headerExtra = useMemo(() => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ flexDirection: 'row', gap: spacing.s6 }}
+    >
+      {tabs.map(t => (
+        <TouchableOpacity
+          key={t}
+          style={[s.chip, filter === t && s.chipActive]}
+          onPress={() => setFilter(t)}
+        >
+          <Text
+            style={[
+              { fontSize: typography.fz12 },
+              filter === t && { color: colors.accent700, fontWeight: typography.fw6 },
+            ]}
+          >
+            {t}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  ), [filter]);
+
   const headerProps = {
     title: '진료기록',
     subtitle: '업로드한 의료 문서와 분석 결과를 확인할 수 있어요.',
@@ -166,32 +210,7 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
         업로드
       </Button>
     ),
-    headerExtra: (
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ flexDirection: 'row', gap: spacing.s6 }}
-      >
-        {tabs.map(t => (
-          <TouchableOpacity
-            key={t}
-            style={[s.chip, filter === t && s.chipActive]}
-            onPress={() => setFilter(t)}
-          >
-            <Text
-              style={[
-                { fontSize: typography.fz12 },
-                filter === t && { color: colors.accent700, fontWeight: typography.fw6 },
-              ]}
-            >
-              {t}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    ),
-    refreshing,
-    onRefresh: () => fetchRecords(true),
+    headerExtra,
   } as const;
 
   if (loading) {
@@ -226,19 +245,16 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
   }
 
   return (
-    <ScreenLayout
-      {...headerProps}
-      scrollable
-      scrollPadding={false}
-      contentStyle={{ padding: spacing.s16, gap: spacing.s12 }}
-    >
-      {records.map(r => (
-        <RecordRow
-          key={r.record_id}
-          r={r}
-          onPress={() => navigation.navigate('RecordDetail', { recordId: r.record_id })}
-        />
-      ))}
+    <ScreenLayout {...headerProps} scrollable={false}>
+      <FlatList
+        data={records}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        ItemSeparatorComponent={ItemSeparator}
+        contentContainerStyle={{ padding: spacing.s16 }}
+        onRefresh={onRefresh}
+        refreshing={refreshing}
+      />
     </ScreenLayout>
   );
 }
