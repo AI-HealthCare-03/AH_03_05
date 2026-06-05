@@ -128,6 +128,9 @@ class ChatService:
             )
             session.last_message_at = assistant_msg.created_at
             session.last_message_preview = assistant_text[:100]
+            # 첫 메시지면 user 질문 앞부분을 세션 제목으로 자동 설정
+            if not session.title:
+                session.title = message[:30]
             await session.save()
 
         return {

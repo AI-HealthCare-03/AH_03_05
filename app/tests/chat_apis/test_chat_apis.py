@@ -150,6 +150,33 @@ class TestChatMessageAPI(TestCase):
         messages = await ChatMessage.filter(session_id=session_id).all()
         assert len(messages) == 2
 
+    async def test_send_message_sets_session_title(self):
+        # 첫 메시지 전송 후 세션 목록 조회 시 title/preview가 채워져야 한다
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "msg_title@example.com")
+            record = await _create_record("msg_title@example.com")
+            create_response = await client.post(
+                "/api/v1/chat/sessions",
+                json={"record_id": record.id},
+                headers=headers,
+            )
+            session_id = create_response.json()["session_id"]
+            await client.post(
+                f"/api/v1/chat/sessions/{session_id}/messages",
+                json={"message": "약을 언제 먹어야 하나요?"},
+                headers=headers,
+            )
+            list_response = await client.get("/api/v1/chat/sessions", headers=headers)
+
+        assert list_response.status_code == status.HTTP_200_OK
+        sessions = list_response.json()["items"]
+        target = next(s for s in sessions if s["session_id"] == session_id)
+        # 첫 user 메시지 앞부분이 title로 설정됨
+        assert target["title"] is not None
+        assert target["title"].startswith("약을 언제")
+        # preview도 채워짐 (assistant 응답)
+        assert target["last_message_preview"] is not None
+
 
 class TestChatSessionListAPI(TestCase):
     async def test_list_sessions_without_auth_returns_401(self):

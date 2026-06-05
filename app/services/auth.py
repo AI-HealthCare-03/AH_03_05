@@ -68,6 +68,7 @@ class AuthService:
                     consent_type=consent_type,
                     required_type=required_type,
                     is_agreed=consent.is_agreed,
+                    agreed_at=datetime.now(UTC) if consent.is_agreed else None,
                 )
             return user
 
