@@ -14,6 +14,10 @@ PW_CHANGE_FAIL_KEY = "pw_change_fail:{user_id}"
 PW_CHANGE_FAIL_LIMIT = 5
 PW_CHANGE_FAIL_TTL = 600  # 10분
 
+WITHDRAW_FAIL_KEY = "withdraw_fail:{user_id}"
+WITHDRAW_FAIL_LIMIT = 5
+WITHDRAW_FAIL_TTL = 86400  # 24시간
+
 
 class UserManageService:
     def __init__(self):
@@ -35,14 +39,14 @@ class UserManageService:
         return user
 
     async def change_password(self, user: User, current_password: str, new_password: str) -> None:
-
         redis_key = PW_CHANGE_FAIL_KEY.format(user_id=user.id)
         fail_count = await redis_client.get(redis_key)
         if fail_count and int(fail_count) >= PW_CHANGE_FAIL_LIMIT:
             raise TooManyRequestsException(detail="비밀번호 변경 시도 횟수를 초과했습니다. 10분 후 다시 시도해주세요.")
         if not verify_password(current_password, user.password_hash):
-            await redis_client.incr(redis_key)
-            await redis_client.expire(redis_key, PW_CHANGE_FAIL_TTL)
+            new_count = await redis_client.incr(redis_key)
+            if new_count == 1:
+                await redis_client.expire(redis_key, PW_CHANGE_FAIL_TTL)
             raise BadRequestException(detail="현재 비밀번호가 일치하지 않습니다.")
         if current_password == new_password:
             raise BadRequestException(detail="새 비밀번호는 현재 비밀번호와 달라야 합니다.")
@@ -56,8 +60,18 @@ class UserManageService:
     async def withdraw_user(self, user: User, password: str) -> None:
         from app.models.users import UserStatus
 
+        redis_key = WITHDRAW_FAIL_KEY.format(user_id=user.id)
+        fail_count = await redis_client.get(redis_key)
+        if fail_count and int(fail_count) >= WITHDRAW_FAIL_LIMIT:
+            raise TooManyRequestsException(detail="비밀번호를 5회 이상 잘못 입력했습니다. 24시간 후 다시 시도해주세요.")
+
         if not verify_password(password, user.password_hash):
+            new_count = await redis_client.incr(redis_key)
+            if new_count == 1:
+                await redis_client.expire(redis_key, WITHDRAW_FAIL_TTL)
             raise BadRequestException(detail="비밀번호가 일치하지 않습니다.")
+
+        await redis_client.delete(redis_key)
 
         async with in_transaction():
             user.status = UserStatus.WITHDRAWN
