@@ -233,3 +233,135 @@ LLM이 일반 지식이 아닌 **임상 진료지침 기반**으로 답하도록
 - **2차 LLM 판단** — 규칙을 통과한 맥락 의존 표현은 LLM이 `safety_flag`로 재판단
 - 규칙 단독은 오탐(일상 표현 차단), LLM 단독은 미탐 위험 → 2단계로 양쪽 보완
 - 분류 성능 정량 검증: Recall 1.0 / Specificity 1.0 (평가 3-1, PR #129)
+
+---
+
+## 12. React Native + Expo (크로스플랫폼 프레임워크)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+iOS·Android·Web 세 플랫폼을 단일 코드베이스로 제공해야 했습니다. 팀 전원이 React 기반 개발 경험을 보유하고 있어 러닝 커브가 낮은 방향으로 선택했습니다.
+
+### 대안 비교
+
+| 항목 | Flutter | React Native CLI | **React Native + Expo** |
+|------|---------|-----------------|------------------------|
+| 언어 | Dart | JavaScript/TypeScript | JavaScript/TypeScript |
+| 팀 친숙도 | 낮음 | 중간 | 높음 (React 기반) |
+| 웹 지원 | 제한적 | 별도 설정 복잡 | `react-native-web` 내장 |
+| 빌드 환경 | Flutter SDK | Xcode/Android Studio 필수 | Expo Go로 즉시 실행 |
+| 네이티브 모듈 | 자체 생태계 | 직접 연동 | Expo SDK로 추상화 |
+
+### 선정 이유
+- **단일 코드베이스** — iOS·Android·Web(평가 데모)을 `app.json`의 `platforms` 설정 하나로 관리
+- **Expo SDK** — 카메라(`expo-image-picker`), 알림(`expo-notifications`), 문서 선택(`expo-document-picker`) 등 네이티브 기능을 별도 네이티브 설정 없이 사용
+- **Expo Go** — 실기기 테스트 시 빌드 없이 QR 코드로 즉시 확인 가능, 개발 속도 확보
+- **`react-native-web`** — 같은 컴포넌트로 웹 렌더링 지원, Playwright E2E 테스트의 기반이 됨
+
+---
+
+## 13. React Navigation (내비게이션)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+탭·스택·모달 등 복잡한 화면 전환 구조를 선언적으로 관리해야 했습니다.
+
+### 대안 비교
+
+| 항목 | Expo Router | **React Navigation** |
+|------|-------------|---------------------|
+| 라우팅 방식 | 파일 기반 (Next.js 스타일) | 코드 기반 선언형 |
+| 타입 안전성 | 자동 생성 | 수동 타입 정의 (`StackParams`) |
+| 중첩 네비게이터 | 제한적 | 자유로운 중첩 구성 |
+| 도입 시점 적합성 | 파일 구조 설계 선행 필요 | 기존 구조에 점진적 적용 가능 |
+
+### 선정 이유
+- **유연한 중첩 구조** — `RootStack > Main(Tab) > SettingsStack` 등 복잡한 네비게이터 중첩을 명시적으로 제어
+- **타입 안전 파라미터** — `SettingsStackParams`, `RootStackParams` 등 화면 간 파라미터를 TypeScript로 검증, 런타임 오류 사전 차단
+- **Expo Router** 대비 — 파일 기반 라우팅은 초기 디렉터리 설계가 선행되어야 하며, 진행 중인 프로젝트에 중간 도입 시 리팩토링 비용이 큼
+
+---
+
+## 14. Axios (HTTP 클라이언트)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+API 호출 전반에 공통 설정(baseURL, 토큰 인증, 에러 처리)을 일관되게 적용해야 했습니다.
+
+### 대안 비교
+
+| 항목 | fetch API | **Axios** |
+|------|-----------|----------|
+| 인터셉터 | 별도 래퍼 구현 필요 | 요청·응답 인터셉터 내장 |
+| 자동 JSON 변환 | 수동 `.json()` 호출 필요 | 자동 처리 |
+| 에러 처리 | 4xx/5xx 수동 분기 필요 | `response.status` 자동 throw |
+| 요청 취소 | AbortController 직접 관리 | CancelToken / AbortSignal 지원 |
+
+### 선정 이유
+- **인터셉터** — `client.ts`에서 요청 시 Access Token 자동 주입, 401 응답 시 토큰 갱신 후 재시도를 한 곳에서 처리
+- **에러 표준화** — `extractApiError()` 헬퍼와 조합해 API 에러 메시지를 전 화면에서 일관되게 표시
+- fetch 대비 보일러플레이트 감소 — JSON 직렬화·역직렬화, 상태 코드 분기를 반복 작성하지 않아도 됨
+
+---
+
+## 15. NetInfo (오프라인 감지)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+모바일 환경 특성상 네트워크 단절 시 사용자에게 즉시 안내가 필요했습니다.
+
+### 선정 이유
+- `useNetworkStatus` 훅으로 네트워크 상태를 구독, 오프라인 전환 시 앱 상단에 배너 즉시 표시
+- Expo 공식 권장 라이브러리로 iOS·Android·Web 모두 동일한 API로 동작
+- `addEventListener` 기반 실시간 감지 — 폴링 없이 연결 상태 변화를 즉각 반영
+
+---
+
+## 16. TypeScript + ESLint/Prettier (타입·코드 품질)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+팀 협업 환경에서 코드 일관성을 유지하고 런타임 오류를 사전에 차단하기 위해 도입했습니다.
+
+### 선정 이유
+- **TypeScript** — API 응답 타입(`types.ts`), 네비게이션 파라미터(`StackParams`) 등을 정적 검증, `npx tsc --noEmit`을 PR 체크리스트 필수 항목으로 운용
+- **ESLint** — `react-hooks/exhaustive-deps` 규칙으로 `useEffect` 의존성 누락을 빌드 전에 감지, flat config로 ESLint v10 대응 (PR #134)
+- **Prettier** — 포맷 논쟁 없이 저장 시 자동 정렬, 코드 리뷰 시 로직 변경에만 집중 가능
+
+---
+
+## 17. Playwright (E2E 테스트)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+주요 기능의 회귀 방지와 평가 대비를 위해 E2E 테스트를 도입했습니다. React Native Web 타겟으로 브라우저에서 실행 가능한 환경을 활용했습니다.
+
+### 대안 비교
+
+| 항목 | Detox | Cypress | **Playwright** |
+|------|-------|---------|---------------|
+| 실행 환경 | 실기기/에뮬레이터 | 브라우저 | 브라우저 (Chromium 등) |
+| React Native 지원 | 네이티브 전용 | 웹 전용 | 웹(RN Web) 타겟 |
+| CI 통합 | 에뮬레이터 필요 | 헤드리스 지원 | 헤드리스 지원 |
+| 설정 복잡도 | 높음 (iOS/Android SDK) | 낮음 | 낮음 |
+| 다중 브라우저 | 불가 | Chrome 중심 | Chromium·Firefox·Safari |
+
+### 선정 이유
+- **RN Web 기반 실행** — 실기기/에뮬레이터 없이 `expo web` 타겟으로 CI에서 헤드리스 실행 가능
+- **Detox 대비** 설정 비용이 낮음 — iOS/Android SDK 없이 TC 작성에 바로 집중 가능
+- `page.route()` mock으로 LLM 의존 시나리오를 외부 호출 없이 재현, 불안정한 테스트 제거 (PR #136)
+- TC-02~30 중 23개 통과, 회귀 방지 기반 마련 (PR #136, #138)
+
+---
+
+## 비고 — 설치됐으나 미사용 패키지
+
+| 패키지 | 상태 | 비고 |
+|--------|------|------|
+| `@tanstack/react-query` | 설치됨, 미사용 | 서버 상태 관리 라이브러리. 현재 `useState + useEffect` 직접 방식으로 운용 중. 도입 시 캐싱·중복 요청 제거 등 이점이 있으나 전면 리팩토링 필요 — 데모데이 이후 검토 권장 |
