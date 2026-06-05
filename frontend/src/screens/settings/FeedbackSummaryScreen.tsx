@@ -5,19 +5,27 @@ import type { FeedbackSummaryResponse } from '../../api';
 import ScreenLayout from '../../components/ScreenLayout';
 import Card from '../../components/Card';
 import EmptyState from '../../components/EmptyState';
+import Icon from '../../components/Icon';
 import { colors, spacing, typography } from '../../theme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { SettingsStackParams } from '../../navigation/types';
 
-type NavProp = NativeStackNavigationProp<SettingsStackParams, 'FeedbackSummary'>;
+type NavProp = NativeStackNavigationProp<SettingsStackParams>;
 
-const RATING_LABELS: Record<string, string> = {
-  '1': '⭐ 1점',
-  '2': '⭐⭐ 2점',
-  '3': '⭐⭐⭐ 3점',
-  '4': '⭐⭐⭐⭐ 4점',
-  '5': '⭐⭐⭐⭐⭐ 5점',
-};
+function StarRow({ count }: { count: number }) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 1 }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Icon
+          key={i}
+          name="star"
+          size={11}
+          color={i < count ? colors.accent : colors.hairline}
+        />
+      ))}
+    </View>
+  );
+}
 
 export function FeedbackSummaryScreen({ navigation }: { navigation: NavProp }) {
   const [summary, setSummary] = useState<FeedbackSummaryResponse | null>(null);
@@ -91,9 +99,10 @@ export function FeedbackSummaryScreen({ navigation }: { navigation: NavProp }) {
                     i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline },
                   ]}
                 >
-                  <Text style={{ fontSize: typography.fz13, color: colors.ink2, width: 80 }}>
-                    {RATING_LABELS[star]}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4, width: 80 }}>
+                    <StarRow count={Number(star)} />
+                    <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{star}점</Text>
+                  </View>
                   <View style={{ flex: 1, height: 6, backgroundColor: colors.surface2, borderRadius: 3 }}>
                     <View
                       style={{
@@ -127,12 +136,13 @@ export function FeedbackSummaryScreen({ navigation }: { navigation: NavProp }) {
                       i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.hairline },
                     ]}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, marginBottom: spacing.s4 }}>
-                      <Text style={{ fontSize: typography.fz12, color: colors.danger }}>
-                        {'⭐'.repeat(item.rating ?? 1)} {item.rating}점
-                      </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8, marginBottom: item.comment ? spacing.s4 : 0 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4 }}>
+                        <StarRow count={item.rating ?? 1} />
+                        <Text style={{ fontSize: typography.fz12, color: colors.danger }}>{item.rating}점</Text>
+                      </View>
                       <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
-                        {item.guide_id ? `가이드 #${item.guide_id}` : `채팅 #${item.chat_message_id}`}
+                        {item.guide_id ? '가이드 답변' : 'AI 채팅 답변'}
                       </Text>
                     </View>
                     {item.comment ? (

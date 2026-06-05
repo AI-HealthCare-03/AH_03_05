@@ -37,7 +37,6 @@ const MENU_SECTIONS: { icon: string; label: string; to: keyof SettingsStackParam
   ],
   [
     { icon: 'list', label: '약관 동의 내역', to: 'ConsentHistory' },
-    { icon: 'star', label: '피드백 통계', to: 'FeedbackSummary' },
   ],
 ];
 

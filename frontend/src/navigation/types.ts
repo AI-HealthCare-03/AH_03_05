@@ -53,7 +53,6 @@ export type SettingsStackParams = {
   DeleteAccount: undefined;
   ConsentHistory: undefined;
   HealthProfileHistory: undefined;
-  FeedbackSummary: undefined;
 };
 
 export type RootStackParams = {

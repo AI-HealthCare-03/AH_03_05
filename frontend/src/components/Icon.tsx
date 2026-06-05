@@ -61,6 +61,7 @@ const FEATHER_MAP: Record<string, FeatherName> = {
   ban: 'slash',
   keyboard: 'type',
   heart: 'heart',
+  star: 'star',
   download: 'download',
   pdf: 'file-text',
   pill: 'activity',
