@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  ScrollView,
   StyleSheet,
   ActivityIndicator,
   Alert,
@@ -237,6 +238,21 @@ export function ChatListScreen({ navigation, route }: Props) {
                 다시 시도
               </Button>
             </View>
+          ) : Platform.OS !== 'web' ? (
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: spacing.s4 }}>
+              {filtered.length === 0 ? listEmpty : filtered.map(c => (
+                <SessionRow
+                  key={String(c.session_id)}
+                  session={c}
+                  selected={isDesktop && String(c.session_id) === selectedId}
+                  isDesktop={isDesktop}
+                  isTablet={isTabletOrAbove && !isDesktop}
+                  onPress={openSession}
+                  onDelete={handleDelete}
+                  openSwipeableRef={openSwipeableRef}
+                />
+              ))}
+            </ScrollView>
           ) : (
             <FlatList
               data={filtered}
