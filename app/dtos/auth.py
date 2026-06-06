@@ -1,6 +1,8 @@
 from typing import Annotated
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+from app.core.validators.user_validators import validate_password
 
 
 class ConsentItem(BaseModel):
@@ -14,6 +16,11 @@ class SignUpRequest(BaseModel):
     name: Annotated[str, Field(min_length=2, max_length=20)]
     nickname: Annotated[str | None, Field(max_length=100)] = None
     consents: list[ConsentItem]
+
+    @field_validator("password")
+    @classmethod
+    def password_policy(cls, v: str) -> str:
+        return validate_password(v)
 
 
 class SignUpResponse(BaseModel):

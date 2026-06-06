@@ -48,3 +48,31 @@ class TestSignupAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+    async def test_signup_password_too_short(self):
+        # Given - 8자 미만 비밀번호
+        signup_data = {
+            "email": "short_pw@example.com",
+            "password": "Ab1!",
+            "name": "테스터",
+            "consents": CONSENTS,
+        }
+        # When
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/api/v1/auth/signup", json=signup_data)
+        # Then
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+    async def test_signup_password_weak_policy(self):
+        # Given - 3종류 미만 조합 (소문자+숫자만)
+        signup_data = {
+            "email": "weak_pw@example.com",
+            "password": "password123",
+            "name": "테스터",
+            "consents": CONSENTS,
+        }
+        # When
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/api/v1/auth/signup", json=signup_data)
+        # Then
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
