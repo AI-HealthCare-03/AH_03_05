@@ -42,9 +42,7 @@ async def upload_medical_record(
     if file.size is not None and file.size > MAX_FILE_SIZE_BYTES:
         from fastapi import HTTPException
 
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="10MB 이하 파일만 업로드 가능합니다."
-        )
+        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="10MB 이하 파일만 업로드 가능합니다.")
     record = await medical_record_service.upload_record(
         user=user,
         record_type=record_type,
