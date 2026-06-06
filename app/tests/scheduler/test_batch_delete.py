@@ -4,6 +4,7 @@ delete_expired_records() 단위 테스트.
 """
 
 from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, patch
 
 from httpx import ASGITransport, AsyncClient
 from tortoise.contrib.test import TestCase
@@ -87,8 +88,6 @@ class TestBatchDeleteExpiredRecords(TestCase):
 
     async def test_batch_delete_logs_error_on_exception(self):
         """예외 발생 시 에러 로그를 남기고 re-raise한다."""
-        from unittest.mock import AsyncMock, patch
-
         with patch("app.core.scheduler.MedicalRecord.filter") as mock_filter:
             mock_filter.return_value.count = AsyncMock(side_effect=Exception("DB 연결 오류"))
             with patch("app.core.scheduler.default_logger") as mock_logger:
