@@ -105,7 +105,6 @@ class AuthService:
     async def logout(self, refresh_token: str) -> None:
         token = await AuthToken.get_or_none(refresh_token=refresh_token)
         if not token:
-
             raise UnauthorizedException(detail="유효하지 않은 refresh token입니다.")
         token.revoked_at = datetime.now(UTC)
         await token.save()
