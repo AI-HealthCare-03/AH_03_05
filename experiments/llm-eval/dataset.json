@@ -1,0 +1,101 @@
+{
+  "description": "복약 안내 가이드 품질 평가용 데이터셋. 각 케이스는 generate_guide()의 입력(health_profile dict) 형식을 따른다. 실제 환자 정보가 아닌 평가용 합성 시나리오이다.",
+  "cases": [
+    {
+      "id": "case-01-htn-basic",
+      "scenario": "고혈압 단일질환, 표준 강압제",
+      "input": {
+        "age": 55,
+        "chronic_diseases": ["고혈압"],
+        "medications": [
+          {"drug_name": "노바스크정5밀리그램", "ingredient_name": "암로디핀베실산염", "dosage": "1정", "caution": "갑작스러운 중단 금지", "side_effect": "안면홍조, 부종", "frequency": "1일 1회", "timing": "아침 식후"}
+        ],
+        "doctor_opinion": "혈압 조절 위해 꾸준히 복용하세요."
+      }
+    },
+    {
+      "id": "case-02-dm-basic",
+      "scenario": "제2형 당뇨, 메트포르민 단독",
+      "input": {
+        "age": 48,
+        "chronic_diseases": ["당뇨"],
+        "medications": [
+          {"drug_name": "다이아벡스정500밀리그램", "ingredient_name": "메트포르민염산염", "dosage": "1정", "caution": "위장장애 시 식사와 함께", "side_effect": "설사, 구역", "frequency": "1일 2회", "timing": "아침저녁 식후"}
+        ],
+        "doctor_opinion": "식이요법 병행이 중요합니다."
+      }
+    },
+    {
+      "id": "case-03-polypharmacy",
+      "scenario": "고혈압+당뇨 동반, 다약제 복용",
+      "input": {
+        "age": 63,
+        "chronic_diseases": ["고혈압", "당뇨"],
+        "medications": [
+          {"drug_name": "노바스크정5밀리그램", "ingredient_name": "암로디핀베실산염", "dosage": "1정", "caution": "갑작스러운 중단 금지", "side_effect": "부종", "frequency": "1일 1회", "timing": "아침 식후"},
+          {"drug_name": "다이아벡스정500밀리그램", "ingredient_name": "메트포르민염산염", "dosage": "1정", "caution": "신기능 저하 시 주의", "side_effect": "설사", "frequency": "1일 2회", "timing": "아침저녁 식후"},
+          {"drug_name": "리피토정10밀리그램", "ingredient_name": "아토르바스타틴칼슘삼수화물", "dosage": "1정", "caution": "근육통 발생 시 보고", "side_effect": "근육통", "frequency": "1일 1회", "timing": "저녁 식후"}
+        ],
+        "doctor_opinion": "약이 많으니 복용 시간을 지켜주세요."
+      }
+    },
+    {
+      "id": "case-04-elderly",
+      "scenario": "고령(70대) 환자, 신중 투약 필요",
+      "input": {
+        "age": 75,
+        "chronic_diseases": ["고혈압", "고지혈증"],
+        "medications": [
+          {"drug_name": "코자정50밀리그램", "ingredient_name": "로사르탄칼륨", "dosage": "1정", "caution": "기립성 저혈압 주의", "side_effect": "어지러움", "frequency": "1일 1회", "timing": "아침 식후"}
+        ],
+        "doctor_opinion": "어지러움 있으면 천천히 일어나세요."
+      }
+    },
+    {
+      "id": "case-05-missing-info",
+      "scenario": "약품 정보 일부 누락 (caution/side_effect 비어있음)",
+      "input": {
+        "age": 50,
+        "chronic_diseases": ["당뇨"],
+        "medications": [
+          {"drug_name": "자누비아정100밀리그램", "ingredient_name": "시타글립틴인산염수화물", "dosage": "1정", "caution": "", "side_effect": "", "frequency": "1일 1회", "timing": "아침"}
+        ],
+        "doctor_opinion": ""
+      }
+    },
+    {
+      "id": "case-06-young-single",
+      "scenario": "젊은 환자(30대), 단일 약물 단기 복용",
+      "input": {
+        "age": 32,
+        "chronic_diseases": [],
+        "medications": [
+          {"drug_name": "오구멘틴정", "ingredient_name": "아목시실린/클라불란산", "dosage": "1정", "caution": "항생제 임의 중단 금지", "side_effect": "위장장애", "frequency": "1일 3회", "timing": "식후"}
+        ],
+        "doctor_opinion": "처방받은 기간 동안 끝까지 복용하세요."
+      }
+    },
+    {
+      "id": "case-07-interaction-risk",
+      "scenario": "상호작용 주의 약물 (항응고제)",
+      "input": {
+        "age": 68,
+        "chronic_diseases": ["고혈압", "심방세동"],
+        "medications": [
+          {"drug_name": "와파린나트륨정", "ingredient_name": "와파린나트륨", "dosage": "1정", "caution": "비타민K 음식·다른 약과 상호작용 주의, 정기 INR 검사", "side_effect": "출혈 경향", "frequency": "1일 1회", "timing": "저녁"}
+        ],
+        "doctor_opinion": "다른 약 복용 전 반드시 상의하세요."
+      }
+    },
+    {
+      "id": "case-08-empty-meds",
+      "scenario": "약물 없음 (가이드 생성 경계 케이스)",
+      "input": {
+        "age": 45,
+        "chronic_diseases": ["고혈압"],
+        "medications": [],
+        "doctor_opinion": "생활습관 개선 먼저 시도해봅시다."
+      }
+    }
+  ]
+}
