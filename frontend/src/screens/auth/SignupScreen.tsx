@@ -472,7 +472,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
         <Text style={styles.label}>비밀번호</Text>
         <Input
           secureTextEntry
-          placeholder="영문 대소문자, 숫자, 특수문자 포함 8자 이상"
+          placeholder="영문/숫자/특수문자 중 3종류 이상, 8자 이상"
           value={form.pw}
           onChangeText={v => {
             set('pw', v);
