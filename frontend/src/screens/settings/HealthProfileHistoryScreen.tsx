@@ -16,7 +16,6 @@ export function HealthProfileHistoryScreen({ navigation }: { navigation: NavProp
       }
       scrollable
     >
-      {/* GET /health-profile/history — Sprint 3 구현 예정 (REQ-PROF-002) */}
       <EmptyState
         icon="list"
         title="변경 이력이 없습니다"

@@ -587,109 +587,11 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
 
         {/* 달력 */}
         <Card shadow style={{ marginBottom: spacing.s14 }}>
-          <MonthCalendar
-            y={viewY}
-            m={viewM}
-            data={monthData}
-            onPrev={() => shiftMonth(-1)}
-            onNext={() => shiftMonth(1)}
-            onDayClick={setSelectedDay}
-            selectedDay={selectedDay}
-            showTodayBtn={!isOnRealToday}
-            onToday={() => {
-              setViewY(now.getFullYear());
-              setViewM(now.getMonth() + 1);
-              setSelectedDay(now.getDate());
-            }}
+          <EmptyState
+            icon="bell"
+            title="복약 달력 준비 중"
+            message="복약 기록 API 연동 후 제공될 예정입니다."
           />
-          {/* 범례 */}
-          <View
-            style={{
-              flexDirection: 'row',
-              gap: spacing.s16,
-              paddingTop: spacing.s12,
-              marginTop: spacing.s8,
-              borderTopWidth: 0.5,
-              borderTopColor: colors.hairline,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
-              <View
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: radii.pill,
-                  backgroundColor: colors.success,
-                }}
-              />
-              <Text style={{ fontSize: typography.fz11, color: colors.muted }}>복약 완료</Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
-              <View
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: radii.pill,
-                  backgroundColor: colors.danger,
-                }}
-              />
-              <Text style={{ fontSize: typography.fz11, color: colors.muted }}>미복용</Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s6 }}>
-              <View
-                style={{
-                  width: 14,
-                  height: 4,
-                  borderRadius: radii.r2,
-                  backgroundColor: colors.hairlineStrong,
-                }}
-              />
-              <Text style={{ fontSize: typography.fz11, color: colors.muted }}>예정</Text>
-            </View>
-          </View>
-          {(donePastDay || missedPastDay) && (
-            <View
-              style={{
-                marginTop: spacing.s12,
-                paddingTop: spacing.s12,
-                borderTopWidth: 0.5,
-                borderTopColor: colors.hairline,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: spacing.s8,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: typography.fz15,
-                    fontWeight: typography.fw7,
-                    color: colors.ink,
-                  }}
-                >
-                  {viewM}월 {selectedDay}일 기록
-                </Text>
-                {donePastDay ? (
-                  <Badge variant="success" size="md">
-                    복약 완료
-                  </Badge>
-                ) : (
-                  <Badge variant="danger" size="md">
-                    미복용 있음
-                  </Badge>
-                )}
-              </View>
-              <Text style={{ fontSize: typography.fz13, color: colors.muted }}>
-                {donePastDay
-                  ? '처방된 약을 모두 복용했어요. 좋은 흐름을 이어가세요!'
-                  : '일부 복약이 미복용됐어요. 꾸준히 이어가 보세요!'}
-              </Text>
-            </View>
-          )}
         </Card>
 
         {/* 복약 현황 */}
