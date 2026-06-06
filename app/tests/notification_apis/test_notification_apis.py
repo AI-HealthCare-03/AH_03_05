@@ -130,3 +130,57 @@ class TestNotificationAPI(TestCase):
         # Then
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["updated_count"] == 2
+
+    async def test_read_notification_success(self):
+        from app.models.notifications import Notification
+        from app.models.users import User
+
+        # Given
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "notify6@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+            user = await User.get(email="notify6@example.com")
+            notification = await Notification.create(
+                user=user,
+                notification_type="system",
+                title="읽음테스트",
+                message="내용",
+                is_read=False,
+            )
+            # When
+            response = await client.patch(
+                f"/api/v1/notifications/{notification.id}/read",
+                headers=headers,
+            )
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["is_read"] is True
+
+    async def test_read_notification_already_read_preserves_read_at(self):
+        from datetime import UTC, datetime
+
+        from app.models.notifications import Notification
+        from app.models.users import User
+
+        # Given
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "notify7@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+            user = await User.get(email="notify7@example.com")
+            original_read_at = datetime(2026, 1, 1, tzinfo=UTC)
+            notification = await Notification.create(
+                user=user,
+                notification_type="system",
+                title="재읽음테스트",
+                message="내용",
+                is_read=True,
+                read_at=original_read_at,
+            )
+            # When - 이미 읽은 알림 재읽음
+            await client.patch(
+                f"/api/v1/notifications/{notification.id}/read",
+                headers=headers,
+            )
+            await notification.refresh_from_db()
+        # Then - read_at이 보존되어야 함
+        assert notification.read_at == original_read_at
