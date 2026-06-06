@@ -84,3 +84,16 @@ class TestBatchDeleteExpiredRecords(TestCase):
 
         result = await MedicalRecord.get_or_none(id=record.id)
         assert result is not None
+
+    async def test_batch_delete_logs_error_on_exception(self):
+        """예외 발생 시 에러 로그를 남기고 re-raise한다."""
+        from unittest.mock import AsyncMock, patch
+
+        with patch("app.core.scheduler.MedicalRecord.filter") as mock_filter:
+            mock_filter.return_value.count = AsyncMock(side_effect=Exception("DB 연결 오류"))
+            with patch("app.core.scheduler.default_logger") as mock_logger:
+                try:
+                    await delete_expired_records()
+                except Exception:
+                    pass
+                mock_logger.error.assert_called_once()
