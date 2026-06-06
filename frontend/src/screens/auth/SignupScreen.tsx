@@ -281,11 +281,11 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
         ],
       });
       try {
-        await authApi.login({ email: form.email, password: form.pw });
+        const loginRes = await authApi.login({ email: form.email, password: form.pw });
         setUser({
           ...defaultUser,
-          name: form.name,
-          nickname: resolvedNickname,
+          name: loginRes.user.name,
+          nickname: loginRes.user.nickname || resolvedNickname,
           email: form.email,
           loggedIn: true,
           profileComplete: false,

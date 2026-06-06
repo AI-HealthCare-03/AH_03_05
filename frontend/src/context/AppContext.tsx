@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokenStore } from '../api/tokenStore';
+import { usersApi } from '../api';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -366,6 +367,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       isLoaded.current = true;
       setIsReady(true);
+
+      if (hasToken) {
+        usersApi.getMe().then(me => {
+          setUserState(prev => ({
+            ...prev,
+            name: me.name,
+            nickname: me.nickname ?? me.name,
+            email: me.email,
+          }));
+        }).catch((e: any) => {
+          if (e?.response?.status === 401) {
+            tokenStore.triggerUnauthorized();
+          }
+        });
+      }
     })();
 
     tokenStore.registerUnauthorizedHandler(() => {
