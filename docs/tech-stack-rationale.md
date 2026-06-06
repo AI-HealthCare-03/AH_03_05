@@ -233,3 +233,134 @@ LLM이 일반 지식이 아닌 **임상 진료지침 기반**으로 답하도록
 - **2차 LLM 판단** — 규칙을 통과한 맥락 의존 표현은 LLM이 `safety_flag`로 재판단
 - 규칙 단독은 오탐(일상 표현 차단), LLM 단독은 미탐 위험 → 2단계로 양쪽 보완
 - 분류 성능 정량 검증: Recall 1.0 / Specificity 1.0 (평가 3-1, PR #129)
+
+---
+
+## 12. React Native + Expo (크로스플랫폼 프레임워크)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+iOS·Android·Web 세 플랫폼을 단일 코드베이스로 제공해야 했습니다. 팀원 전원이 React 경험을 보유해 Dart(Flutter) 학습 비용 없이 바로 개발 진입이 가능했습니다.
+
+### 대안 비교
+
+| 항목 | Flutter | React Native CLI | **React Native + Expo** |
+|------|---------|-----------------|------------------------|
+| 언어 | Dart (팀 미경험) | JavaScript/TypeScript | JavaScript/TypeScript |
+| 웹 지원 | 제한적 (별도 빌드) | 별도 설정 복잡 | `react-native-web` 내장 |
+| 빌드 환경 | Flutter SDK 설치 필요 | Xcode/Android Studio 필수 | Expo Go로 QR 즉시 실행 |
+| 네이티브 모듈 | 자체 생태계 | 직접 브릿지 작성 | Expo SDK로 추상화 |
+
+### 선정 이유
+- **단일 코드베이스** — iOS·Android·Web(평가 데모)을 `app.json`의 `platforms` 설정 하나로 관리
+- **Expo SDK** — 카메라(`expo-image-picker`), 문서 선택(`expo-document-picker`) 등 네이티브 기능을 Swift/Kotlin 브릿지 없이 JS에서 직접 호출
+- **Expo Go** — Xcode/Android Studio 빌드 없이 QR 코드로 실기기에서 즉시 확인, 코드 변경 후 수초 내 반영
+- **`react-native-web`** — 동일 컴포넌트가 웹에서 DOM으로 렌더링되어 Playwright E2E 테스트 실행 기반이 됨
+
+---
+
+## 13. React Navigation (내비게이션)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+하단 탭 4개, Auth·Settings·Home 등 스택 다수, 업로드·약품 후보 선택 모달, 알림 딥링크가 혼재하는 화면 구조를 선언적으로 관리해야 했습니다.
+
+### 대안 비교
+
+| 항목 | Expo Router | **React Navigation** |
+|------|-------------|---------------------|
+| 라우팅 방식 | 파일 기반 (Next.js 스타일) | 코드 기반 선언형 |
+| 타입 안전성 | 자동 생성 | 수동 타입 정의 (`StackParams`) |
+| 중첩 네비게이터 | 구조 제약 있음 | `RootStack > Tab > Stack` 자유 중첩 |
+| 도입 시점 | 초기 디렉터리 설계 선행 필요 | 기존 구조에 점진적 적용 가능 |
+
+### 선정 이유
+- **중첩 구조 명시적 제어** — `RootStack > Main(Tab) > SettingsStack` 형태로 Auth/Onboarding/Main 흐름을 각 스택 단위로 분리, `navigation.reset()`으로 로그인·로그아웃 시 스택 초기화
+- **타입 안전 파라미터** — `SettingsStackParams`, `RootStackParams` 등 화면 간 전달 파라미터를 TypeScript로 정의, 잘못된 파라미터 타입을 컴파일 시점에 차단
+- **Expo Router 대비** — 파일 기반 라우팅은 스프린트 진행 중 중간 도입 시 전체 디렉터리 재구성이 필요해 선택하지 않음
+
+---
+
+## 14. Axios (HTTP 클라이언트)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+API 호출 전반에 공통 설정(baseURL, 토큰 인증, 에러 처리)을 일관되게 적용해야 했습니다.
+
+### 대안 비교
+
+| 항목 | fetch API | **Axios** |
+|------|-----------|----------|
+| 인터셉터 | 별도 래퍼 구현 필요 | 요청·응답 인터셉터 내장 |
+| 자동 JSON 변환 | 수동 `.json()` 호출 필요 | 자동 처리 |
+| 에러 처리 | 4xx/5xx 수동 분기 필요 | `response.status` 자동 throw |
+| 요청 취소 | AbortController 직접 관리 | CancelToken / AbortSignal 지원 |
+
+### 선정 이유
+- **인터셉터** — `client.ts`에서 요청 시 Access Token 자동 주입, 401 응답 시 토큰 갱신 후 재시도를 한 곳에서 처리
+- **에러 표준화** — `extractApiError()` 헬퍼와 조합해 API 에러 메시지를 전 화면에서 일관되게 표시
+- fetch 대비 보일러플레이트 감소 — JSON 직렬화·역직렬화, 상태 코드 분기를 반복 작성하지 않아도 됨
+
+---
+
+## 15. NetInfo (오프라인 감지)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+모바일 환경 특성상 네트워크 단절 시 사용자에게 즉시 안내가 필요했습니다.
+
+### 선정 이유
+- `useNetworkStatus` 훅으로 네트워크 상태를 구독, 오프라인 전환 시 앱 상단에 배너 즉시 표시
+- Expo 공식 권장 라이브러리로 iOS·Android·Web 모두 동일한 API로 동작
+- `addEventListener` 기반 실시간 감지 — 폴링 없이 연결 상태 변화를 즉각 반영
+
+---
+
+## 16. TypeScript + ESLint/Prettier (타입·코드 품질)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+여러 명이 동시에 작업하는 환경에서 API 응답 타입 불일치, `useEffect` 의존성 누락, 포맷 차이로 인한 불필요한 diff를 사전에 제거해야 했습니다.
+
+### 선정 이유
+- **TypeScript** — `types.ts`에 API 응답 구조를 정의해 서버 응답 필드 변경 시 컴파일 오류로 즉시 감지, PR마다 `npx tsc --noEmit` 통과를 체크리스트 필수 항목으로 운용
+- **ESLint** — `react-hooks/exhaustive-deps`로 `useEffect` 클로저 내 의존성 누락을 커밋 전에 감지, ESLint v9 flat config 전환 (PR #134)
+- **Prettier** — 들여쓰기·따옴표·세미콜론 등 포맷을 저장 시 자동 통일, PR 리뷰에서 스타일 지적 없이 로직 변경에만 집중
+
+---
+
+## 17. Playwright (E2E 테스트)
+
+> 작성: Frontend 조이레
+
+### 선정 배경
+업로드→OCR→가이드 핵심 플로우와 인증 흐름의 회귀를 자동으로 감지하기 위해 E2E 테스트를 도입했습니다. React Native Web 타겟으로 브라우저에서 실행 가능한 환경을 활용했습니다.
+
+### 대안 비교
+
+| 항목 | Detox | Cypress | **Playwright** |
+|------|-------|---------|---------------|
+| 실행 환경 | 실기기/에뮬레이터 | 브라우저 | 브라우저 (Chromium 등) |
+| React Native 지원 | 네이티브 전용 | 웹 전용 | 웹(RN Web) 타겟 |
+| CI 통합 | 에뮬레이터 필요 | 헤드리스 지원 | 헤드리스 지원 |
+| 설정 복잡도 | 높음 (iOS/Android SDK) | 낮음 | 낮음 |
+| 다중 브라우저 | 불가 | Chrome 중심 | Chromium·Firefox·Safari |
+
+### 선정 이유
+- **RN Web 기반 실행** — 실기기/에뮬레이터 없이 `expo web` 타겟으로 CI에서 헤드리스 실행 가능
+- **Detox 대비** 설정 비용이 낮음 — iOS/Android SDK 없이 TC 작성에 바로 집중 가능
+- `page.route()` mock으로 LLM 응답 비결정성으로 인한 테스트 flakiness 제거 — 가이드 생성·챗봇 시나리오를 외부 API 호출 없이 고정 응답으로 재현 (PR #136)
+- TC-02~30 중 23개 통과, 회귀 방지 기반 마련 (PR #136, #138)
+
+---
+
+## 비고 — 설치됐으나 미사용 패키지
+
+| 패키지 | 상태 | 비고 |
+|--------|------|------|
+| `@tanstack/react-query` | 설치됨, 미사용 | 서버 상태 관리 라이브러리. 현재 `useState + useEffect` 직접 방식으로 운용 중. 도입 시 캐싱·중복 요청 제거 등 이점이 있으나 전면 리팩토링 필요 — 데모데이 이후 검토 권장 |
