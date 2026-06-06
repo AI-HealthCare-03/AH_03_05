@@ -376,7 +376,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             nickname: me.nickname ?? me.name,
             email: me.email,
           }));
-        }).catch(() => {});
+        }).catch((e: any) => {
+          if (e?.response?.status === 401) {
+            tokenStore.triggerUnauthorized();
+          }
+        });
       }
     })();
 
