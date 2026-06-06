@@ -16,6 +16,7 @@ export interface UploadFile {
   uri: string;
   name: string;
   type: string;
+  size?: number;
 }
 
 export async function uploadRecord(
