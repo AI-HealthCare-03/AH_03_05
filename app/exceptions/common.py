@@ -46,3 +46,8 @@ class NicknameTooSoonException(HTTPException):
                 "error_code": "NICKNAME_CHANGE_TOO_SOON",
             },
         )
+
+
+class FileTooLargeException(HTTPException):
+    def __init__(self, detail: str = "10MB 이하 파일만 업로드 가능합니다."):
+        super().__init__(status_code=413, detail=detail)

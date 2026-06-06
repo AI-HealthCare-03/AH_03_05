@@ -12,7 +12,7 @@ from app.dtos.medical_records import (
     MedicalRecordUploadResponse,
 )
 from app.dtos.ocr import OcrResultResponse, OcrTextUpdateRequest, OcrTextUpdateResponse
-from app.exceptions.common import BadRequestException, NotFoundException
+from app.exceptions.common import BadRequestException, FileTooLargeException, NotFoundException
 from app.models.medical_records import RecordType
 from app.models.users import User
 from app.services.medical_records import MedicalRecordService
@@ -40,9 +40,7 @@ async def upload_medical_record(
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise BadRequestException(detail="JPG, PNG, PDF 형식만 업로드 가능합니다.")
     if file.size is not None and file.size > MAX_FILE_SIZE_BYTES:
-        from fastapi import HTTPException
-
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="10MB 이하 파일만 업로드 가능합니다.")
+        raise FileTooLargeException()
     record = await medical_record_service.upload_record(
         user=user,
         record_type=record_type,
