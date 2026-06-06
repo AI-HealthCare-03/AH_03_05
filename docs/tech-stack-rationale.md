@@ -241,23 +241,22 @@ LLM이 일반 지식이 아닌 **임상 진료지침 기반**으로 답하도록
 > 작성: Frontend 조이레
 
 ### 선정 배경
-iOS·Android·Web 세 플랫폼을 단일 코드베이스로 제공해야 했습니다. 팀 전원이 React 기반 개발 경험을 보유하고 있어 러닝 커브가 낮은 방향으로 선택했습니다.
+iOS·Android·Web 세 플랫폼을 단일 코드베이스로 제공해야 했습니다. 팀원 전원이 React 경험을 보유해 Dart(Flutter) 학습 비용 없이 바로 개발 진입이 가능했습니다.
 
 ### 대안 비교
 
 | 항목 | Flutter | React Native CLI | **React Native + Expo** |
 |------|---------|-----------------|------------------------|
-| 언어 | Dart | JavaScript/TypeScript | JavaScript/TypeScript |
-| 팀 친숙도 | 낮음 | 중간 | 높음 (React 기반) |
-| 웹 지원 | 제한적 | 별도 설정 복잡 | `react-native-web` 내장 |
-| 빌드 환경 | Flutter SDK | Xcode/Android Studio 필수 | Expo Go로 즉시 실행 |
-| 네이티브 모듈 | 자체 생태계 | 직접 연동 | Expo SDK로 추상화 |
+| 언어 | Dart (팀 미경험) | JavaScript/TypeScript | JavaScript/TypeScript |
+| 웹 지원 | 제한적 (별도 빌드) | 별도 설정 복잡 | `react-native-web` 내장 |
+| 빌드 환경 | Flutter SDK 설치 필요 | Xcode/Android Studio 필수 | Expo Go로 QR 즉시 실행 |
+| 네이티브 모듈 | 자체 생태계 | 직접 브릿지 작성 | Expo SDK로 추상화 |
 
 ### 선정 이유
 - **단일 코드베이스** — iOS·Android·Web(평가 데모)을 `app.json`의 `platforms` 설정 하나로 관리
-- **Expo SDK** — 카메라(`expo-image-picker`), 알림(`expo-notifications`), 문서 선택(`expo-document-picker`) 등 네이티브 기능을 별도 네이티브 설정 없이 사용
-- **Expo Go** — 실기기 테스트 시 빌드 없이 QR 코드로 즉시 확인 가능, 개발 속도 확보
-- **`react-native-web`** — 같은 컴포넌트로 웹 렌더링 지원, Playwright E2E 테스트의 기반이 됨
+- **Expo SDK** — 카메라(`expo-image-picker`), 문서 선택(`expo-document-picker`) 등 네이티브 기능을 Swift/Kotlin 브릿지 없이 JS에서 직접 호출
+- **Expo Go** — Xcode/Android Studio 빌드 없이 QR 코드로 실기기에서 즉시 확인, 코드 변경 후 수초 내 반영
+- **`react-native-web`** — 동일 컴포넌트가 웹에서 DOM으로 렌더링되어 Playwright E2E 테스트 실행 기반이 됨
 
 ---
 
@@ -266,7 +265,7 @@ iOS·Android·Web 세 플랫폼을 단일 코드베이스로 제공해야 했습
 > 작성: Frontend 조이레
 
 ### 선정 배경
-탭·스택·모달 등 복잡한 화면 전환 구조를 선언적으로 관리해야 했습니다.
+하단 탭 4개, Auth·Settings·Home 등 스택 다수, 업로드·약품 후보 선택 모달, 알림 딥링크가 혼재하는 화면 구조를 선언적으로 관리해야 했습니다.
 
 ### 대안 비교
 
@@ -274,13 +273,13 @@ iOS·Android·Web 세 플랫폼을 단일 코드베이스로 제공해야 했습
 |------|-------------|---------------------|
 | 라우팅 방식 | 파일 기반 (Next.js 스타일) | 코드 기반 선언형 |
 | 타입 안전성 | 자동 생성 | 수동 타입 정의 (`StackParams`) |
-| 중첩 네비게이터 | 제한적 | 자유로운 중첩 구성 |
-| 도입 시점 적합성 | 파일 구조 설계 선행 필요 | 기존 구조에 점진적 적용 가능 |
+| 중첩 네비게이터 | 구조 제약 있음 | `RootStack > Tab > Stack` 자유 중첩 |
+| 도입 시점 | 초기 디렉터리 설계 선행 필요 | 기존 구조에 점진적 적용 가능 |
 
 ### 선정 이유
-- **유연한 중첩 구조** — `RootStack > Main(Tab) > SettingsStack` 등 복잡한 네비게이터 중첩을 명시적으로 제어
-- **타입 안전 파라미터** — `SettingsStackParams`, `RootStackParams` 등 화면 간 파라미터를 TypeScript로 검증, 런타임 오류 사전 차단
-- **Expo Router** 대비 — 파일 기반 라우팅은 초기 디렉터리 설계가 선행되어야 하며, 진행 중인 프로젝트에 중간 도입 시 리팩토링 비용이 큼
+- **중첩 구조 명시적 제어** — `RootStack > Main(Tab) > SettingsStack` 형태로 Auth/Onboarding/Main 흐름을 각 스택 단위로 분리, `navigation.reset()`으로 로그인·로그아웃 시 스택 초기화
+- **타입 안전 파라미터** — `SettingsStackParams`, `RootStackParams` 등 화면 간 전달 파라미터를 TypeScript로 정의, 잘못된 파라미터 타입을 컴파일 시점에 차단
+- **Expo Router 대비** — 파일 기반 라우팅은 스프린트 진행 중 중간 도입 시 전체 디렉터리 재구성이 필요해 선택하지 않음
 
 ---
 
@@ -326,12 +325,12 @@ API 호출 전반에 공통 설정(baseURL, 토큰 인증, 에러 처리)을 일
 > 작성: Frontend 조이레
 
 ### 선정 배경
-팀 협업 환경에서 코드 일관성을 유지하고 런타임 오류를 사전에 차단하기 위해 도입했습니다.
+여러 명이 동시에 작업하는 환경에서 API 응답 타입 불일치, `useEffect` 의존성 누락, 포맷 차이로 인한 불필요한 diff를 사전에 제거해야 했습니다.
 
 ### 선정 이유
-- **TypeScript** — API 응답 타입(`types.ts`), 네비게이션 파라미터(`StackParams`) 등을 정적 검증, `npx tsc --noEmit`을 PR 체크리스트 필수 항목으로 운용
-- **ESLint** — `react-hooks/exhaustive-deps` 규칙으로 `useEffect` 의존성 누락을 빌드 전에 감지, flat config로 ESLint v10 대응 (PR #134)
-- **Prettier** — 포맷 논쟁 없이 저장 시 자동 정렬, 코드 리뷰 시 로직 변경에만 집중 가능
+- **TypeScript** — `types.ts`에 API 응답 구조를 정의해 서버 응답 필드 변경 시 컴파일 오류로 즉시 감지, PR마다 `npx tsc --noEmit` 통과를 체크리스트 필수 항목으로 운용
+- **ESLint** — `react-hooks/exhaustive-deps`로 `useEffect` 클로저 내 의존성 누락을 커밋 전에 감지, ESLint v9 flat config 전환 (PR #134)
+- **Prettier** — 들여쓰기·따옴표·세미콜론 등 포맷을 저장 시 자동 통일, PR 리뷰에서 스타일 지적 없이 로직 변경에만 집중
 
 ---
 
@@ -340,7 +339,7 @@ API 호출 전반에 공통 설정(baseURL, 토큰 인증, 에러 처리)을 일
 > 작성: Frontend 조이레
 
 ### 선정 배경
-주요 기능의 회귀 방지와 평가 대비를 위해 E2E 테스트를 도입했습니다. React Native Web 타겟으로 브라우저에서 실행 가능한 환경을 활용했습니다.
+업로드→OCR→가이드 핵심 플로우와 인증 흐름의 회귀를 자동으로 감지하기 위해 E2E 테스트를 도입했습니다. React Native Web 타겟으로 브라우저에서 실행 가능한 환경을 활용했습니다.
 
 ### 대안 비교
 
@@ -355,7 +354,7 @@ API 호출 전반에 공통 설정(baseURL, 토큰 인증, 에러 처리)을 일
 ### 선정 이유
 - **RN Web 기반 실행** — 실기기/에뮬레이터 없이 `expo web` 타겟으로 CI에서 헤드리스 실행 가능
 - **Detox 대비** 설정 비용이 낮음 — iOS/Android SDK 없이 TC 작성에 바로 집중 가능
-- `page.route()` mock으로 LLM 의존 시나리오를 외부 호출 없이 재현, 불안정한 테스트 제거 (PR #136)
+- `page.route()` mock으로 LLM 응답 비결정성으로 인한 테스트 flakiness 제거 — 가이드 생성·챗봇 시나리오를 외부 API 호출 없이 고정 응답으로 재현 (PR #136)
 - TC-02~30 중 23개 통과, 회귀 방지 기반 마련 (PR #136, #138)
 
 ---
