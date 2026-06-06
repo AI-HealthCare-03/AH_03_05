@@ -27,14 +27,13 @@
 | 가이드 결과 | `GET /guides/{id}` |
 | 챗봇 목록 | `GET /chat/sessions` · `POST /chat/sessions` · `DELETE /chat/sessions/{id}` |
 | 챗봇 대화 | `POST /chat/sessions/{id}/messages` · `POST /feedbacks` |
+| 약품 상세 복용법 저장 | `PATCH /medications/{id}` |
 | 알림 목록 | `GET /notifications` · `PATCH /notifications/{id}/read` |
 | 건강정보 수정 | `GET /health-profile` · `PUT /health-profile` |
 
-## BE 대기 중
+## P2 — EmptyState 처리
 
 | 화면 | 사유 |
 |------|------|
-| 건강 프로필 변경 이력 | `GET /health-profile/history` BE 미구현 (P2) |
-| 홈 복약 달력 | 복약 API 미구현 — 더미 표시 중 |
-| 약품 후보 선택 복용법 저장 | `PATCH /medications/{id}` 복용법 필드 추가 대기 |
-| 챗봇 standalone 세션 생성 | `POST /chat/sessions` record_id optional 미지원 (422) |
+| 건강 프로필 변경 이력 | `GET /health-profile/history` BE 미구현 (P2) — EmptyState 표시 |
+| 홈 복약 달력 | 복약 기록 API 미구현 (P2) — EmptyState 표시 |
