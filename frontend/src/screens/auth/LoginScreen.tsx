@@ -56,7 +56,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
         loggedIn: true,
         email,
         name: me?.name ?? res.user.name,
-        nickname: me?.nickname ?? me?.name ?? res.user.name,
+        nickname: me?.nickname ?? res.user.nickname ?? me?.name ?? res.user.name,
         profileComplete: profileFlags[email] ?? false,
       };
       setUser(updatedUser);
