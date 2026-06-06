@@ -240,11 +240,12 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
   const pwLowerOk = /[a-z]/.test(form.pw);
   const pwNumberOk = /[0-9]/.test(form.pw);
   const pwSpecialOk = /[^A-Za-z0-9]/.test(form.pw);
+  const pwTypesOk = [pwUpperOk, pwLowerOk, pwNumberOk, pwSpecialOk].filter(Boolean).length >= 3;
   const pwNotSameOk =
     form.pw.length === 0 ||
     ((form.name.length === 0 || !form.pw.toLowerCase().includes(form.name.toLowerCase())) &&
       (form.email.length === 0 || !form.pw.toLowerCase().includes(form.email.toLowerCase())));
-  const pwAllOk = pwLengthOk && pwUpperOk && pwLowerOk && pwNumberOk && pwSpecialOk && pwNotSameOk;
+  const pwAllOk = pwLengthOk && pwTypesOk && pwNotSameOk;
 
   const requiredOk = agreed.tos && agreed.privacy && agreed.sensitive && agreed.ai;
   const canSubmit =
@@ -319,10 +320,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
       ? (() => {
           const items: string[] = [];
           if (!pwLengthOk) items.push('8자 이상 20자 이하');
-          if (!pwUpperOk) items.push('대문자 포함');
-          if (!pwLowerOk) items.push('소문자 포함');
-          if (!pwNumberOk) items.push('숫자 포함');
-          if (!pwSpecialOk) items.push('특수문자 포함');
+          if (!pwTypesOk) items.push('영문/숫자/특수문자 중 3종류 이상');
           return items.length > 0 ? `${items.join(', ')} 필요` : '';
         })()
       : '';
@@ -474,7 +472,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
         <Text style={styles.label}>비밀번호</Text>
         <Input
           secureTextEntry
-          placeholder="영문 대소문자, 숫자, 특수문자 포함 8자 이상"
+          placeholder="영문/숫자/특수문자 중 3종류 이상, 8자 이상"
           value={form.pw}
           onChangeText={v => {
             set('pw', v);

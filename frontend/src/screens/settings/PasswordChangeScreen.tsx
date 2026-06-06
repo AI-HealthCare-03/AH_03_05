@@ -26,17 +26,10 @@ export function PasswordChangeScreen({ navigation }: { navigation: NavProp }) {
   const pwLowerOk = /[a-z]/.test(pw);
   const pwNumberOk = /[0-9]/.test(pw);
   const pwSpecialOk = /[^A-Za-z0-9]/.test(pw);
+  const pwTypesOk = [pwUpperOk, pwLowerOk, pwNumberOk, pwSpecialOk].filter(Boolean).length >= 3;
   const matchOk = !!pw && pw === pw2;
   const sameAsCurrent = !!pw && !!cur && pw === cur;
-  const canSubmit =
-    !!cur &&
-    pwLengthOk &&
-    pwUpperOk &&
-    pwLowerOk &&
-    pwNumberOk &&
-    pwSpecialOk &&
-    matchOk &&
-    !sameAsCurrent;
+  const canSubmit = !!cur && pwLengthOk && pwTypesOk && matchOk && !sameAsCurrent;
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -96,9 +89,7 @@ export function PasswordChangeScreen({ navigation }: { navigation: NavProp }) {
         ))}
         <View style={{ marginBottom: spacing.s14 }}>
           <Rule ok={pwLengthOk}>8자 이상 20자 이하</Rule>
-          <Rule ok={pwUpperOk && pwLowerOk && pwNumberOk && pwSpecialOk}>
-            영문 대소문자·숫자·특수문자 포함
-          </Rule>
+          <Rule ok={pwTypesOk}>영문/숫자/특수문자 중 3종류 이상</Rule>
           {pw2.length > 0 && <Rule ok={matchOk}>새 비밀번호와 확인 일치</Rule>}
           {pw.length > 0 && <Rule ok={!sameAsCurrent}>현재 비밀번호와 다름</Rule>}
         </View>
