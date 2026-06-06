@@ -258,10 +258,15 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
   const submit = async () => {
     if (!canSubmit) return;
+    const trimmedNickname = form.nickname.trim();
+    if (trimmedNickname && !/^[가-힣a-zA-Z0-9]{2,20}$/.test(trimmedNickname)) {
+      setFieldErrors(prev => ({ ...prev, form: '닉네임은 2~20자, 한글/영문/숫자만 가능합니다' }));
+      return;
+    }
     setLoading(true);
     setFieldErrors({ email: '', password: '', confirm: '', form: '' });
     try {
-      const resolvedNickname = form.nickname.trim() || form.name;
+      const resolvedNickname = trimmedNickname || form.name;
       await authApi.signup({
         email: form.email,
         password: form.pw,

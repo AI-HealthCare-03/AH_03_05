@@ -124,12 +124,17 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
                           flash('닉네임을 입력해주세요');
                           return;
                         }
+                        const trimmed = nicknameValue.trim();
+                        if (!/^[가-힣a-zA-Z0-9]{2,20}$/.test(trimmed)) {
+                          flash('닉네임은 2~20자, 한글/영문/숫자만 가능합니다');
+                          return;
+                        }
                         setNicknameSaving(true);
                         try {
                           const updated = await usersApi.updateMe({
-                            nickname: nicknameValue.trim(),
+                            nickname: trimmed,
                           });
-                          setUser({ ...user, nickname: updated.nickname ?? nicknameValue.trim() });
+                          setUser({ ...user, nickname: updated.nickname ?? trimmed });
                           flash('닉네임이 변경되었습니다');
                           setNicknameEdit(false);
                         } catch (e: any) {
@@ -187,6 +192,11 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
                 </Button>
               )}
             </View>
+            {!loading && user.name ? (
+              <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>
+                이름 · {user.name}
+              </Text>
+            ) : null}
             <Text style={{ fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 }}>
               {user.email}
             </Text>
