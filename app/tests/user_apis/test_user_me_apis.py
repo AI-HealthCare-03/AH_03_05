@@ -187,7 +187,9 @@ class TestUserMeApis(TestCase):
 
     async def test_withdraw_user_wrong_password(self):
         # Given
-        email = "withdraw2@example.com"
+        import uuid
+
+        email = f"withdraw_wrong_{uuid.uuid4().hex[:8]}@example.com"
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(
                 "/api/v1/auth/signup",
@@ -244,7 +246,13 @@ class TestUserMeApis(TestCase):
                 headers={**headers, "Content-Type": "application/json"},
                 content=b'{"password": "WrongPassword123!"}',
             )
+            # Redis 키 정리 — async with 블록 안에서 처리 (DB 롤백 전)
+            from app.core.redis import redis_client
+            from app.models.users import User as UserModel
 
+            u = await UserModel.get_or_none(email=email)
+            if u:
+                await redis_client.delete(f"withdraw_fail:{u.id}")
         # Then
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
