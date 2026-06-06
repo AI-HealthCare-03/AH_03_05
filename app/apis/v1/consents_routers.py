@@ -52,6 +52,7 @@ async def toggle_consent(
         raise NotFoundException(detail="약관을 찾을 수 없습니다.")
     return ConsentToggleResponse(
         consent_type=consent.consent_type,
+        required_type=consent.required_type,
         is_agreed=consent.is_agreed,
         agreed_at=consent.agreed_at,
         revoked_at=consent.revoked_at,
