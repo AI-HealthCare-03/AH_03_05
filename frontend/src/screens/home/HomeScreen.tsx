@@ -590,7 +590,6 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
           <EmptyState
             icon="bell"
             title="복약 달력 준비 중"
-            message="복약 기록 API 연동 후 제공될 예정입니다."
           />
         </Card>
 
