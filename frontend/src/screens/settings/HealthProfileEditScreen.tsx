@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import { colors, radii, spacing, typography } from '../../theme';
@@ -21,11 +21,15 @@ const AGE_MAP: Record<string, string> = {
   '50대': '50s',
   '60대+': '60s',
 };
+const AGE_MAP_REV: Record<string, string> = Object.fromEntries(
+  Object.entries(AGE_MAP).map(([k, v]) => [v, k])
+);
 const GENDER_MAP: Record<string, string | undefined> = {
   여성: 'F',
   남성: 'M',
   '답변 안 함': undefined,
 };
+const GENDER_MAP_REV: Record<string, string> = { F: '여성', M: '남성' };
 const splitList = (v: string) =>
   v
     .split(',')
@@ -117,7 +121,25 @@ export function HealthProfileEditScreen({ navigation }: { navigation: NavProp })
     notes: user.notes || '',
   });
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
+
+  useEffect(() => {
+    healthProfileApi.getHealthProfile()
+      .then(profile => {
+        setForm(prev => ({
+          ...prev,
+          age: AGE_MAP_REV[profile.age_group ?? ''] || prev.age,
+          sex: GENDER_MAP_REV[profile.gender ?? ''] || '답변 안 함',
+          conditions: profile.chronic_diseases.join(', '),
+          otherMeds: profile.current_medications.join(', '),
+          allergies: profile.allergies.join(', '),
+          notes: profile.medical_history || '',
+        }));
+      })
+      .catch(() => {})
+      .finally(() => setInitializing(false));
+  }, []);
 
   const save = async () => {
     setLoading(true);
@@ -139,6 +161,16 @@ export function HealthProfileEditScreen({ navigation }: { navigation: NavProp })
       setLoading(false);
     }
   };
+
+  if (initializing) {
+    return (
+      <ScreenLayout title="건강 프로필 수정" back onBack={() => navigation.goBack()}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.s48 }}>
+          <ActivityIndicator color={colors.accent} size="large" />
+        </View>
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout
