@@ -91,7 +91,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
     navigation.goBack();
   };
 
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+  const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
   const MAX_BYTES = 10 * 1024 * 1024;
 
   const doUpload = async (file: UploadFile | globalThis.File) => {
