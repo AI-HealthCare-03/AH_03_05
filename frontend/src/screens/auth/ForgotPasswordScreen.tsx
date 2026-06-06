@@ -63,6 +63,11 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
       setConfirmError('비밀번호는 8자 이상이어야 합니다');
       return;
     }
+    const pwTypes = [/[A-Z]/, /[a-z]/, /[0-9]/, /[^A-Za-z0-9]/].filter(r => r.test(newPassword)).length;
+    if (pwTypes < 3) {
+      setConfirmError('영문/숫자/특수문자 중 3종류 이상 조합이어야 합니다');
+      return;
+    }
     setLoading(true);
     setConfirmError('');
     try {
@@ -102,7 +107,7 @@ export function ForgotPasswordScreen({ navigation }: { navigation: AuthNavProp }
           <Input
             label="새 비밀번호"
             icon="lock"
-            placeholder="8자 이상"
+            placeholder="영문/숫자/특수문자 중 3종류 이상, 8자 이상"
             value={newPassword}
             onChangeText={v => {
               setNewPassword(v);
