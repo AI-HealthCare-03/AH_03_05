@@ -24,7 +24,7 @@ export function ChatSessionScreen({ navigation, route }: Props) {
   const { top: safeTop } = useSafeAreaInsets();
   const { isDesktop } = useBreakpoint();
   const sessionId: string | undefined = route?.params?.sessionId;
-  const sessionTitle: string = route?.params?.title ?? '상담';
+  const [sessionTitle, setSessionTitle] = React.useState(route?.params?.title ?? '상담');
   const sessionSubtitle: string | undefined = route?.params?.subtitle;
 
   if (!sessionId) {
@@ -71,7 +71,10 @@ export function ChatSessionScreen({ navigation, route }: Props) {
           ) : null}
         </View>
       </View>
-      <ChatSessionPane sessionId={sessionId} />
+      <ChatSessionPane
+        sessionId={sessionId}
+        onFirstMessage={text => setSessionTitle(text.slice(0, 20))}
+      />
     </KeyboardAvoidingView>
   );
 

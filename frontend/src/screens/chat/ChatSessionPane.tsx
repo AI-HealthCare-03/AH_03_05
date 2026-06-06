@@ -111,8 +111,9 @@ export function ChatSessionPane({
         chatApi.sendChatMessage(Number(sessionId), { message: text }),
         ragApi.searchGuidelines(text).catch(() => [] as RagSource[]),
       ]);
+      const tempAiId = Date.now();
       const aiMsg: ChatMessageItem = {
-        message_id: Date.now(),
+        message_id: tempAiId,
         sender_type: 'assistant',
         content: res.assistant_message,
         safety_flag: res.safety_flag,
@@ -123,6 +124,18 @@ export function ChatSessionPane({
       };
       updateMessages(prev => [...prev, aiMsg]);
       onMessageSent?.(aiMsg.content);
+      // BE ChatMessageResponse에 message_id 미포함 → 실제 AI 메시지 ID만 업데이트 (기존 메시지 유지)
+      chatApi.getChatMessages(Number(sessionId), { limit: 50 })
+        .then(fetched => {
+          const realAiMsg = [...fetched.items].reverse()
+            .find(m => m.sender_type?.toLowerCase() === 'assistant');
+          if (realAiMsg) {
+            updateMessages(prev =>
+              prev.map(m => m.message_id === tempAiId ? { ...m, message_id: realAiMsg.message_id } : m)
+            );
+          }
+        })
+        .catch(() => {});
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 429) {

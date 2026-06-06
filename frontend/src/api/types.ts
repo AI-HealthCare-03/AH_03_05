@@ -439,6 +439,7 @@ export interface SendMessageRequest {
 
 export interface SendMessageResponse {
   session_id: number;
+  message_id: number;
   user_message: string;
   assistant_message: string;
   safety_flag: boolean;
