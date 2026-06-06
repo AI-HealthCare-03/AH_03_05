@@ -37,7 +37,7 @@ class TestMedicalRecordAPI(TestCase):
             response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
 
@@ -67,7 +67,7 @@ class TestMedicalRecordAPI(TestCase):
             await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
 
@@ -99,7 +99,7 @@ class TestMedicalRecordAPI(TestCase):
             upload_response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "medicine_bag"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
             record_id = upload_response.json()["record_id"]
@@ -157,7 +157,7 @@ class TestMedicalRecordAPI(TestCase):
             response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "invalid_type"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
 
@@ -170,7 +170,7 @@ class TestMedicalRecordAPI(TestCase):
             response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
             )
 
         # Then
@@ -238,7 +238,7 @@ class TestMedicalRecordAPI(TestCase):
             await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test"), "image/jpeg")},
                 headers=headers,
             )
 
@@ -310,7 +310,7 @@ class TestMedicalRecordAPI(TestCase):
             upload_response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
             record_id = upload_response.json()["record_id"]
@@ -416,3 +416,49 @@ class TestMedicalRecordAPI(TestCase):
         assert len(candidates) == 1
         assert "medication_id" in candidates[0]
         assert candidates[0]["medication_id"] is not None
+
+    async def test_upload_record_invalid_file_type(self):
+        # Given - 허용되지 않는 파일 형식 (text/plain)
+        email = "record_filetype@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={"email": email, "password": "Password123!", "name": "파일형식테스터", "consents": CONSENTS},
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            headers = {"Authorization": f"Bearer {login_response.json()['access_token']}"}
+
+            # When
+            response = await client.post(
+                "/api/v1/records",
+                data={"record_type": "prescription"},
+                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                headers=headers,
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "JPG" in response.json()["detail"]
+
+    async def test_upload_record_file_too_large(self):
+        # Given - 10MB 초과 파일
+        email = "record_filesize@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={"email": email, "password": "Password123!", "name": "파일크기테스터", "consents": CONSENTS},
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            headers = {"Authorization": f"Bearer {login_response.json()['access_token']}"}
+
+            # When - 11MB 파일
+            large_file = BytesIO(b"0" * (11 * 1024 * 1024))
+            response = await client.post(
+                "/api/v1/records",
+                data={"record_type": "prescription"},
+                files={"file": ("large.jpg", large_file, "image/jpeg")},
+                headers=headers,
+            )
+
+        # Then
+        assert response.status_code == status.HTTP_413_CONTENT_TOO_LARGE
