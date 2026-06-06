@@ -19,6 +19,14 @@ from app.services.medical_records import MedicalRecordService
 
 records_router = APIRouter(prefix="/records", tags=["records"])
 
+ALLOWED_CONTENT_TYPES = {
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "application/pdf",
+}
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
+
 
 @records_router.post("", response_model=MedicalRecordUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_medical_record(
@@ -29,6 +37,14 @@ async def upload_medical_record(
 ) -> MedicalRecordUploadResponse:
     if record_type not in [rt.value for rt in RecordType]:
         raise BadRequestException(detail=f"record_type은 {[rt.value for rt in RecordType]} 중 하나여야 합니다.")
+    if file.content_type not in ALLOWED_CONTENT_TYPES:
+        raise BadRequestException(detail="JPG, PNG, PDF 형식만 업로드 가능합니다.")
+    if file.size is not None and file.size > MAX_FILE_SIZE_BYTES:
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="10MB 이하 파일만 업로드 가능합니다."
+        )
     record = await medical_record_service.upload_record(
         user=user,
         record_type=record_type,
