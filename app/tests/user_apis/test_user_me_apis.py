@@ -324,7 +324,7 @@ class TestUserMeApis(TestCase):
             response = await client.patch(
                 "/api/v1/users/me",
                 headers=headers,
-                json={},
+                json={"nickname": None},
             )
 
         # Then
