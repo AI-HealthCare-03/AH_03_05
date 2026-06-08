@@ -229,8 +229,10 @@ export function ChatSessionPane({
   );
 }
 
+const AI_INDENT = s.aiAvatar.width + spacing.s8;
+
 const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
-  const [fb, setFb] = useState<'good' | 'bad' | null>(null);
+  const [fb, setFb] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
   const { flash } = useApp();
   const isUser = msg.sender_type?.toLowerCase() === 'user';
   const isFlagged = msg.safety_flag === true;
@@ -332,68 +334,34 @@ const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
           {msg.rag_sources && msg.rag_sources.length > 0 && (
             <RagSourcesSection sources={msg.rag_sources} />
           )}
-          <View
-            style={{ flexDirection: 'row', gap: spacing.s8, marginLeft: 36, marginTop: spacing.s4 }}
-          >
-            <TouchableOpacity
-              disabled={!!fb}
-              style={[
-                ps.feedbackBtn,
-                {
-                  borderColor: fb === 'good' ? colors.accent : colors.hairline,
-                  backgroundColor: fb === 'good' ? colors.accent50 : 'transparent',
-                  opacity: fb && fb !== 'good' ? 0.4 : 1,
-                },
-              ]}
-              onPress={() => {
-                if (fb) return;
-                setFb('good');
-                submitFeedback(4);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="도움됨"
-            >
-              <Text style={{ fontSize: typography.fz12 }}>👍</Text>
-              <Text
-                style={{
-                  fontSize: typography.fz11,
-                  color: fb === 'good' ? colors.accent700 : colors.muted,
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 0, marginLeft: AI_INDENT, marginTop: 0 }}>
+            {([1, 2, 3, 4, 5] as const).map(star => (
+              <TouchableOpacity
+                key={star}
+                disabled={fb !== null}
+                onPress={() => {
+                  setFb(star);
+                  submitFeedback(star);
                 }}
+                accessibilityRole="button"
+                accessibilityLabel={`별점 ${star}점`}
+                style={{ paddingHorizontal: spacing.s2, paddingVertical: 0 }}
               >
-                도움됨
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={!!fb}
-              style={[
-                ps.feedbackBtn,
-                {
-                  borderColor: fb === 'bad' ? colors.danger : colors.hairline,
-                  backgroundColor: fb === 'bad' ? colors.danger50 : 'transparent',
-                  opacity: fb && fb !== 'bad' ? 0.4 : 1,
-                },
-              ]}
-              onPress={() => {
-                if (fb) return;
-                setFb('bad');
-                submitFeedback(2);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="별로"
-            >
-              <Text style={{ fontSize: typography.fz12 }}>👎</Text>
-              <Text
-                style={{
-                  fontSize: typography.fz11,
-                  color: fb === 'bad' ? colors.danger : colors.muted,
-                }}
-              >
-                별로
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    fontSize: typography.fz16,
+                    lineHeight: typography.fz16,
+                    color: fb !== null && star <= fb ? colors.star : colors.muted2,
+                    opacity: fb !== null && star > fb ? 0.4 : 1,
+                  }}
+                >
+                  {fb !== null && star <= fb ? '★' : '☆'}
+                </Text>
+              </TouchableOpacity>
+            ))}
             {isFlagged && (
               <TouchableOpacity
-                style={[ps.feedbackBtn, { borderColor: colors.danger }]}
+                style={[ps.feedbackBtn, { borderColor: colors.danger, marginLeft: spacing.s8 }]}
                 onPress={() => submitFeedback(2, 'chat_error')}
                 accessibilityRole="button"
                 accessibilityLabel="신고하기"
@@ -477,7 +445,7 @@ function CategoryBadge({ category }: { category: MessageCategory }) {
 function SummarySection({ summary }: { summary: string }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <View style={{ marginLeft: 36, marginTop: spacing.s4 }}>
+    <View style={{ marginLeft: AI_INDENT, marginTop: spacing.s4 }}>
       <TouchableOpacity
         onPress={() => setExpanded(p => !p)}
         style={{
@@ -516,7 +484,7 @@ function RagSourcesSection({ sources }: { sources: RagSource[] }) {
   const displayed = sources.slice(0, 3);
   const overflow = sources.length - 3;
   return (
-    <View style={{ marginLeft: 36, marginTop: spacing.s6 }}>
+    <View style={{ marginLeft: AI_INDENT, marginTop: spacing.s6 }}>
       <Text style={{ fontSize: typography.fz11, color: colors.muted, marginBottom: spacing.s4 }}>
         참고 자료
       </Text>

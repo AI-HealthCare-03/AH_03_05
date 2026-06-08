@@ -134,8 +134,8 @@ test('TC-16: 응급 증상 키워드 → 즉시 응급 안내', async ({ page })
 /**
  * TC-17 | 채팅 피드백 제출
  * 전제: 로그인 상태, AI 응답 존재
- * 스텝: 새 상담 → 메시지 전송 → AI 응답 수신 → 👍 탭
- * 기대: 버튼 활성화, 중복 제출 방지
+ * 스텝: 새 상담 → 메시지 전송 → AI 응답 수신 → 별점 4점 탭
+ * 기대: 별점 선택 후 중복 제출 방지
  */
 test('TC-17: 채팅 피드백 제출', async ({ page }) => {
   await mockLLMResponse(page);
@@ -151,17 +151,16 @@ test('TC-17: 채팅 피드백 제출', async ({ page }) => {
   await input.fill('혈압약 복용 중 주의사항이 있나요?');
   await page.getByText('전송').click({ force: true });
 
-  // AI 응답 대기
-  await expect(page.getByText('도움됨').first()).toBeVisible({ timeout: 30_000 });
+  // AI 응답 대기 — 별점 버튼(accessibilityLabel) 출현 확인
+  await expect(page.getByRole('button', { name: '별점 4점' }).first()).toBeVisible({ timeout: 30_000 });
 
-  // 👍 피드백 버튼 클릭
-  await page.getByText('도움됨').first().click({ force: true });
+  // 별점 4점 선택
+  await page.getByRole('button', { name: '별점 4점' }).first().click({ force: true });
   await page.waitForTimeout(1_000);
 
-  // 중복 제출 방지 — 버튼이 비활성화(opacity 낮아짐) 상태
-  // 버튼이 여전히 화면에 있고 앱이 크래시 안 난 것 확인
-  await expect(page.getByText('도움됨').first()).toBeVisible();
-  await expect(page.getByText('별로').first()).toBeVisible();
+  // 중복 제출 방지 — 버튼이 여전히 화면에 있고 앱이 크래시 안 난 것 확인
+  await expect(page.getByRole('button', { name: '별점 1점' }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: '별점 5점' }).first()).toBeVisible();
 });
 
 /**

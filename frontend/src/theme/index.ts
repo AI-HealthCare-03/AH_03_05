@@ -43,6 +43,7 @@ export const colors = {
   warningText: '#92400E',
   danger: '#DC2626',
   danger50: '#FEE2E2',
+  star: '#FBBF24',
 
   // Schedule (가이드 복약 시간대)
   scheduleMorning: '#0EA5E9',
