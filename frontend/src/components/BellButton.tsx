@@ -53,6 +53,6 @@ const styles = {
     backgroundColor: colors.danger,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    paddingHorizontal: 2,
+    paddingHorizontal: spacing.s2,
   },
 };

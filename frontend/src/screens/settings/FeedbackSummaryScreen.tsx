@@ -6,7 +6,7 @@ import ScreenLayout from '../../components/ScreenLayout';
 import Card from '../../components/Card';
 import EmptyState from '../../components/EmptyState';
 import Icon from '../../components/Icon';
-import { colors, spacing, typography } from '../../theme';
+import { colors, radii, spacing, typography } from '../../theme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { SettingsStackParams } from '../../navigation/types';
 
@@ -109,7 +109,7 @@ export function FeedbackSummaryScreen({ navigation }: { navigation: NavProp }) {
                         width: `${Math.round(ratio * 100)}%`,
                         height: 6,
                         backgroundColor: colors.accent,
-                        borderRadius: 3,
+                        borderRadius: radii.xs,
                       }}
                     />
                   </View>

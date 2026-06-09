@@ -71,7 +71,7 @@ export function DrugCandidateScreen({ navigation, route }: Props) {
             backgroundColor: colors.danger50,
             borderRadius: radii.sm,
             padding: spacing.s12,
-            marginBottom: 10,
+            marginBottom: spacing.s10,
           }}
         >
           <Icon name="alert" size={13} color={colors.danger} />

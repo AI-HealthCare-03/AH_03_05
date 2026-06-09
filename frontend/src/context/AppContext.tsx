@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokenStore } from '../api/tokenStore';
 import { usersApi } from '../api';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { colors } from '../theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -174,7 +175,7 @@ const seedDrugs: Drug[] = [
     ingredient: 'Amlodipine besylate 5mg',
     freq: '1일 1회',
     time: '아침 식후 30분',
-    color: '#0EA5E9',
+    color: colors.scheduleMorning,
     status: '완료',
     defaultStatus: '아침 식후 30분',
   },
@@ -185,7 +186,7 @@ const seedDrugs: Drug[] = [
     ingredient: 'Rosuvastatin 10mg',
     freq: '1일 1회',
     time: '저녁 식후',
-    color: '#8B5CF6',
+    color: colors.scheduleEvening,
     status: '저녁 8시',
     defaultStatus: '저녁 8시',
   },
@@ -196,7 +197,7 @@ const seedDrugs: Drug[] = [
     ingredient: 'Metformin 500mg',
     freq: '1일 2회',
     time: '식후',
-    color: '#10B981',
+    color: colors.scheduleLunch,
     status: '점심 · 저녁',
     defaultStatus: '점심 · 저녁',
   },
