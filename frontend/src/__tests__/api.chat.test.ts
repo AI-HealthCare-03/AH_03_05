@@ -35,7 +35,7 @@ describe('chat API', () => {
 
   it('sendChatMessage calls POST /chat/sessions/{id}/messages', async () => {
     mockPost.mockResolvedValue({ data: {} });
-    await sendChatMessage(1, { content: '안녕' });
+    await sendChatMessage(1, { message: '안녕' });
     expect(mockPost).toHaveBeenCalledWith('/chat/sessions/1/messages', expect.any(Object));
   });
 
