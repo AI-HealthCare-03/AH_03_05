@@ -35,7 +35,7 @@ class TestOcrAPI(TestCase):
             upload_response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
             record_id = upload_response.json()["record_id"]
@@ -73,7 +73,7 @@ class TestOcrAPI(TestCase):
             upload_response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
             record_id = upload_response.json()["record_id"]
@@ -111,7 +111,7 @@ class TestOcrAPI(TestCase):
             upload_response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
             record_id = upload_response.json()["record_id"]
@@ -143,7 +143,7 @@ class TestOcrAPI(TestCase):
             upload_response = await client.post(
                 "/api/v1/records",
                 data={"record_type": "prescription"},
-                files={"file": ("test.txt", BytesIO(b"test content"), "text/plain")},
+                files={"file": ("test.txt", BytesIO(b"test content"), "image/jpeg")},
                 headers=headers,
             )
             record_id = upload_response.json()["record_id"]
