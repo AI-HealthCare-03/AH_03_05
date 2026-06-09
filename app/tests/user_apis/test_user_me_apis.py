@@ -140,8 +140,8 @@ class TestUserMeApis(TestCase):
             access_token = login_response.json()["access_token"]
             headers = {"Authorization": f"Bearer {access_token}"}
 
-            # When - 5회 실패
-            for _ in range(5):
+            # When - 4회 실패 후 5번째에서 즉시 429
+            for _ in range(4):
                 await client.patch(
                     "/api/v1/users/me/password",
                     headers=headers,
@@ -232,8 +232,8 @@ class TestUserMeApis(TestCase):
             access_token = login_response.json()["access_token"]
             headers = {"Authorization": f"Bearer {access_token}"}
 
-            # When - 5회 실패
-            for _ in range(5):
+            # When - 4회 실패 후 5번째에서 즉시 429
+            for _ in range(4):
                 await client.request(
                     "DELETE",
                     "/api/v1/users/me",
