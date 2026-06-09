@@ -1,16 +1,20 @@
 """실험 공통 모듈: 챗봇 응답 생성 + 토큰 측정 (프로덕션 함수 재사용)."""
-import sys, os, json
+
+import json
+import os
+import sys
 
 # 프로젝트 루트를 path에 추가해 app.* import 가능하게
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
+
 from app.services.chatbot_service import (
+    LLM_SEED,
+    MODEL,
     build_chatbot_system_prompt,
     build_chatbot_user_prompt,
-    MODEL,
-    LLM_SEED,
 )
 from app.services.safety_filter import check_safety, get_safety_response
 

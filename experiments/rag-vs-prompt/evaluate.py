@@ -1,7 +1,13 @@
 """LLM-as-judge: results_raw.json → 4축 채점 → results_scored.json + 콘솔 요약."""
-import asyncio, json, os, sys
+
+import asyncio
+import json
+import os
+import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from common import client
@@ -64,26 +70,28 @@ async def main():
         sr = await judge(q, item["rag"]["answer"])
         print(f"prompt={sp['total']} | rag={sr['total']}")
 
-        scored.append({
-            "id": qid,
-            "question": q,
-            "category": item["prompt"]["category"],
-            "prompt": {
-                **item["prompt"],
-                "scores": sp,
-            },
-            "rag": {
-                **item["rag"],
-                "scores": sr,
-            },
-        })
+        scored.append(
+            {
+                "id": qid,
+                "question": q,
+                "category": item["prompt"]["category"],
+                "prompt": {
+                    **item["prompt"],
+                    "scores": sp,
+                },
+                "rag": {
+                    **item["rag"],
+                    "scores": sr,
+                },
+            }
+        )
 
     json.dump(scored, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 
     # 콘솔 요약표
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"{'ID':<6} {'카테고리':<14} {'품질(P)':<10} {'품질(R)':<10} {'토큰(P)':<10} {'토큰(R)':<10} {'절감%'}")
-    print(f"{'-'*70}")
+    print(f"{'-' * 70}")
     total_p_score, total_r_score = 0.0, 0.0
     total_p_tok, total_r_tok = 0, 0
 
@@ -101,8 +109,10 @@ async def main():
 
     n = len(scored)
     avg_saved = round((total_p_tok - total_r_tok) / total_p_tok * 100, 1) if total_p_tok else 0
-    print(f"{'-'*70}")
-    print(f"{'평균':<6} {'':<14} {round(total_p_score/n,2):<10} {round(total_r_score/n,2):<10} {total_p_tok//n:<10} {total_r_tok//n:<10} {avg_saved}%")
+    print(f"{'-' * 70}")
+    print(
+        f"{'평균':<6} {'':<14} {round(total_p_score / n, 2):<10} {round(total_r_score / n, 2):<10} {total_p_tok // n:<10} {total_r_tok // n:<10} {avg_saved}%"
+    )
     print(f"\n결과 저장 → {OUT}")
 
 

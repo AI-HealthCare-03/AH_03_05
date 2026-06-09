@@ -1,10 +1,15 @@
 """② RAG 방식: 환자 질환 로어북을 청킹·임베딩하여 질문 관련 top-k 청크만 주입."""
-import asyncio, json, os, sys
+
+import asyncio
+import json
+import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
+from common import client, generate_answer
+
 from app.services.guideline_loader import get_guideline_context
-from common import generate_answer, client
 
 CHUNK_SIZE = 500
 OVERLAP = 100
@@ -15,7 +20,7 @@ TOP_K = 4
 def chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = OVERLAP) -> list[str]:
     chunks, i = [], 0
     while i < len(text):
-        piece = text[i:i + size]
+        piece = text[i : i + size]
         if piece.strip():
             chunks.append(piece)
         i += size - overlap
@@ -59,7 +64,9 @@ async def _smoke_test():
     case = cases[0]
     print(f"[{case['id']}] {case['question']}")
     r = await run_rag(case)
-    print(f"chunks {r['num_chunks']} -> retrieved {r['retrieved']} | context_chars: {r['context_chars']} | prompt_tokens: {r['prompt_tokens']}")
+    print(
+        f"chunks {r['num_chunks']} -> retrieved {r['retrieved']} | context_chars: {r['context_chars']} | prompt_tokens: {r['prompt_tokens']}"
+    )
     print("answer:", r["answer"].get("answer", r["answer"]))
 
 

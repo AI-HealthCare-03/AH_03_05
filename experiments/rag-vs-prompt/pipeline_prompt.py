@@ -1,10 +1,15 @@
 """① 프롬프트 방식: 질환별 로어북 전체를 프롬프트에 주입 (현행 baseline)."""
-import asyncio, json, os, sys
+
+import asyncio
+import json
+import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from app.services.guideline_loader import get_guideline_context
 from common import generate_answer
+
+from app.services.guideline_loader import get_guideline_context
 
 
 async def run_prompt(case: dict) -> dict:
