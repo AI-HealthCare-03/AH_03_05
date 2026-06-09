@@ -21,6 +21,12 @@ describe('chat API', () => {
     expect(mockPost).toHaveBeenCalledWith('/chat/sessions', expect.any(Object));
   });
 
+  it('createChatSession title 없으면 기본값 "새 상담" 사용', async () => {
+    mockPost.mockResolvedValue({ data: { session_id: 2, record_id: null, guide_id: null, status: 'ACTIVE', created_at: '' } });
+    const result = await createChatSession({});
+    expect(result.title).toBe('새 상담');
+  });
+
   it('getChatSessions calls GET /chat/sessions', async () => {
     mockGet.mockResolvedValue({ data: { sessions: [] } });
     await getChatSessions();

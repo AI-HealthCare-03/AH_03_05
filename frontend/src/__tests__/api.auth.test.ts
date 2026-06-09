@@ -55,6 +55,14 @@ describe('auth API', () => {
     expect(mockPost).toHaveBeenCalledWith('/auth/logout', expect.any(Object));
   });
 
+  it('logout refreshToken null이면 빈 문자열 전달', async () => {
+    jest.requireMock('../api/tokenStore').tokenStore.refreshToken = null;
+    mockPost.mockResolvedValue({ data: {} });
+    await logout();
+    expect(mockPost).toHaveBeenCalledWith('/auth/logout', { refresh_token: '' });
+    jest.requireMock('../api/tokenStore').tokenStore.refreshToken = 'rt';
+  });
+
   it('refresh calls POST /auth/refresh', async () => {
     mockPost.mockResolvedValue({ data: { access_token: 'new_at' } });
     await refresh('rt');

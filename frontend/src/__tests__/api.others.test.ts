@@ -103,9 +103,12 @@ describe('notificationSettings API', () => {
 
 describe('rag API', () => {
   it('searchGuidelines calls GET /rag/search', async () => {
-    mockGet.mockResolvedValue({ data: { query: '', sources: [] } });
-    await searchGuidelines('고혈압');
+    mockGet.mockResolvedValue({ data: { query: '고혈압', sources: [
+      { organization_name: '보건복지부', guideline_title: '고혈압 지침', source_url: 'https://example.com', chunk_text: '내용', similarity_score: 0.9 },
+    ] } });
+    const result = await searchGuidelines('고혈압');
     expect(mockGet).toHaveBeenCalledWith('/rag/search', expect.any(Object));
+    expect(result[0].relevance_score).toBe(0.9);
   });
 });
 
