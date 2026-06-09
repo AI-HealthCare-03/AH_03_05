@@ -186,7 +186,7 @@ export function DrugDetailScreen({ navigation, route }: Props) {
               style={{
                 fontSize: typography.fz13,
                 color: colors.ink2,
-                lineHeight: 20,
+                lineHeight: typography.lh20,
                 marginBottom: spacing.s16,
               }}
             >

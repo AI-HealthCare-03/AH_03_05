@@ -44,7 +44,7 @@ export function DeviceManagementScreen({ navigation }: { navigation: NavProp }) 
       scrollable
     >
       <View style={{ marginBottom: spacing.s20 }}>
-        <Text style={{ fontSize: typography.fz14, color: colors.muted, lineHeight: 22 }}>
+        <Text style={{ fontSize: typography.fz14, color: colors.muted, lineHeight: typography.lh22 }}>
           현재 기기를 포함한 모든 기기에서 로그아웃합니다.{'\n'}로그아웃 후 다시 로그인이 필요합니다.
         </Text>
       </View>

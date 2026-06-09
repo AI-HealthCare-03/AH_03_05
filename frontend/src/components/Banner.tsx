@@ -105,7 +105,7 @@ export const Banner = React.memo(function Banner({ variant, title, body, icon, s
           </Text>
         )}
         {body != null && (
-          <Text style={{ fontSize: typography.fz13, color: cfg.bodyColor, lineHeight: 20 }}>
+          <Text style={{ fontSize: typography.fz13, color: cfg.bodyColor, lineHeight: typography.lh20 }}>
             {body}
           </Text>
         )}

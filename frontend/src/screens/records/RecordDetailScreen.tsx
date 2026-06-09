@@ -425,7 +425,7 @@ export function RecordDetailScreen({ navigation, route }: Props) {
             >
               의사 메모
             </Text>
-            <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>
+            <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}>
               {record.notes}
             </Text>
           </Card>

@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useApp } from '../context/AppContext';
 import Icon from './Icon';
-import { colors, radii, shadows, spacing } from '../theme';
+import { colors, radii, shadows, spacing, typography } from '../theme';
 
 export default function BellButton() {
   const { unreadCount, setNotifDrawerOpen } = useApp();
@@ -18,7 +18,7 @@ export default function BellButton() {
       <Icon name="bell" size={18} color={colors.ink2} />
       {unreadCount > 0 && (
         <View style={styles.bellBadge}>
-          <Text style={{ fontSize: 8, color: colors.white, fontWeight: '700', lineHeight: 12 }}>
+          <Text style={{ fontSize: 8, color: colors.white, fontWeight: typography.fw7, lineHeight: 12 }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </Text>
         </View>

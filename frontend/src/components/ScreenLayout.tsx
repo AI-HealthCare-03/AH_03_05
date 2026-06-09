@@ -62,7 +62,7 @@ export default function ScreenLayout({
       >
         {title && (
           <Text
-            style={[s.title, subtitle && { marginBottom: 2 }]}
+            style={[s.title, subtitle && { marginBottom: spacing.s2 }]}
             numberOfLines={back ? 1 : undefined}
           >
             {title}
@@ -161,14 +161,14 @@ const s = StyleSheet.create({
   topBarInner: {
     width: '100%',
     paddingHorizontal: spacing.s16,
-    paddingBottom: 14,
+    paddingBottom: spacing.s14,
     flexDirection: 'row',
     alignItems: 'center',
   },
   topBarInnerColumn: {
     flexDirection: 'column',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: spacing.s10,
   },
   topBarInnerDesktop: {
     maxWidth: CONTENT_MAX_WIDTH,

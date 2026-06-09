@@ -59,13 +59,13 @@ const bp = StyleSheet.create({
     fontSize: typography.fz26,
     fontWeight: typography.fw7,
     color: colors.white,
-    lineHeight: 36,
+    lineHeight: typography.lh36,
     marginBottom: spacing.s14,
   },
   desc: {
     fontSize: typography.fz14,
     color: colors.onAccent80,
-    lineHeight: 22,
+    lineHeight: typography.lh22,
     marginBottom: spacing.s24,
   },
   feat: {
@@ -104,7 +104,7 @@ export const styles = StyleSheet.create({
     marginBottom: spacing.s24,
   },
   authTitle: {
-    fontSize: 24,
+    fontSize: typography.fz24,
     fontWeight: typography.fw7,
     color: colors.ink,
     marginBottom: spacing.s6,

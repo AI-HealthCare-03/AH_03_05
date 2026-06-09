@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.fw7,
     color: colors.accent,
     marginBottom: spacing.s4,
-    letterSpacing: 0.5,
+    letterSpacing: typography.ls05,
   },
   title: {
     fontSize: typography.fz22,

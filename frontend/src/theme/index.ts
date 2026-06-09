@@ -79,6 +79,7 @@ export const spacing = {
   s4: 4,
   s6: 6,
   s8: 8,
+  s9: 9,
   s10: 10,
   s12: 12,
   s14: 14,
@@ -114,8 +115,12 @@ export const typography = {
   fw5: '500' as const,
   fw6: '600' as const,
   fw7: '700' as const,
+  lh18: 18,
   lh20: 20,
   lh22: 22,
+  lh36: 36,
+  lsN1: -1,
+  ls05: 0.5,
 };
 
 export const shadows = {

@@ -33,7 +33,7 @@ export const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.s20,
     paddingVertical: spacing.s16,
-    gap: 14,
+    gap: spacing.s14,
   },
   banner: {
     flexDirection: 'row',

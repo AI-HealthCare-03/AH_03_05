@@ -167,7 +167,7 @@ const s = StyleSheet.create({
     fontSize: typography.fz48,
     fontWeight: typography.fw7,
     color: colors.ink,
-    letterSpacing: -1,
+    letterSpacing: typography.lsN1,
   },
   mealLabel: {
     fontSize: typography.fz17,

@@ -32,7 +32,7 @@ function GuideItemCard({ item }: { item: GuideItem }) {
   return (
     <Card shadow style={{ marginBottom: spacing.s14 }}>
       {item.title ? <SectionHeader icon="link" label={item.title} /> : null}
-      <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>
+      <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}>
         {item.content}
       </Text>
     </Card>
@@ -123,7 +123,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
             apiMedItems.map(item => <GuideItemCard key={item.sort_order} item={item} />)
           ) : guide?.medication_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
-              <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>
+              <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}>
                 {guide.medication_guide}
               </Text>
             </Card>
@@ -146,7 +146,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
             apiLifeItems.map(item => <GuideItemCard key={item.sort_order} item={item} />)
           ) : guide?.lifestyle_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
-              <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 }}>
+              <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}>
                 {guide.lifestyle_guide}
               </Text>
             </Card>
@@ -377,7 +377,7 @@ const s = StyleSheet.create({
     color: colors.danger,
     marginBottom: spacing.s6,
   },
-  emergencyBody: { fontSize: typography.fz13, color: colors.ink2, lineHeight: 20 },
+  emergencyBody: { fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 },
 
   // 피드백 버튼
   feedbackBtn: {

@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Sidebar from '../../components/Sidebar';
 import Icon from '../../components/Icon';
-import { colors } from '../../theme';
+import { colors, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import HomeNavigator from './HomeNavigator';
 import RecordsNavigator from './RecordsNavigator';
@@ -46,7 +46,7 @@ function TabNavigator() {
             },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' as const },
+        tabBarLabelStyle: { fontSize: typography.fz11, fontWeight: typography.fw5 },
       }}
     >
       <Tab.Screen

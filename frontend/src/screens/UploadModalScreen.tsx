@@ -502,7 +502,7 @@ const s = StyleSheet.create({
     padding: spacing.s12,
     marginBottom: spacing.s8,
   },
-  errorText: { flex: 1, fontSize: typography.fz12, color: colors.danger, lineHeight: 18 },
+  errorText: { flex: 1, fontSize: typography.fz12, color: colors.danger, lineHeight: typography.lh18 },
   manualInput: {
     borderWidth: 1,
     borderColor: colors.hairline,
