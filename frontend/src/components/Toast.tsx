@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useApp } from '../context/AppContext';
-import { colors, typography } from '../theme';
+import { colors, radii, spacing, typography } from '../theme';
 
 export default function Toast() {
   const { toast } = useApp();
@@ -27,9 +27,9 @@ const styles = StyleSheet.create({
   },
   pill: {
     backgroundColor: colors.ink,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 999,
+    paddingHorizontal: spacing.s18,
+    paddingVertical: spacing.s10,
+    borderRadius: radii.pill,
   },
   text: {
     color: colors.white,

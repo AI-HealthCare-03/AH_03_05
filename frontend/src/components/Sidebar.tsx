@@ -9,7 +9,7 @@ import {
 import { useApp } from '../context/AppContext';
 import Icon from './Icon';
 import MediPTLogo from './MediPTLogo';
-import { colors, spacing, radii } from '../theme';
+import { colors, spacing, radii, typography } from '../theme';
 
 const TAB_ROOT_SCREENS: Record<string, string> = {
   HomeTab: 'Home',
@@ -100,11 +100,11 @@ export default function Sidebar() {
         <View style={s.avatar}>
           <Icon name="user" size={16} color={colors.ink2} />
         </View>
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.ink }} numberOfLines={1}>
+        <View style={{ flex: 1, marginLeft: spacing.s10 }}>
+          <Text style={{ fontSize: typography.fz13, fontWeight: typography.fw6, color: colors.ink }} numberOfLines={1}>
             {user.nickname || user.name}
           </Text>
-          <Text style={{ fontSize: 11, color: colors.muted }} numberOfLines={1}>
+          <Text style={{ fontSize: typography.fz11, color: colors.muted }} numberOfLines={1}>
             {user.email}
           </Text>
         </View>
@@ -120,51 +120,51 @@ const s = StyleSheet.create({
     borderRightWidth: 0.5,
     borderRightColor: colors.hairline,
     paddingHorizontal: spacing.s16,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: spacing.s20,
+    paddingBottom: spacing.s16,
   },
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.s8,
     marginBottom: spacing.s24,
-    paddingHorizontal: 4,
+    paddingHorizontal: spacing.s4,
   },
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: typography.fz11,
+    fontWeight: typography.fw6,
     color: colors.muted,
-    letterSpacing: 0.5,
-    paddingHorizontal: 8,
-    marginBottom: 4,
+    letterSpacing: typography.ls05,
+    paddingHorizontal: spacing.s8,
+    marginBottom: spacing.s4,
   },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
+    gap: spacing.s10,
+    paddingHorizontal: spacing.s10,
+    paddingVertical: spacing.s9,
     borderRadius: radii.md,
-    marginBottom: 2,
+    marginBottom: spacing.s2,
   },
   navItemActive: { backgroundColor: colors.accent50 },
-  navLabel: { fontSize: 13, fontWeight: '500', color: colors.muted },
-  navLabelActive: { color: colors.accent700, fontWeight: '600' },
+  navLabel: { fontSize: typography.fz13, fontWeight: typography.fw5, color: colors.muted },
+  navLabelActive: { color: colors.accent700, fontWeight: typography.fw6 },
   userRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 10,
+    paddingHorizontal: spacing.s8,
+    paddingVertical: spacing.s10,
     borderRadius: radii.md,
     borderTopWidth: 0.5,
     borderTopColor: colors.hairline,
-    marginTop: 8,
-    paddingTop: 16,
+    marginTop: spacing.s8,
+    paddingTop: spacing.s16,
   },
   avatar: {
     width: 32,
     height: 32,
-    borderRadius: 999,
+    borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     borderWidth: 1,
     borderColor: colors.hairline,

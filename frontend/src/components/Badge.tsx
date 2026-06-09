@@ -47,7 +47,7 @@ const s = StyleSheet.create({
   base: {
     borderRadius: radii.pill,
     paddingHorizontal: spacing.s8,
-    paddingVertical: 3,
+    paddingVertical: spacing.s3,
     alignSelf: 'flex-start',
   },
   text: {

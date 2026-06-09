@@ -180,7 +180,7 @@ export function ChatSessionPane({
         {sending && (
           <View style={[s.bubbleRow, { alignItems: 'center', gap: spacing.s8 }]}>
             <View style={s.aiAvatar}>
-              <Text style={{ fontSize: 10, fontWeight: typography.fw7, color: colors.accent700 }}>
+              <Text style={{ fontSize: typography.fz10, fontWeight: typography.fw7, color: colors.accent700 }}>
                 AI
               </Text>
             </View>
@@ -252,7 +252,7 @@ const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
       <View style={[s.bubbleRow, isUser && { justifyContent: 'flex-end' }]}>
         {!isUser && (
           <View style={s.aiAvatar}>
-            <Text style={{ fontSize: 10, fontWeight: typography.fw7, color: colors.accent700 }}>
+            <Text style={{ fontSize: typography.fz10, fontWeight: typography.fw7, color: colors.accent700 }}>
               AI
             </Text>
           </View>
@@ -305,7 +305,7 @@ const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
                     padding: spacing.s8,
                   }}
                 >
-                  <Text style={{ fontSize: typography.fz12, color: colors.danger, lineHeight: 18 }}>
+                  <Text style={{ fontSize: typography.fz12, color: colors.danger, lineHeight: typography.lh18 }}>
                     {msg.safety_notice}
                   </Text>
                 </View>
@@ -315,7 +315,7 @@ const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
           <Text
             style={{
               fontSize: typography.fz13,
-              lineHeight: 20,
+              lineHeight: typography.lh20,
               color: isUser ? colors.white : colors.ink,
             }}
           >
@@ -471,7 +471,7 @@ function SummarySection({ summary }: { summary: string }) {
             marginTop: spacing.s4,
           }}
         >
-          <Text style={{ fontSize: typography.fz12, color: colors.ink2, lineHeight: 18 }}>
+          <Text style={{ fontSize: typography.fz12, color: colors.ink2, lineHeight: typography.lh18 }}>
             {summary}
           </Text>
         </View>

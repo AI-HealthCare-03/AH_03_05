@@ -646,7 +646,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
               </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={{ padding: spacing.s20 }}>
-              <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: 22 }}>
+              <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh22 }}>
                 {termsModal ? TERMS_CONTENT[termsModal].body : ''}
               </Text>
             </ScrollView>

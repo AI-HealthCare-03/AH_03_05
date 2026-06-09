@@ -428,7 +428,7 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
               </View>
               <Text
                 style={{
-                  fontSize: 36,
+                  fontSize: typography.fz36,
                   fontWeight: typography.fw7,
                   color: colors.white,
                   marginBottom: spacing.s4,

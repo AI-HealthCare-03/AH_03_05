@@ -42,7 +42,7 @@ function StepItem({ st, index: i, step }: StepItemProps) {
         {i < step ? (
           <Icon name="check" size={12} color={colors.white} />
         ) : (
-          <Icon name={st.icon} size={11} color={i === step ? '#fff' : colors.muted} />
+          <Icon name={st.icon} size={11} color={i === step ? colors.white : colors.muted} />
         )}
       </View>
       <Text style={{ fontSize: typography.fz14, flex: 1 }}>{st.label}</Text>

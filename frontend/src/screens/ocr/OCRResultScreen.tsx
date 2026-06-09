@@ -7,7 +7,7 @@ import SectionHeader from '../../components/SectionHeader';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
-import { colors, spacing, typography } from '../../theme';
+import { colors, radii, spacing, typography } from '../../theme';
 import { recordsApi, medicationsApi, extractApiError } from '../../api';
 import type { MedicationCandidate } from '../../api';
 import { s } from './_ocrShared';
@@ -215,7 +215,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
                 style={{
                   borderWidth: 1,
                   borderColor: colors.hairlineStrong,
-                  borderRadius: 8,
+                  borderRadius: radii.sm,
                   padding: spacing.s12,
                   fontSize: typography.fz13,
                   color: colors.ink,
@@ -235,7 +235,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
                   backgroundColor: savingText ? colors.hairline : colors.accent,
                   paddingHorizontal: spacing.s16,
                   paddingVertical: spacing.s8,
-                  borderRadius: 8,
+                  borderRadius: radii.sm,
                 }}
                 disabled={savingText}
                 onPress={async () => {

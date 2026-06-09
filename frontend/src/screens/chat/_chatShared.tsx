@@ -27,7 +27,7 @@ export const s = StyleSheet.create({
     borderColor: colors.hairlineStrong,
     borderRadius: radii.md,
     paddingHorizontal: spacing.s12,
-    paddingVertical: 10,
+    paddingVertical: spacing.s10,
     fontSize: typography.fz14,
     color: colors.ink,
     maxHeight: 100,

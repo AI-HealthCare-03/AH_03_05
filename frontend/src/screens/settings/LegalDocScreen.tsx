@@ -80,7 +80,7 @@ export function LegalDocScreen({ navigation, route }: Props) {
             >
               {sec.h}
             </Text>
-            <Text style={{ fontSize: typography.fz14, color: colors.ink2, lineHeight: 22 }}>
+            <Text style={{ fontSize: typography.fz14, color: colors.ink2, lineHeight: typography.lh22 }}>
               {sec.b}
             </Text>
           </View>

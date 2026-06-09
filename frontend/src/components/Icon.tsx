@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { colors } from '../theme';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
 type MCIName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -79,7 +80,7 @@ const MCI_MAP: Record<string, MCIName> = {
   wand: 'magic-staff',
 };
 
-export default function Icon({ name, size = 18, color = '#0F172A' }: IconProps) {
+export default function Icon({ name, size = 18, color = colors.ink }: IconProps) {
   // Check MCI first for icons that map better there
   if (MCI_MAP[name]) {
     return <MaterialCommunityIcons name={MCI_MAP[name]} size={size} color={color} />;
