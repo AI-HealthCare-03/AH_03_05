@@ -13,14 +13,23 @@ class ConsentItem(BaseModel):
 class SignUpRequest(BaseModel):
     email: Annotated[EmailStr, Field(max_length=100)]
     password: Annotated[str, Field(min_length=8, max_length=20)]
-    name: Annotated[str, Field(min_length=2, max_length=20)]
+    name: Annotated[str, Field(min_length=2, max_length=20, pattern=r"^[가-힣a-zA-Z0-9\s]+$")]
     nickname: Annotated[str | None, Field(max_length=100)] = None
     consents: list[ConsentItem]
 
     @field_validator("password")
     @classmethod
-    def password_policy(cls, v: str) -> str:
-        return validate_password(v)
+    def password_policy(cls, v: str, info: any) -> str:
+        validate_password(v)
+        # 이메일/이름과 유사한 비밀번호 제한
+        email = info.data.get("email", "")
+        name = info.data.get("name", "")
+        email_local = str(email).split("@")[0].lower() if email else ""
+        if email_local and email_local in v.lower():
+            raise ValueError("비밀번호에 이메일 주소를 포함할 수 없습니다.")
+        if name and name.lower() in v.lower():
+            raise ValueError("비밀번호에 이름을 포함할 수 없습니다.")
+        return v
 
 
 class SignUpResponse(BaseModel):
