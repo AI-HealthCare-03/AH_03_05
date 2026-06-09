@@ -17,9 +17,16 @@ jest.mock('../api/client', () => ({
 beforeEach(() => jest.clearAllMocks());
 
 describe('records API', () => {
-  it('uploadRecord calls POST /records', async () => {
+  it('uploadRecord calls POST /records (RN file)', async () => {
     mockPost.mockResolvedValue({ data: { record_id: 1 } });
     await uploadRecord({ uri: 'file://x', name: 'x.jpg', type: 'image/jpeg' }, 'prescription');
+    expect(mockPost).toHaveBeenCalledWith('/records', expect.any(Object), expect.any(Object));
+  });
+
+  it('uploadRecord calls POST /records (web File)', async () => {
+    mockPost.mockResolvedValue({ data: { record_id: 1 } });
+    const webFile = new File([''], 'x.jpg', { type: 'image/jpeg' });
+    await uploadRecord(webFile, 'prescription');
     expect(mockPost).toHaveBeenCalledWith('/records', expect.any(Object), expect.any(Object));
   });
 
