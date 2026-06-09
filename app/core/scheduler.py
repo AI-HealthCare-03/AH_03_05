@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from app.core.logger import default_logger
 from app.models.medical_records import MedicalRecord
 
 scheduler = AsyncIOScheduler()
@@ -26,9 +27,9 @@ async def delete_expired_records() -> None:
             deleted_at__lt=threshold,
         ).delete()
         if count:
-            print(f"[scheduler] 만료 진료기록 {count}건 영구 삭제 완료")
+            default_logger.info("[scheduler] 만료 진료기록 %d건 영구 삭제 완료", count)
     except Exception as e:
-        print(f"[scheduler] 배치 실패: {e}")
+        default_logger.error("[scheduler] 배치 실패: %s", str(e))
         raise
 
 
