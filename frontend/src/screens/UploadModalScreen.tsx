@@ -50,7 +50,7 @@ type SourceCardProps = {
 
 function SourceCard({ src, onPress }: SourceCardProps) {
   return (
-    <TouchableOpacity style={[s.srcCard, { flex: 1 }]} onPress={() => onPress(src.id)} accessibilityRole="button">
+    <TouchableOpacity style={[s.srcCard, { flex: 1 }]} onPress={() => onPress(src.id)} accessibilityRole="button" accessibilityLabel={src.label}>
       <View style={s.srcIcon}>
         <Icon name={src.icon} size={14} color={colors.accent700} />
       </View>
@@ -239,7 +239,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
           <Text style={s.modalTitle}>의료 문서 업로드</Text>
           <Text style={s.modalSub}>어떤 문서를 분석할까요?</Text>
         </View>
-        <TouchableOpacity onPress={handleClose} style={s.closeBtn} accessibilityLabel="닫기">
+        <TouchableOpacity onPress={handleClose} style={s.closeBtn} accessibilityRole="button" accessibilityLabel="닫기">
           <Icon name="x" size={15} color={colors.accent700} />
         </TouchableOpacity>
       </View>
@@ -295,6 +295,8 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
               setManualText('');
               setUploadError('');
             }}
+            accessibilityRole="button"
+            accessibilityLabel="뒤로"
           >
             <Icon name="chevron-left" size={14} color={colors.accent} />
             <Text
@@ -322,6 +324,8 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
             style={[s.manualSubmit, !manualText.trim() && { opacity: 0.4 }]}
             onPress={doManualInput}
             disabled={!manualText.trim()}
+            accessibilityRole="button"
+            accessibilityLabel="분석 시작"
           >
             <Text style={s.manualSubmitText}>분석 시작</Text>
           </TouchableOpacity>
@@ -335,6 +339,8 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
                 style={[s.typeCard, type === t.id && s.typeCardActive]}
                 onPress={() => setType(t.id)}
                 accessibilityRole="checkbox"
+                accessibilityLabel={t.id}
+                accessibilityState={{ checked: type === t.id }}
               >
                 <View
                   style={[
@@ -387,7 +393,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
 
   if (isTabletOrAbove) {
     return (
-      <TouchableOpacity style={s.scrimCenter} activeOpacity={1} onPress={handleClose}>
+      <TouchableOpacity style={s.scrimCenter} activeOpacity={1} onPress={handleClose} accessibilityRole="button" accessibilityLabel="닫기">
         <TouchableOpacity
           activeOpacity={1}
           style={[s.modalCenter, { width: cardWidth }]}
@@ -400,7 +406,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
   }
 
   return (
-    <TouchableOpacity style={s.scrim} activeOpacity={1} onPress={handleClose}>
+    <TouchableOpacity style={s.scrim} activeOpacity={1} onPress={handleClose} accessibilityRole="button" accessibilityLabel="닫기">
       <TouchableOpacity activeOpacity={1} style={s.modal} onPress={() => {}}>
         {content}
       </TouchableOpacity>

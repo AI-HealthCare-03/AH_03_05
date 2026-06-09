@@ -34,6 +34,7 @@ const NotificationRow = React.memo(function NotificationRow({
         n.unread && { backgroundColor: colors.accent50 },
       ]}
       accessibilityRole="link"
+      accessibilityLabel={n.title}
     >
       <View style={s.notifIcon}>
         <Icon name={n.icon} size={14} color={colors.accent700} />

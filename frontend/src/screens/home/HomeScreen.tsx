@@ -124,6 +124,7 @@ function MonthCalendar({
               style={[s.calCell, isToday && s.calToday, isSelected && !isToday && s.calSelected]}
               onPress={() => onDayClick(day)}
               accessibilityRole="button"
+              accessibilityLabel={`${day}일`}
             >
               <Text
                 style={[
@@ -310,6 +311,7 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
                   }}
                   disabled={recentGuideId == null}
                   accessibilityRole="link"
+                  accessibilityLabel={`${c} 가이드 보기`}
                   style={[s.conditionChip, recentGuideId == null && { opacity: 0.55 }]}
                 >
                   <Text

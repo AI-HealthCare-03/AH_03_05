@@ -143,6 +143,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
                   flash('이미지를 제거했습니다');
                 }}
                 style={s.removeBtn}
+                accessibilityRole="button"
                 accessibilityLabel="이미지 제거"
               >
                 <Icon name="x" size={14} color={colors.ink} />

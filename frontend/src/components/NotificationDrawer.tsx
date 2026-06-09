@@ -190,7 +190,7 @@ export default function NotificationDrawer() {
                   모두 지우기
                 </Button>
               )}
-              <TouchableOpacity onPress={close} style={s.closeBtn} accessibilityLabel="닫기">
+              <TouchableOpacity onPress={close} style={s.closeBtn} accessibilityRole="button" accessibilityLabel="닫기">
                 <Icon name="x" size={15} color={colors.ink2} />
               </TouchableOpacity>
             </View>
@@ -271,6 +271,7 @@ export default function NotificationDrawer() {
                                   onPress={() => handleDelete(n.id)}
                                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                   style={s.deleteBtn}
+                                  accessibilityRole="button"
                                   accessibilityLabel="알림 삭제"
                                 >
                                   <Icon name="x" size={12} color={colors.muted2} />
@@ -292,6 +293,8 @@ export default function NotificationDrawer() {
                                 <TouchableOpacity
                                   style={s.swipeDelete}
                                   onPress={() => handleDelete(n.id)}
+                                  accessibilityRole="button"
+                                  accessibilityLabel="알림 삭제"
                                 >
                                   <Text style={s.swipeDeleteText}>삭제</Text>
                                 </TouchableOpacity>

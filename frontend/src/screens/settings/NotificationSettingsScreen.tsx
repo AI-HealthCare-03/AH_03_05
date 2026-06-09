@@ -68,6 +68,8 @@ function MealRow({ label, val, setVal, master, onTimePress }: MealRowProps) {
           onPress={onTimePress}
           disabled={!active}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="알림 시간 설정"
         >
           <Text
             style={{
@@ -278,6 +280,8 @@ export function NotificationSettingsScreen({ navigation }: { navigation: NavProp
             style={ps.backdrop}
             onPress={() => setPickerOpen(null)}
             activeOpacity={1}
+            accessibilityRole="button"
+            accessibilityLabel="시간 선택 닫기"
           >
             <View style={ps.sheet}>
               <DateTimePicker

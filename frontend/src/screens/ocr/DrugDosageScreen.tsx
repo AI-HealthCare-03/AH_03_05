@@ -98,6 +98,9 @@ export function DrugDosageScreen({ navigation, route }: Props) {
             key={o}
             style={[s.chip, value === o && s.chipActive]}
             onPress={() => onChange(o)}
+            accessibilityRole="checkbox"
+            accessibilityLabel={o}
+            accessibilityState={{ checked: value === o }}
           >
             <Text
               style={[

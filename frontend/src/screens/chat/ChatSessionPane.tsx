@@ -502,6 +502,8 @@ function RagSourcesSection({ sources }: { sources: RagSource[] }) {
           }}
           onPress={() => Linking.openURL(src.source_url)}
           activeOpacity={0.7}
+          accessibilityRole="link"
+          accessibilityLabel={`${src.organization_name} · ${src.guideline_title}`}
         >
           <Icon name="link" size={11} color={colors.accent} />
           <Text
