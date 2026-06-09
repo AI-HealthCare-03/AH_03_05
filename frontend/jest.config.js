@@ -7,6 +7,8 @@ const config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   collectCoverageFrom: [
     'src/api/**/*.ts',
+    'src/hooks/**/*.ts',
+    'src/utils/**/*.ts',
     '!src/api/client.ts',
     '!src/api/tokenStore.ts',
     '!src/api/index.ts',
