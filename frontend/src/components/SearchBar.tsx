@@ -61,6 +61,7 @@ export const SearchBar = React.memo(function SearchBar({
         }
         placeholder={placeholder}
         placeholderTextColor={colors.muted2}
+        accessibilityLabel={placeholder}
         value={value}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmit}

@@ -64,7 +64,7 @@ export default function Sidebar() {
   return (
     <View style={s.sidebar}>
       {/* 브랜드 */}
-      <TouchableOpacity style={s.brand} onPress={() => go('HomeTab', 'Home')} activeOpacity={0.7}>
+      <TouchableOpacity style={s.brand} onPress={() => go('HomeTab', 'Home')} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="홈으로 이동">
         <MediPTLogo width={130} />
       </TouchableOpacity>
 
@@ -81,6 +81,9 @@ export default function Sidebar() {
                   style={[s.navItem, isActive && s.navItemActive]}
                   onPress={() => go(item.tab, item.screen)}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.label}
+                  accessibilityState={{ selected: isActive }}
                 >
                   <Icon
                     name={item.icon}
@@ -96,7 +99,7 @@ export default function Sidebar() {
       </View>
 
       {/* 유저 */}
-      <TouchableOpacity style={s.userRow} onPress={() => go('SettingsTab')} activeOpacity={0.8}>
+      <TouchableOpacity style={s.userRow} onPress={() => go('SettingsTab')} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="설정으로 이동">
         <View style={s.avatar}>
           <Icon name="user" size={16} color={colors.ink2} />
         </View>

@@ -44,7 +44,7 @@ type CheckRowProps = {
 
 function CheckRow({ label, checked, onToggle }: CheckRowProps) {
   return (
-    <TouchableOpacity style={ss.checkRow} onPress={onToggle} accessibilityRole="checkbox">
+    <TouchableOpacity style={ss.checkRow} onPress={onToggle} accessibilityRole="checkbox" accessibilityLabel={label} accessibilityState={{ checked }}>
       <View style={[ss.checkBox, checked && ss.checkBoxActive]}>
         {checked && <Icon name="check" size={11} color={colors.white} />}
       </View>

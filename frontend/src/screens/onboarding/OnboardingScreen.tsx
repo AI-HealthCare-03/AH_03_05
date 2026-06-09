@@ -152,6 +152,8 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                     style={[styles.chip, form.age === a && styles.chipActive]}
                     onPress={() => set('age', a)}
                     accessibilityRole="checkbox"
+                    accessibilityLabel={a}
+                    accessibilityState={{ checked: form.age === a }}
                   >
                     <Text style={[styles.chipText, form.age === a && styles.chipTextActive]}>
                       {a}
@@ -168,6 +170,8 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                     style={[styles.chip, styles.chipGrow, form.sex === sv && styles.chipActive]}
                     onPress={() => set('sex', sv)}
                     accessibilityRole="checkbox"
+                    accessibilityLabel={sv}
+                    accessibilityState={{ checked: form.sex === sv }}
                   >
                     <Text style={[styles.chipText, form.sex === sv && styles.chipTextActive]}>
                       {sv}
@@ -239,7 +243,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
 
         <Text style={styles.hint}>입력하지 않아도 서비스 이용은 가능해요.</Text>
         {step === 1 && (
-          <TouchableOpacity onPress={skip} style={{ alignSelf: 'center', marginTop: spacing.s4 }}>
+          <TouchableOpacity onPress={skip} style={{ alignSelf: 'center', marginTop: spacing.s4 }} accessibilityRole="button" accessibilityLabel="건너뛰고 둘러보기">
             <Text style={{ fontSize: typography.fz12, color: colors.accent }}>
               건너뛰고 둘러보기
             </Text>

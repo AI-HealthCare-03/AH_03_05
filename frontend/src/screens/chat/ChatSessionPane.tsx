@@ -209,6 +209,7 @@ export function ChatSessionPane({
           style={s.chatInput}
           placeholder="궁금한 점을 입력해주세요"
           placeholderTextColor={colors.muted2}
+          accessibilityLabel="채팅 메시지 입력"
           value={input}
           onChangeText={setInput}
           onSubmitEditing={Platform.OS !== 'web' ? send : undefined}
@@ -455,6 +456,8 @@ function SummarySection({ summary }: { summary: string }) {
           alignSelf: 'flex-start',
         }}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={expanded ? '요약 접기' : '요약 보기'}
       >
         <Icon name="info" size={11} color={colors.muted} />
         <Text style={{ fontSize: typography.fz11, color: colors.muted }}>
@@ -499,6 +502,8 @@ function RagSourcesSection({ sources }: { sources: RagSource[] }) {
           }}
           onPress={() => Linking.openURL(src.source_url)}
           activeOpacity={0.7}
+          accessibilityRole="link"
+          accessibilityLabel={`${src.organization_name} · ${src.guideline_title}`}
         >
           <Icon name="link" size={11} color={colors.accent} />
           <Text

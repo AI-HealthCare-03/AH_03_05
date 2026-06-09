@@ -19,6 +19,7 @@ export default function Input({
   onFocus,
   onBlur,
   multiline,
+  accessibilityLabel,
   ...props
 }: InputProps) {
   const [focused, setFocused] = useState(false);
@@ -53,6 +54,7 @@ export default function Input({
             style,
           ]}
           placeholderTextColor={colors.muted2}
+          accessibilityLabel={accessibilityLabel ?? label}
           onFocus={e => {
             setFocused(true);
             onFocus?.(e);

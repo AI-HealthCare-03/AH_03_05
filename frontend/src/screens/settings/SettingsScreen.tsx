@@ -114,6 +114,7 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
                       value={nicknameValue}
                       onChangeText={setNicknameValue}
                       autoFocus
+                      accessibilityLabel="닉네임 입력"
                     />
                     <Button
                       variant="primary"

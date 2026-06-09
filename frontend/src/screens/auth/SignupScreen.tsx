@@ -67,6 +67,8 @@ function AgreeRow({
         style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: spacing.s10 }}
         activeOpacity={0.7}
         accessibilityRole="checkbox"
+        accessibilityLabel={typeof label === 'string' ? label : undefined}
+        accessibilityState={{ checked }}
       >
         <View
           style={[
@@ -93,6 +95,7 @@ function AgreeRow({
           disabled={!onPressExtra}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
+          accessibilityLabel={extra}
         >
           <Text
             style={{
@@ -374,6 +377,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
               style={[styles.input, { outlineStyle: 'none', flexShrink: 1, minWidth: 0 } as any]}
               placeholder="name@example.com"
               placeholderTextColor={colors.muted2}
+              accessibilityLabel="이메일 입력"
               value={form.email}
               onChangeText={v => {
                 set('email', v);
@@ -588,7 +592,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: spacing.s16 }}>
         <Text style={{ fontSize: typography.fz13, color: colors.muted }}>이미 계정이 있나요? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} accessibilityRole="link">
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} accessibilityRole="link" accessibilityLabel="로그인">
           <Text style={{ fontSize: typography.fz13, color: colors.accent }}>로그인</Text>
         </TouchableOpacity>
       </View>

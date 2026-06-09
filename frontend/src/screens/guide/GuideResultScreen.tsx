@@ -98,6 +98,8 @@ export function GuideResultScreen({ navigation, route }: Props) {
           style={[s.tabBtn, tab === 'med' && s.tabBtnActive]}
           onPress={() => setTab('med')}
           accessibilityRole="checkbox"
+          accessibilityLabel="복약 안내 탭"
+          accessibilityState={{ checked: tab === 'med' }}
         >
           <Text style={[s.tabText, tab === 'med' && s.tabTextActive]}>💊 복약 안내</Text>
         </TouchableOpacity>
@@ -105,6 +107,8 @@ export function GuideResultScreen({ navigation, route }: Props) {
           style={[s.tabBtn, tab === 'life' && s.tabBtnActive]}
           onPress={() => setTab('life')}
           accessibilityRole="checkbox"
+          accessibilityLabel="생활습관 탭"
+          accessibilityState={{ checked: tab === 'life' }}
         >
           <Text style={[s.tabText, tab === 'life' && s.tabTextActive]}>🚶 생활습관</Text>
         </TouchableOpacity>
@@ -287,6 +291,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
                 textAlignVertical: 'top',
               }}
               multiline
+              accessibilityLabel="피드백 코멘트 입력"
               placeholder="어떤 점이 아쉬웠나요? (선택)"
               placeholderTextColor={colors.muted2}
               value={commentText}
