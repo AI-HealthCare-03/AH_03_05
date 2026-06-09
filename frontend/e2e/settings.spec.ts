@@ -88,7 +88,7 @@ test('TC-28: 비밀번호 변경 → 전체 기기 로그아웃', async ({ page 
   await inputs.nth(1).fill(NEW_PASSWORD);
   await inputs.nth(2).fill(NEW_PASSWORD);
   await page.getByText('변경하기').click({ force: true });
-  await page.waitForTimeout(3_000);
+  await page.waitForTimeout(2_000);
 
   await expect(page.getByText('비밀번호가 변경되었습니다').first()).toBeVisible({ timeout: 10_000 });
 });
