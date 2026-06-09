@@ -378,6 +378,7 @@ E2E 테스트(Playwright)는 화면 흐름을 검증하지만 `src/api/` 레이�
 ### 선정 이유
 - **jest-expo 프리셋** — Expo 환경에 필요한 RN 모듈 모킹·트랜스폼을 자동 처리, 별도 바벨/트랜스폼 설정 없이 바로 동작
 - **apiClient mock** 방식으로 네트워크 의존성 없이 `src/api/` 전체 함수를 빠르게 검증 — 52개 테스트, Statements 98% / Lines 99% 달성 (PR #157)
+- **커버리지 범위 확장** — 초기 `src/api/`에서 `src/hooks/`, `src/utils/`로 확대. `useBreakpoint`·`useNetworkStatus` 훅 100%, `date.ts` 유틸 100% 달성 (PR #166, #167). 총 **91개 테스트** (API 52 + utils 22 + hooks 17)
 - **codecov flags: frontend** 분리 — BE 커버리지와 독립적으로 FE 커버리지 추적 가능
 
 ---
