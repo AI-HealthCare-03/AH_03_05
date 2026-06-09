@@ -1,6 +1,6 @@
 # MediPT 기술 스택 선정 근거
 
-> 작성일: 2026-06-05 | 작성자: Backend A 돈유정
+> 작성일: 2026-06-05 | 최종 수정: 2026-06-09 | 작성자: Backend A 돈유정
 
 ---
 
@@ -14,19 +14,22 @@
 | 항목 | MySQL | **PostgreSQL** |
 |------|-------|---------------|
 | 배열/JSON 컬럼 | 제한적 (JSON만) | JSONB + 배열 네이티브 지원 |
-| async 드라이버 | `aiomysql` (불안정) | `asyncpg` (성숙, 고성능) |
-| aerich 호환성 | 일부 이슈 | 안정적 지원 |
-| AWS RDS | 지원 | 지원 (우리 배포 환경 선택) |
+| async 드라이버 | `aiomysql` (성숙도 낮음) | `asyncpg` (성숙, 고성능) |
+| aerich 호환성 | 마이그레이션 설정 복잡 | 안정적 지원 |
 
 ### 선정 이유
 
 **기술적 이유**
 - `alarm_times`, `chat_messages.category` 등 배열/Enum 컬럼을 별도 테이블 없이 네이티브로 관리 가능
-- `asyncpg` 드라이버 — Python async 환경에서 MySQL의 `aiomysql` 대비 안정적이고 빠름
+- `asyncpg` 드라이버 — Python async 환경에서 MySQL의 `aiomysql` 대비 성숙도 높고 성능 우수
 - Tortoise ORM + aerich 조합에서 MySQL 대비 마이그레이션 안정성이 높음 (Sprint 2 전환 후 마이그레이션 이슈 없음)
+- MySQL 기능을 모두 포함하면서 JSONB·배열 등 추가 기능 확보
+
+**전환 배경**
+- Sprint 1 MySQL 기반 개발 중 1차 멘토링(5/16)에서 PostgreSQL 전환 검토를 권고받아 Sprint 2에서 전환 (PR #51)
+- 전환 후 마이그레이션 번호 충돌 이슈를 rename으로 해결 (트러블슈팅 사례)
 
 **운영 이유**
-- AWS RDS PostgreSQL — 프로덕션 배포 환경(EC2 + RDS)에 맞춘 선택
 - `JSONB` 인덱싱 지원으로 향후 검색 기능 확장 시 쿼리 성능 확보 가능
 
 ---
@@ -67,19 +70,20 @@
 
 ## 3. FastAPI (웹 프레임워크)
 
-### 대안 비교
+### 도입 배경
+프로젝트 초기 세팅에서 도입된 프레임워크입니다. 사용하면서 다음과 같은 기능을 직접 분석하고 활용했습니다.
 
-| 항목 | Django REST | Flask | **FastAPI** |
-|------|------------|-------|------------|
-| async 지원 | 제한적 | 제한적 | 네이티브 |
-| 자동 API 문서 | 별도 설정 | 별도 설정 | Swagger 자동 생성 |
-| 타입 검증 | 수동 | 수동 | Pydantic 자동 |
-| 학습 곡선 | 높음 | 낮음 | 낮음 |
-
-### 선정 이유
-- Python async 네이티브 지원 — LLM 호출, DB I/O 등 I/O 바운드 작업이 많은 서비스 특성에 최적
-- Swagger 자동 생성 — FE와 API 연동 시 별도 문서 작업 없이 즉시 확인 가능
+### 주요 특징
+- async 네이티브 지원 — LLM 호출, DB I/O 등 I/O 바운드 작업이 많은 서비스에 적합
 - Pydantic 기반 DTO 자동 검증 — 요청/응답 스키마 정의와 검증을 한 곳에서 처리
+- Swagger 자동 생성 — 별도 문서 작업 없이 API 명세 즉시 확인 가능
+- Depends 의존성 주입 — 인증·서비스 레이어를 라우터와 분리해 재사용 가능
+
+### 활용 경험
+- **Pydantic v2 model_validator** — `field_validator`는 필드 정의 순서대로 실행되어 이전 필드 값을 참조할 수 없다는 동작을 실제 버그로 겪고, `model_validator(mode="after")`로 해결 (비밀번호 ≠ 이메일/이름 유사도 체크)
+- **lifespan 이벤트 핸들러** — `on_event` deprecated 방식 대신 `@asynccontextmanager` 기반 lifespan으로 스케줄러 시작/종료 처리
+- **Swagger 자동 생성** — FE와 API 연동 시 별도 문서 작업 없이 즉시 확인, 팀 내 엔드포인트 소통 비용 감소
+- **Depends 의존성 주입** — `get_request_user` 의존성으로 인증 처리를 라우터 레벨에서 일관되게 적용
 
 ---
 
@@ -136,29 +140,27 @@
 
 ## 7. uv (패키지 관리)
 
-### 대안 비교
+### 도입 배경
+프로젝트 초기 세팅에서 도입된 패키지 관리 도구입니다. pip 대비 빠른 설치 속도(Rust 기반)와 lock 파일·의존성 그룹 지원이 특징입니다.
 
-| 항목 | pip + venv | poetry | **uv** |
-|------|-----------|--------|-------|
-| 설치 속도 | 느림 | 중간 | 매우 빠름 (Rust 기반) |
-| 의존성 그룹 | 미지원 | 지원 | 지원 |
-| lock 파일 | 미지원 | 지원 | 지원 |
-
-### 선정 이유
-- pip 대비 10~100배 빠른 패키지 설치 속도 (Rust 기반)
-- `uv sync --group app` 으로 앱/개발 의존성 분리 관리
-- `uv run` 으로 가상환경 활성화 없이 명령어 실행 가능
-- Docker 빌드 시간 단축 효과
+### 활용 경험
+- `uv run pytest`, `uv run ruff check` 등 가상환경 활성화 없이 명령어 직접 실행 — 팀 전체 동일한 명령어로 테스트·린트 수행
+- `uv run ruff format` CI 린트 게이트와 연동해 PR마다 포맷 통과 필수화
+- Docker 빌드 시 pip 대비 빠른 의존성 설치로 빌드 시간 단축
 
 ---
 
 ## 8. Docker / Docker Compose (컨테이너화)
 
-### 선정 이유
+### 도입 배경
+프로젝트 초기 세팅에서 도입된 컨테이너 환경입니다.
+
+### 활용 경험
 - 로컬 개발 환경 통일 — 팀원 간 OS/환경 차이 없이 동일한 환경에서 개발
 - `docker-compose.yml` (로컬, `--reload` 포함) / `docker-compose.prod.yml` (프로덕션, `--reload` 제거) 분리 운영
 - PostgreSQL·Redis·FastAPI·Nginx 컨테이너 통합 관리
 - 컨테이너 시작 시 `aerich upgrade` 자동 실행으로 마이그레이션 누락 방지 (PR #121)
+- **테스트 환경 분리 경험** — 초기 테스트 DB URL이 운영 DB(`ai_health`)를 가리켜 Tortoise ORM `finalizer()`가 운영 DB를 삭제하는 문제 발견. `test_ai_health`로 분리해 해결 (테스트 환경과 운영 환경 분리의 중요성 체득)
 ---
 
 ## 9. OpenAI API (gpt-4o-mini) — LLM
@@ -382,4 +384,3 @@ E2E 테스트(Playwright)는 화면 흐름을 검증하지만 `src/api/` 레이�
 - **codecov flags: frontend** 분리 — BE 커버리지와 독립적으로 FE 커버리지 추적 가능
 
 ---
-
