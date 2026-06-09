@@ -47,6 +47,10 @@ class UserManageService:
             new_count = await redis_client.incr(redis_key)
             if new_count == 1:
                 await redis_client.expire(redis_key, PW_CHANGE_FAIL_TTL)
+            if new_count >= PW_CHANGE_FAIL_LIMIT:
+                raise TooManyRequestsException(
+                    detail="비밀번호 변경 시도 횟수를 초과했습니다. 10분 후 다시 시도해주세요."
+                )
             raise BadRequestException(detail="현재 비밀번호가 일치하지 않습니다.")
         if current_password == new_password:
             raise BadRequestException(detail="새 비밀번호는 현재 비밀번호와 달라야 합니다.")
@@ -77,6 +81,10 @@ class UserManageService:
             new_count = await redis_client.incr(redis_key)
             if new_count == 1:
                 await redis_client.expire(redis_key, WITHDRAW_FAIL_TTL)
+            if new_count >= WITHDRAW_FAIL_LIMIT:
+                raise TooManyRequestsException(
+                    detail="비밀번호를 5회 이상 잘못 입력했습니다. 24시간 후 다시 시도해주세요."
+                )
             raise BadRequestException(detail="비밀번호가 일치하지 않습니다.")
 
         await redis_client.delete(redis_key)
