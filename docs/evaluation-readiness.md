@@ -44,7 +44,7 @@
 FE 구현 영역 (작성: 조이레).
 
 - 4-1 화면 흐름: **양호** — 주요 기능 3~4단계 이내 접근. Playwright E2E 테스트(TC-02~30) 핵심 화면 흐름 자동 검증 [PR #136]
-- 4-2 일관된 경험: **양호** — accessibilityRole/Label 전 화면 적용 [PR #163], 오프라인 배너, 입력 검증 강화, ErrorBoundary 추가 [PR #161]. FE 단위 테스트·Codecov 100% 달성 [PR #169]
+- 4-2 일관된 경험: **양호** — accessibilityRole/Label 전 화면 적용 [PR #163], 오프라인 배너, 입력 검증 강화, ErrorBoundary 추가 [PR #161]. FE 단위 테스트·Codecov 100% 달성 [PR #169]. (단 HealthProfileHistory·홈 복약달력은 BE 미구현으로 EmptyState 표시 — P2 확정 [PR #151])
 - 4-3 액션 단계: **양호** — 핵심 경로 5단계 이내. OCR→약품 확인 전체 플로우는 선택 단계 포함 시 최대 7단계
 
 ## 5. API (5-1 ~ 5-5)

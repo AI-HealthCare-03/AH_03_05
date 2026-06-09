@@ -35,5 +35,6 @@ secrets/
 # Claude Code
 CLAUDE.md
 .claude/
-*.logperf_local*.csv
+*.log
+perf_local*.csv
 pr*.diff
