@@ -16,7 +16,7 @@ services:
 
   # 2. Database
   postgresql:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     container_name: postgresql
     restart: always
     environment:

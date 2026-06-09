@@ -23,6 +23,7 @@ TORTOISE_APP_MODELS = [
     "app.models.chat_messages",
     "app.models.guides",
     "app.models.guideline_sources",
+    "app.models.guideline_chunks",
     "app.models.prompt_policies",
 ]
 
