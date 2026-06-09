@@ -50,6 +50,14 @@ class UserManageService:
             raise BadRequestException(detail="현재 비밀번호가 일치하지 않습니다.")
         if current_password == new_password:
             raise BadRequestException(detail="새 비밀번호는 현재 비밀번호와 달라야 합니다.")
+        # 이메일/이름/닉네임과 유사한 비밀번호 제한
+        email_local = user.email.split("@")[0].lower() if user.email else ""
+        if email_local and email_local in new_password.lower():
+            raise BadRequestException(detail="비밀번호에 이메일 주소를 포함할 수 없습니다.")
+        if user.name and user.name.lower() in new_password.lower():
+            raise BadRequestException(detail="비밀번호에 이름을 포함할 수 없습니다.")
+        if user.nickname and user.nickname.lower() in new_password.lower():
+            raise BadRequestException(detail="비밀번호에 닉네임을 포함할 수 없습니다.")
         async with in_transaction():
             user.password_hash = hash_password(new_password)
             user.password_changed_at = datetime.now(UTC)
