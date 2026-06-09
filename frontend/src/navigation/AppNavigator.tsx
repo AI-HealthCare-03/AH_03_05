@@ -52,14 +52,11 @@ const linking: LinkingOptions<any> = {
             screens: {
               RecordList: 'records',
               RecordDetail: 'records/:recordId',
-              DrugDosage: 'records/dosage',
-              DrugDetail: 'records/drug/:drugId',
             },
           },
           GuideTab: {
             screens: {
               GuideResult: 'guide',
-              GuideLoading: 'guide/guide-loading',
             },
           },
           ChatTab: {

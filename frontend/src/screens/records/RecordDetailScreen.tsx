@@ -37,7 +37,8 @@ function mapApiError(err: any): string {
 
 export function RecordDetailScreen({ navigation, route }: Props) {
   const { flash } = useApp();
-  const recordId: number | undefined = route?.params?.recordId;
+  const rawRecordId = route?.params?.recordId;
+  const recordId: number | undefined = rawRecordId != null ? Number(rawRecordId) : undefined;
   const [record, setRecord] = useState<RecordDetail | null>(null);
   const [medications, setMedications] = useState<MedicationItem[]>([]);
   const [guide, setGuide] = useState<RecordGuideResponse | null>(null);
