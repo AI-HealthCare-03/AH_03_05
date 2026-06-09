@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Platform, Appearance, View, Text, StyleSheet } from 'react-native';
+import { colors, typography } from './src/theme';
 import * as Notifications from 'expo-notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider } from './src/context/AppContext';
@@ -19,6 +20,10 @@ class ErrorBoundary extends React.Component<
 
   static getDerivedStateFromError(): { hasError: boolean } {
     return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
   render() {
@@ -41,8 +46,8 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   errorText: {
-    fontSize: 16,
-    color: '#64748B',
+    fontSize: typography.fz16,
+    color: colors.muted,
     textAlign: 'center',
   },
 });
