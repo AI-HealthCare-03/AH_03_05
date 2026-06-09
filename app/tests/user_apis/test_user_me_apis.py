@@ -94,7 +94,7 @@ class TestUserMeApis(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["detail"] == "비밀번호가 변경되었습니다."
+        assert response.json()["detail"] == "비밀번호가 변경되었습니다. 다시 로그인해주세요."
 
     async def test_change_password_wrong_current(self):
         # Given

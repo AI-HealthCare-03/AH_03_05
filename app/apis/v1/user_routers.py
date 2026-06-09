@@ -42,7 +42,7 @@ async def change_password(
     user_manage_service: Annotated[UserManageService, Depends(UserManageService)],
 ) -> PasswordChangeResponse:
     await user_manage_service.change_password(user, request.current_password, request.new_password)
-    return PasswordChangeResponse(detail="비밀번호가 변경되었습니다.")
+    return PasswordChangeResponse(detail="비밀번호가 변경되었습니다. 다시 로그인해주세요.")
 
 
 @user_router.delete("/me", response_model=WithdrawResponse, status_code=status.HTTP_200_OK)
