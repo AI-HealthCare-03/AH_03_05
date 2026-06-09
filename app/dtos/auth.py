@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.core.validators.user_validators import validate_password
 
@@ -19,17 +19,20 @@ class SignUpRequest(BaseModel):
 
     @field_validator("password")
     @classmethod
-    def password_policy(cls, v: str, info: any) -> str:
+    def password_policy(cls, v: str) -> str:
         validate_password(v)
-        # 이메일/이름과 유사한 비밀번호 제한
-        email = info.data.get("email", "")
-        name = info.data.get("name", "")
-        email_local = str(email).split("@")[0].lower() if email else ""
-        if email_local and email_local in v.lower():
-            raise ValueError("비밀번호에 이메일 주소를 포함할 수 없습니다.")
-        if name and name.lower() in v.lower():
-            raise ValueError("비밀번호에 이름을 포함할 수 없습니다.")
         return v
+
+    @model_validator(mode="after")
+    def password_not_similar_to_personal_info(self) -> "SignUpRequest":
+        password = self.password or ""
+        email_local = str(self.email).split("@")[0].lower() if self.email else ""
+        name = self.name or ""
+        if email_local and email_local in password.lower():
+            raise ValueError("비밀번호에 이메일 주소를 포함할 수 없습니다.")
+        if name and name.lower() in password.lower():
+            raise ValueError("비밀번호에 이름을 포함할 수 없습니다.")
+        return self
 
 
 class SignUpResponse(BaseModel):
