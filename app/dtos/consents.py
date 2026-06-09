@@ -21,6 +21,7 @@ class ConsentToggleRequest(BaseModel):
 
 class ConsentToggleResponse(BaseModel):
     consent_type: str
+    required_type: str
     is_agreed: bool
     agreed_at: datetime | None = None
     revoked_at: datetime | None = None

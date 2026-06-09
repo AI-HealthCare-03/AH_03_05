@@ -187,7 +187,9 @@ class TestUserMeApis(TestCase):
 
     async def test_withdraw_user_wrong_password(self):
         # Given
-        email = "withdraw2@example.com"
+        import uuid
+
+        email = f"withdraw_wrong_{uuid.uuid4().hex[:8]}@example.com"
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(
                 "/api/v1/auth/signup",
@@ -244,7 +246,13 @@ class TestUserMeApis(TestCase):
                 headers={**headers, "Content-Type": "application/json"},
                 content=b'{"password": "WrongPassword123!"}',
             )
+            # Redis 키 정리 — async with 블록 안에서 처리 (DB 롤백 전)
+            from app.core.redis import redis_client
+            from app.models.users import User as UserModel
 
+            u = await UserModel.get_or_none(email=email)
+            if u:
+                await redis_client.delete(f"withdraw_fail:{u.id}")
         # Then
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
@@ -419,3 +427,36 @@ class TestRevokeAllDevicesAPI(TestCase):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.delete("/api/v1/users/me/devices")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_get_user_me_invalid_token(self):
+        # Given - 존재하지 않는 유저의 토큰으로 요청 (DB에 없는 user_id)
+        from app.models.users import User
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "ghost_user@example.com",
+                    "password": "Password123!",
+                    "name": "유령유저",
+                    "consents": [
+                        {"consent_type": "terms", "is_agreed": True},
+                        {"consent_type": "privacy", "is_agreed": True},
+                        {"consent_type": "sensitive_health", "is_agreed": True},
+                        {"consent_type": "ai_analysis", "is_agreed": True},
+                        {"consent_type": "marketing", "is_agreed": False},
+                    ],
+                },
+            )
+            login = await client.post(
+                "/api/v1/auth/login", json={"email": "ghost_user@example.com", "password": "Password123!"}
+            )
+            token = login.json()["access_token"]
+            user = await User.get(email="ghost_user@example.com")
+            await user.delete()
+            # When - 삭제된 유저의 토큰으로 요청
+            headers = {"Authorization": f"Bearer {token}"}
+            response = await client.get("/api/v1/users/me", headers=headers)
+        # Then
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json()["detail"] == "인증에 실패했습니다."

@@ -43,7 +43,7 @@ class TestLogoutAPI(TestCase):
             response = await client.post("/api/v1/auth/logout", json={"refresh_token": "invalid_token"})
 
         # Then
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 class TestRefreshAPI(TestCase):

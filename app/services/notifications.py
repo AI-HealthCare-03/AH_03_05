@@ -17,8 +17,9 @@ class NotificationService:
         notification = await Notification.get_or_none(id=notification_id, user=user)
         if notification is None:
             return None
-        notification.is_read = True
-        notification.read_at = datetime.now(UTC)
+        if not notification.is_read:
+            notification.is_read = True
+            notification.read_at = datetime.now(UTC)
         await notification.save()
         return notification
 

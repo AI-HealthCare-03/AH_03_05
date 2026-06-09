@@ -104,3 +104,18 @@ class TestConsentAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_toggle_required_consent_returns_400(self):
+        # Given - 필수 약관 철회 시도
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "consent4@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+            # When
+            response = await client.patch(
+                "/api/v1/users/me/consents/terms",
+                headers=headers,
+                json={"is_agreed": False},
+            )
+        # Then
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "회원탈퇴" in response.json()["detail"]

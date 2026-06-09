@@ -29,6 +29,7 @@ class UserInfoResponse(BaseSerializerModel):
     name: str
     nickname: str | None
     status: str
+    last_login_at: datetime | None = None
     created_at: datetime
 
 
