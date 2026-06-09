@@ -22,7 +22,8 @@ function todayStr() {
 }
 
 export function DrugDetailScreen({ navigation, route }: Props) {
-  const drugId: number | undefined = route?.params?.drugId;
+  const rawId = route?.params?.drugId;
+  const drugId: number | undefined = rawId != null ? Number(rawId) : undefined;
   const cached = drugId != null ? cache.get(drugId) : undefined;
 
   const [drug, setDrug] = useState<DrugDetail | null>(cached?.data ?? null);
