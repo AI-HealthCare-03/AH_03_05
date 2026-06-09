@@ -45,6 +45,7 @@ class PasswordChangeRequest(BaseModel):
 
 class PasswordChangeResponse(BaseModel):
     detail: str
+    logout_all_devices: bool = True
 
 
 class WithdrawRequest(BaseModel):

@@ -76,3 +76,31 @@ class TestSignupAPI(TestCase):
             response = await client.post("/api/v1/auth/signup", json=signup_data)
         # Then
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+    async def test_signup_password_similar_to_email(self):
+        # Given - 비밀번호에 이메일 주소 포함
+        signup_data = {
+            "email": "testuser@example.com",
+            "password": "testuser123!",
+            "name": "테스터",
+            "consents": CONSENTS,
+        }
+        # When
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/api/v1/auth/signup", json=signup_data)
+        # Then
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+    async def test_signup_password_similar_to_name(self):
+        # Given - 비밀번호에 이름 포함
+        signup_data = {
+            "email": "another@example.com",
+            "password": "Hong123!Gil",
+            "name": "Hong",
+            "consents": CONSENTS,
+        }
+        # When
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/api/v1/auth/signup", json=signup_data)
+        # Then
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT

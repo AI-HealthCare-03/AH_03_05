@@ -94,7 +94,7 @@ class TestUserMeApis(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["detail"] == "비밀번호가 변경되었습니다."
+        assert response.json()["detail"] == "비밀번호가 변경되었습니다. 다시 로그인해주세요."
 
     async def test_change_password_wrong_current(self):
         # Given
@@ -460,3 +460,79 @@ class TestRevokeAllDevicesAPI(TestCase):
         # Then
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json()["detail"] == "인증에 실패했습니다."
+
+    async def test_change_password_similar_to_email(self):
+        # Given - 새 비밀번호에 이메일 포함
+        email = "pw_email@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "이메일테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+            # When - 새 비밀번호에 이메일 아이디 포함
+            response = await client.patch(
+                "/api/v1/users/me/password",
+                headers=headers,
+                json={"current_password": "Password123!", "new_password": "pw_email123!"},
+            )
+        # Then
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_change_password_similar_to_name(self):
+        # Given - 새 비밀번호에 이름 포함
+        email = "pw_name@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "홍길동",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+            # When - 새 비밀번호에 이름 포함
+            response = await client.patch(
+                "/api/v1/users/me/password",
+                headers=headers,
+                json={"current_password": "Password123!", "new_password": "홍길동Password1!"},
+            )
+        # Then
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_change_password_similar_to_nickname(self):
+        # Given - 새 비밀번호에 닉네임 포함
+        email = "pw_nick@example.com"
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": email,
+                    "password": "Password123!",
+                    "name": "닉네임테스터",
+                    "nickname": "coolnick",
+                    "consents": CONSENTS,
+                },
+            )
+            login_response = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+            access_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+            # When - 새 비밀번호에 닉네임 포함
+            response = await client.patch(
+                "/api/v1/users/me/password",
+                headers=headers,
+                json={"current_password": "Password123!", "new_password": "coolnick123!"},
+            )
+        # Then
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
