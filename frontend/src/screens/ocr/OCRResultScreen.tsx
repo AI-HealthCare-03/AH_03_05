@@ -178,6 +178,8 @@ export function OCRResultScreen({ navigation, route }: Props) {
                 flash('이미지를 복원했습니다');
               }}
               style={{ marginTop: spacing.s4 }}
+              accessibilityRole="button"
+              accessibilityLabel="이미지 복원"
             >
               <Text style={{ fontSize: typography.fz12, color: colors.accent }}>되돌리기</Text>
             </TouchableOpacity>
@@ -200,6 +202,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
             onPress={() => setTextExpanded(p => !p)}
             accessibilityRole="button"
+            accessibilityLabel={textExpanded ? '인식 텍스트 접기' : '인식 텍스트 편집'}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s8 }}>
               <Icon name="edit" size={14} color={colors.ink2} />
@@ -227,6 +230,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
                 onChangeText={setOcrText}
                 placeholder="인식된 텍스트를 수정해주세요"
                 placeholderTextColor={colors.muted2}
+                accessibilityLabel="인식된 텍스트 편집"
               />
               <TouchableOpacity
                 style={{
@@ -238,6 +242,8 @@ export function OCRResultScreen({ navigation, route }: Props) {
                   borderRadius: 8,
                 }}
                 disabled={savingText}
+                accessibilityRole="button"
+                accessibilityLabel="텍스트 저장"
                 onPress={async () => {
                   setSavingText(true);
                   try {
@@ -266,7 +272,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
           icon="link"
           label={`인식된 약품 (${displayDrugs.length}종)`}
           action={
-            <TouchableOpacity onPress={() => navigation.navigate('DrugCandidate')}>
+            <TouchableOpacity onPress={() => navigation.navigate('DrugCandidate')} accessibilityRole="button" accessibilityLabel="약품 직접 추가">
               <Text style={{ fontSize: typography.fz13, color: colors.accent }}>+ 직접 추가</Text>
             </TouchableOpacity>
           }

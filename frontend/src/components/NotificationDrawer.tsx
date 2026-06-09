@@ -164,7 +164,7 @@ export default function NotificationDrawer() {
           style={[s.scrim, { opacity: fadeAnim }]}
           pointerEvents={notifDrawerOpen ? 'auto' : 'none'}
         >
-          <TouchableOpacity style={{ flex: 1 }} onPress={close} activeOpacity={1} />
+          <TouchableOpacity style={{ flex: 1 }} onPress={close} activeOpacity={1} accessibilityRole="button" accessibilityLabel="알림 닫기" />
         </Animated.View>
 
         {/* 드로워 패널 */}
@@ -240,6 +240,8 @@ export default function NotificationDrawer() {
                                 alignItems: 'flex-start',
                                 gap: spacing.s12,
                               }}
+                              accessibilityRole="button"
+                              accessibilityLabel={n.title}
                             >
                               <View style={s.notifIcon}>
                                 <Icon name={n.icon} size={14} color={colors.accent700} />

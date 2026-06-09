@@ -291,6 +291,8 @@ export function RecordDetailScreen({ navigation, route }: Props) {
                 onPress={() =>
                   med.drug_ref_id && navigation.navigate('DrugDetail', { drugId: med.drug_ref_id })
                 }
+                accessibilityRole="button"
+                accessibilityLabel={med.drug_ref_id ? `${med.drug_name} 상세 보기` : med.drug_name}
               >
                 <View
                   style={{
@@ -449,6 +451,8 @@ export function RecordDetailScreen({ navigation, route }: Props) {
                 onPress={handleDownload}
                 disabled={downloading}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.s4 }}
+                accessibilityRole="button"
+                accessibilityLabel="원본 이미지 다운로드"
               >
                 {downloading ? (
                   <ActivityIndicator size="small" color={colors.accent} />

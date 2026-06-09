@@ -9,6 +9,7 @@ interface CardProps {
   noPadding?: boolean;
   shadow?: boolean;
   onPress?: () => void;
+  accessibilityLabel?: string;
 }
 
 export default function Card({
@@ -18,13 +19,20 @@ export default function Card({
   noPadding,
   shadow,
   onPress,
+  accessibilityLabel,
 }: CardProps) {
   const inner = (
     <View style={[s.card, noPadding && s.noPadding, shadow && s.shadow, style]}>{children}</View>
   );
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={containerStyle}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        style={containerStyle}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+      >
         {inner}
       </TouchableOpacity>
     );

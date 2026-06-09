@@ -46,6 +46,8 @@ export const MenuItem = React.memo(function MenuItem({
         separator && { borderTopWidth: 0.5, borderTopColor: colors.hairline },
       ]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
     >
       <Icon name={icon} size={16} color={iconColor} />
       <Text

@@ -310,6 +310,7 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
             value={manualText}
             onChangeText={setManualText}
             style={s.manualInput}
+            accessibilityLabel="진료 내용 직접 입력"
           />
           {uploadError ? (
             <View style={s.errorBox}>

@@ -287,6 +287,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
                 textAlignVertical: 'top',
               }}
               multiline
+              accessibilityLabel="피드백 코멘트 입력"
               placeholder="어떤 점이 아쉬웠나요? (선택)"
               placeholderTextColor={colors.muted2}
               value={commentText}

@@ -237,6 +237,7 @@ export function HealthProfileEditScreen({ navigation }: { navigation: NavProp })
           의사 소견 <Text style={{ color: colors.muted, fontWeight: typography.fw4 }}>(선택)</Text>
         </Text>
         <TextInput
+          accessibilityLabel="의사 소견 입력"
           style={[
             {
               borderWidth: 1,

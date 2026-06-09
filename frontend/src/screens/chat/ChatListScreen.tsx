@@ -418,6 +418,7 @@ const SessionRow = React.memo(function SessionRow({
         ]}
         onPress={() => onPress(session)}
         accessibilityRole="link"
+        accessibilityLabel={session.title}
         activeOpacity={0.7}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>

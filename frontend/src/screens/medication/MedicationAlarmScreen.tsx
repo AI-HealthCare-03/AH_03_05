@@ -102,6 +102,8 @@ export function MedicationAlarmScreen({ navigation, route }: Props) {
           onPress={handleComplete}
           disabled={snoozing !== null || done}
           activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel={done ? '복약 완료됨' : '복약 완료'}
         >
           <Text style={s.completeBtnText}>{done ? '복약 완료됨 ✓' : '복약 완료'}</Text>
         </TouchableOpacity>
@@ -114,6 +116,8 @@ export function MedicationAlarmScreen({ navigation, route }: Props) {
               onPress={() => snooze(min)}
               disabled={snoozing !== null || done}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={`${min}분 스누즈`}
             >
               {snoozing === min ? (
                 <ActivityIndicator color={colors.accent} size="small" />
@@ -132,6 +136,8 @@ export function MedicationAlarmScreen({ navigation, route }: Props) {
           onPress={dismiss}
           disabled={snoozing !== null || done}
           activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel="복약 중지"
         >
           <Text style={s.dismissText}>중지</Text>
         </TouchableOpacity>

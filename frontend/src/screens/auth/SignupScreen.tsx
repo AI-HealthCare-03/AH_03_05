@@ -374,6 +374,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
               style={[styles.input, { outlineStyle: 'none', flexShrink: 1, minWidth: 0 } as any]}
               placeholder="name@example.com"
               placeholderTextColor={colors.muted2}
+              accessibilityLabel="이메일 입력"
               value={form.email}
               onChangeText={v => {
                 set('email', v);
