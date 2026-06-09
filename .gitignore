@@ -36,3 +36,5 @@ secrets/
 CLAUDE.md
 .claude/
 *.log
+perf_local*.csv
+pr*.diff
