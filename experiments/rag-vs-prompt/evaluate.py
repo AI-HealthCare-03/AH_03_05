@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from common import client
+from common import client  # noqa: E402
 
 RAW = os.path.join(os.path.dirname(__file__), "results_raw.json")
 OUT = os.path.join(os.path.dirname(__file__), "results_scored.json")

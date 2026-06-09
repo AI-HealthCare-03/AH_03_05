@@ -28,7 +28,7 @@ def chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = OVERLAP) -> lis
 
 
 def cosine(a, b) -> float:
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     na = sum(x * x for x in a) ** 0.5
     nb = sum(x * x for x in b) ** 0.5
     return dot / (na * nb + 1e-9)

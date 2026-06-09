@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from pipeline_prompt import run_prompt
-from pipeline_rag import run_rag
+from pipeline_prompt import run_prompt  # noqa: E402
+from pipeline_rag import run_rag  # noqa: E402
 
 DATASET = os.path.join(os.path.dirname(__file__), "dataset.json")
 OUT = os.path.join(os.path.dirname(__file__), "results_raw.json")
