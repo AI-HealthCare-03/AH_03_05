@@ -17,7 +17,7 @@ beforeEach(() => jest.clearAllMocks());
 describe('medications API', () => {
   it('verifyMedication calls PATCH /medications/{id}/verify', async () => {
     mockPatch.mockResolvedValue({ data: {} });
-    await verifyMedication(1, { drug_id: 10, is_verified: true });
+    await verifyMedication(1, { medication_id: 1, drug_ref_id: '10' });
     expect(mockPatch).toHaveBeenCalledWith('/medications/1/verify', expect.any(Object));
   });
 
@@ -41,7 +41,7 @@ describe('medications API', () => {
 
   it('updateMedicationAlarm calls PATCH /medications/{id}/alarm', async () => {
     mockPatch.mockResolvedValue({ data: {} });
-    await updateMedicationAlarm(1, { is_enabled: true });
+    await updateMedicationAlarm(1, { alarm_times: [], is_alarm_enabled: true });
     expect(mockPatch).toHaveBeenCalledWith('/medications/1/alarm', expect.any(Object));
   });
 });
