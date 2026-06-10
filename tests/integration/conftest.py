@@ -212,3 +212,13 @@ def mock_mfds_detail_rate_limit(mocker):
             response=mock_response,
         ),
     )
+
+
+@pytest.fixture(autouse=True)
+def mock_get_rag_context(mocker):
+    """RAG 벡터 검색 mock - 모든 테스트에 자동 적용"""
+    return mocker.patch(
+        "app.services.rag_service.get_rag_context",
+        new_callable=AsyncMock,
+        return_value="",
+    )
