@@ -1,39 +1,38 @@
 import os
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from app.models.guideline_chunks import GuidelineChunk
 from app.models.guideline_sources import EmbeddingStatus, GuidelineSource
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 EMBEDDING_MODEL = "text-embedding-3-small"
 CHUNK_SIZE = 500
 
 
+def _get_client() -> AsyncOpenAI:
+    return AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+
 def split_text(text: str, chunk_size: int = CHUNK_SIZE) -> list[str]:
-    """텍스트를 청크 단위로 분할"""
-    words = text.split()
+    """텍스트를 청크 단위로 분할 (한국어 고려 문자 단위 분할)"""
     chunks = []
-    current_chunk = []
-    current_size = 0
-
-    for word in words:
-        current_chunk.append(word)
-        current_size += len(word) + 1
-        if current_size >= chunk_size:
-            chunks.append(" ".join(current_chunk))
-            current_chunk = []
-            current_size = 0
-
-    if current_chunk:
-        chunks.append(" ".join(current_chunk))
-
-    return chunks
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        if end < len(text):
+            for sep in ["다. ", "요. ", "다.\n", "요.\n"]:
+                pos = text.rfind(sep, start, end)
+                if pos != -1:
+                    end = pos + len(sep)
+                    break
+        chunks.append(text[start:end].strip())
+        start = end
+    return [c for c in chunks if c]
 
 
-def get_embedding(text: str) -> list[float]:
+async def get_embedding(text: str) -> list[float]:
     """OpenAI 임베딩 생성"""
-    response = client.embeddings.create(
+    response = await _get_client().embeddings.create(
         model=EMBEDDING_MODEL,
         input=text,
     )
@@ -59,7 +58,7 @@ async def embed_guideline_source(source_id: int, text: str) -> None:
     try:
         chunks = split_text(text)
         for idx, chunk_text in enumerate(chunks):
-            embedding = get_embedding(chunk_text)
+            embedding = await get_embedding(chunk_text)
             await GuidelineChunk.create(
                 source=source,
                 chunk_text=chunk_text,
@@ -79,8 +78,11 @@ async def search_similar_chunks(
     top_k: int = 3,
     threshold: float = 0.7,
 ) -> list[dict]:
-    """쿼리와 유사한 가이드라인 청크 검색"""
-    query_embedding = get_embedding(query)
+    """쿼리와 유사한 가이드라인 청크 검색
+    현재는 전체 청크 로드 후 파이썬 유사도 계산 방식.
+    청크 증가 시 pgvector 네이티브 타입으로 고도화 예정.
+    """
+    query_embedding = await get_embedding(query)
     chunks = await GuidelineChunk.all().prefetch_related("source")
 
     results = []
