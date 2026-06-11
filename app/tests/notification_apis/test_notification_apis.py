@@ -184,3 +184,47 @@ class TestNotificationAPI(TestCase):
             await notification.refresh_from_db()
         # Then - read_at이 보존되어야 함
         assert notification.read_at == original_read_at
+
+    async def test_get_notifications_is_read_filter(self):
+        # Given - 읽음/미읽음 알림 각 1개
+        from app.models.notifications import Notification
+        from app.models.users import User
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "notify_filter@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+            user = await User.get(email="notify_filter@example.com")
+            await Notification.create(user=user, notification_type="system", title="읽음", message="내용", is_read=True)
+            await Notification.create(
+                user=user, notification_type="system", title="미읽음", message="내용", is_read=False
+            )
+            # When - 미읽음만 필터
+            response = await client.get("/api/v1/notifications?is_read=false", headers=headers)
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["total"] == 1
+        assert all(not item["is_read"] for item in response.json()["items"])
+
+    async def test_get_notifications_pagination(self):
+        # Given - size보다 많은 알림 생성 (5개)
+        from app.models.notifications import Notification
+        from app.models.users import User
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "notify_page@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+            user = await User.get(email="notify_page@example.com")
+            total_count = 5
+            page_size = 2
+            for i in range(total_count):
+                await Notification.create(
+                    user=user, notification_type="system", title=f"알림{i + 1}", message="내용", is_read=False
+                )
+            # When - size=2로 첫 페이지 요청
+            response = await client.get(f"/api/v1/notifications?page=1&size={page_size}", headers=headers)
+        # Then - items는 size만큼만, total은 전체 개수
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.json()["items"]) == page_size
+        assert response.json()["total"] == total_count
+        assert response.json()["page"] == 1
+        assert response.json()["size"] == page_size

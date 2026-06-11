@@ -2,7 +2,7 @@ import asyncio
 import os
 from collections.abc import Generator
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 import pytest_asyncio
@@ -50,3 +50,13 @@ def initialize(request: FixtureRequest) -> Generator[None, None]:
 @pytest_asyncio.fixture(autouse=True, scope="session")  # type: ignore[type-var]
 def event_loop() -> None:
     pass
+
+
+@pytest.fixture(autouse=True)
+def mock_get_rag_context_app(mocker):
+    """RAG 벡터 검색 mock - app/tests 전체 자동 적용"""
+    return mocker.patch(
+        "app.services.chatbot_service.get_rag_context",
+        new_callable=AsyncMock,
+        return_value="",
+    )

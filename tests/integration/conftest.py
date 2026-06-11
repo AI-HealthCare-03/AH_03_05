@@ -39,6 +39,33 @@ from tests.integration.fixtures.mfds_responses import (
     SEARCH_TYLENOL,
 )
 
+
+@pytest.fixture(autouse=True)
+def mock_drug_cache(mocker):
+    """약품 검색 캐싱용 Redis를 인메모리 dict로 대체 (실제 Redis 연결 불필요)."""
+    store: dict[str, str] = {}
+
+    async def fake_get(key):
+        return store.get(key)
+
+    async def fake_set(key, value, ex=None):
+        store[key] = value
+
+    mocker.patch("app.apis.v1.drug_routers.redis_client.get", side_effect=fake_get)
+    mocker.patch("app.apis.v1.drug_routers.redis_client.set", side_effect=fake_set)
+    return store
+
+
+@pytest.fixture
+def mock_get_rag_context(mocker):
+    """RAG 벡터 검색 mock"""
+    return mocker.patch(
+        "app.services.chatbot_service.get_rag_context",
+        new_callable=AsyncMock,
+        return_value="",
+    )
+
+
 # llm_service.generate_guide() 용
 # generate_guide는 OpenAI를 2번 호출 (복약 -> 생활습관)
 
@@ -99,7 +126,7 @@ def mock_generate_guide_over65(mocker):
 
 
 @pytest.fixture
-def mock_chat_normal(mocker):
+def mock_chat_normal(mocker, mock_get_rag_context):
     """일반 복약 질문 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
@@ -109,7 +136,7 @@ def mock_chat_normal(mocker):
 
 
 @pytest.fixture
-def mock_chat_food(mocker):
+def mock_chat_food(mocker, mock_get_rag_context):
     """음식 관련 질문 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
@@ -119,7 +146,7 @@ def mock_chat_food(mocker):
 
 
 @pytest.fixture
-def mock_chat_out_of_scope(mocker):
+def mock_chat_out_of_scope(mocker, mock_get_rag_context):
     """범위 외 질문 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
@@ -129,7 +156,7 @@ def mock_chat_out_of_scope(mocker):
 
 
 @pytest.fixture
-def mock_chat_safety_true(mocker):
+def mock_chat_safety_true(mocker, mock_get_rag_context):
     """LLM이 safety_flag=true로 판단한 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
@@ -139,7 +166,7 @@ def mock_chat_safety_true(mocker):
 
 
 @pytest.fixture
-def mock_chat_history(mocker):
+def mock_chat_history(mocker, mock_get_rag_context):
     """멀티턴 대화 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",

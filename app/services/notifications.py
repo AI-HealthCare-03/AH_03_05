@@ -5,10 +5,20 @@ from app.models.users import User
 
 
 class NotificationService:
-    async def get_notifications(self, user: User) -> tuple[list[Notification], int]:
-        notifications = await Notification.filter(user=user).order_by("-created_at")
+    async def get_notifications(
+        self,
+        user: User,
+        page: int = 1,
+        size: int = 20,
+        is_read: bool | None = None,
+    ) -> tuple[list[Notification], int, int]:
+        query = Notification.filter(user=user)
+        if is_read is not None:
+            query = query.filter(is_read=is_read)
+        total = await query.count()
+        notifications = await query.order_by("-created_at").offset((page - 1) * size).limit(size)
         unread_count = await self.get_unread_count(user)
-        return notifications, unread_count
+        return notifications, unread_count, total
 
     async def get_unread_count(self, user: User) -> int:
         return await Notification.filter(user=user, is_read=False).count()

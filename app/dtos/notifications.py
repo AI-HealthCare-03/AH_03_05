@@ -19,6 +19,9 @@ class NotificationItem(BaseSerializerModel):
 class NotificationListResponse(BaseModel):
     items: list[NotificationItem]
     unread_count: int
+    total: int
+    page: int
+    size: int
 
 
 class NotificationReadResponse(BaseModel):

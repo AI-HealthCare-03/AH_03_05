@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
 from app.services.guideline_loader import get_disease_names, get_guideline_context
+from app.services.rag_service import get_rag_context
 from app.services.safety_filter import check_safety, get_safety_response
 
 load_dotenv()
@@ -129,10 +130,12 @@ async def chat(
     if check_safety(user_input):
         return get_safety_response()
 
-    # 로어북 로드
+    # 로어북 + RAG 벡터 검색 결합
     chronic_diseases = health_profile.get("chronic_diseases", [])
     age_group = health_profile.get("age_group", "")
-    guideline_context = get_guideline_context(chronic_diseases, age_group)
+    lore_context = get_guideline_context(chronic_diseases, age_group)
+    rag_context = await get_rag_context(user_input, top_k=3)
+    guideline_context = "\n\n---\n\n".join(filter(None, [lore_context, rag_context]))
 
     # LLM 호출
     try:

@@ -221,10 +221,9 @@ _logic에서 의사 소견 항목과 가이드라인 추가 항목을 먼저 정
 
 async def generate_guide(health_profile: dict) -> dict:
     chronic_diseases = health_profile.get("chronic_diseases", [])
-    age = health_profile.get("age", 0)
-    medications = health_profile.get("medications", [])
-
-    guideline_context = get_guideline_context(chronic_diseases, age)
+    age_group = health_profile.get("age_group", "")
+    medications = health_profile.get("current_medications") or health_profile.get("medications") or []
+    guideline_context = get_guideline_context(chronic_diseases, age_group)
     drug_context = build_drug_context(medications)
 
     # ── 1호출: 복약 가이드 생성 ──

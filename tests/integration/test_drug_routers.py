@@ -58,6 +58,22 @@ class TestDrugSearch:
         assert response.status_code == 504
         assert "응답 시간" in response.json()["detail"]
 
+    async def test_search_cache_miss_then_hit(self, mock_mfds_search_success, client):
+        """첫 검색은 캐시 미스(cache_used=False), 재검색은 캐시 히트(cache_used=True)."""
+        first = await client.get("/api/v1/drugs/search?keyword=타이레놀")
+        second = await client.get("/api/v1/drugs/search?keyword=타이레놀")
+        assert first.json()["cache_used"] is False
+        assert second.json()["cache_used"] is True
+        assert second.json()["results"] == first.json()["results"]
+        # 외부 식약처 API는 첫 호출에서만 1회 (캐시 히트 시 미호출)
+        assert mock_mfds_search_success.call_count == 1
+
+    async def test_search_no_results_not_cached(self, mock_mfds_search_empty, client):
+        """결과 0건은 캐싱하지 않아 다음 호출도 외부 API를 탄다."""
+        await client.get("/api/v1/drugs/search?keyword=존재하지않는약품")
+        await client.get("/api/v1/drugs/search?keyword=존재하지않는약품")
+        assert mock_mfds_search_empty.call_count == 2
+
 
 class TestDrugDetail:
     """GET /api/v1/drugs/{drug_id}"""
