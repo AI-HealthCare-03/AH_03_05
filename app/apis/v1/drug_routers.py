@@ -3,9 +3,12 @@ import json as json_module
 import httpx
 from fastapi import APIRouter, HTTPException
 
+from app.core.redis import redis_client
 from app.services.mfds_client import MFDSClient, map_mfds_response_to_drug_reference
 
 drug_router = APIRouter(prefix="/drugs", tags=["Drugs"])
+
+SEARCH_CACHE_TTL = 3600  # 약품 검색 결과 캐시 1시간
 
 
 @drug_router.get("/search")
@@ -26,6 +29,13 @@ async def search_drugs(keyword: str, limit: int = 10):
             "message": "검색어를 입력해주세요.",
         }
 
+    cache_key = f"drug_search:{keyword.strip()}:{limit}"
+    cached = await redis_client.get(cache_key)
+    if cached is not None:
+        payload = json_module.loads(cached)
+        payload["cache_used"] = True
+        return payload
+
     client = MFDSClient()
     try:
         items = await client.search_drug(keyword, num_of_rows=limit)
@@ -40,12 +50,18 @@ async def search_drugs(keyword: str, limit: int = 10):
                 "message": "검색 결과가 없습니다. 약품명을 다시 확인해주세요.",
             }
 
-        return {
+        response_data = {
             "keyword": keyword,
             "source": "MFDS",
             "cache_used": False,
             "results": results,
         }
+        await redis_client.set(
+            cache_key,
+            json_module.dumps(response_data, ensure_ascii=False),
+            ex=SEARCH_CACHE_TTL,
+        )
+        return response_data
 
     except ValueError as e:
         # 환경 변수 누락 등 (시작 시점 검증 추가 후엔 거의 안 들어옴)
