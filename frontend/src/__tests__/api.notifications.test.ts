@@ -16,7 +16,7 @@ beforeEach(() => jest.clearAllMocks());
 
 describe('notifications API', () => {
   it('getNotifications calls GET /notifications', async () => {
-    mockGet.mockResolvedValue({ data: { items: [] } });
+    mockGet.mockResolvedValue({ data: { items: [], unread_count: 0, total: 0, page: 1, size: 20 } });
     await getNotifications();
     expect(mockGet).toHaveBeenCalledWith('/notifications', expect.any(Object));
   });

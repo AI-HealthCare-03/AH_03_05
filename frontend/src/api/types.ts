@@ -463,6 +463,9 @@ export interface NotificationItem {
 export interface NotificationListResponse {
   items: NotificationItem[];
   unread_count: number;
+  total: number;
+  page: number;
+  size: number;
 }
 
 export interface UnreadCountResponse {
