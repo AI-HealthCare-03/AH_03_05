@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.dependencies.security import get_request_user
 from app.dtos.notifications import (
@@ -22,11 +22,19 @@ notifications_router = APIRouter(prefix="/notifications", tags=["notifications"]
 async def get_notifications(
     user: Annotated[User, Depends(get_request_user)],
     notification_service: Annotated[NotificationService, Depends(NotificationService)],
+    page: int = Query(1, ge=1, description="페이지 번호"),
+    size: int = Query(20, ge=1, le=100, description="페이지 크기"),
+    is_read: bool | None = Query(None, description="읽음 여부 필터"),
 ) -> NotificationListResponse:
-    notifications, unread_count = await notification_service.get_notifications(user)
+    notifications, unread_count, total = await notification_service.get_notifications(
+        user, page=page, size=size, is_read=is_read
+    )
     return NotificationListResponse(
         items=[NotificationItem.model_validate(n) for n in notifications],
         unread_count=unread_count,
+        total=total,
+        page=page,
+        size=size,
     )
 
 

@@ -142,12 +142,12 @@ class MedicationDosageService:
         if medication is None:
             return None
         if dosage is not None:
-            medication.dosage = dosage
+            medication.dosage = dosage if dosage.strip() else None
         if frequency is not None:
-            medication.frequency = frequency
+            medication.frequency = frequency if frequency.strip() else None
         if timing is not None:
-            medication.timing = timing
+            medication.timing = timing if timing.strip() else None
         if duration is not None:
-            medication.duration = duration
+            medication.duration = duration if duration.strip() else None
         await medication.save()
         return medication
