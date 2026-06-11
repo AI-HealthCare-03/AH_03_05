@@ -68,7 +68,7 @@ class MediPTUser(HttpUser):
     def search_drugs(self):
         # 약품 검색 (외부 식약처 API 경유 — 지연 주의 대상)
         self.client.get(
-            f"{API}/drugs/search?name=타이레놀",
+            f"{API}/drugs/search?keyword=타이레놀",
             name="GET /drugs/search",
         )
 
