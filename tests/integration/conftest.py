@@ -40,6 +40,22 @@ from tests.integration.fixtures.mfds_responses import (
 )
 
 
+@pytest.fixture(autouse=True)
+def mock_drug_cache(mocker):
+    """약품 검색 캐싱용 Redis를 인메모리 dict로 대체 (실제 Redis 연결 불필요)."""
+    store: dict[str, str] = {}
+
+    async def fake_get(key):
+        return store.get(key)
+
+    async def fake_set(key, value, ex=None):
+        store[key] = value
+
+    mocker.patch("app.apis.v1.drug_routers.redis_client.get", side_effect=fake_get)
+    mocker.patch("app.apis.v1.drug_routers.redis_client.set", side_effect=fake_set)
+    return store
+
+
 @pytest.fixture
 def mock_get_rag_context(mocker):
     """RAG 벡터 검색 mock"""
