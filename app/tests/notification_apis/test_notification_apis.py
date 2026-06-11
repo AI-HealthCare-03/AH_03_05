@@ -184,3 +184,23 @@ class TestNotificationAPI(TestCase):
             await notification.refresh_from_db()
         # Then - read_at이 보존되어야 함
         assert notification.read_at == original_read_at
+
+    async def test_get_notifications_is_read_filter(self):
+        # Given - 읽음/미읽음 알림 각 1개
+        from app.models.notifications import Notification
+        from app.models.users import User
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await get_access_token(client, "notify_filter@example.com")
+            headers = {"Authorization": f"Bearer {token}"}
+            user = await User.get(email="notify_filter@example.com")
+            await Notification.create(user=user, notification_type="system", title="읽음", message="내용", is_read=True)
+            await Notification.create(
+                user=user, notification_type="system", title="미읽음", message="내용", is_read=False
+            )
+            # When - 미읽음만 필터
+            response = await client.get("/api/v1/notifications?is_read=false", headers=headers)
+        # Then
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["total"] == 1
+        assert all(not item["is_read"] for item in response.json()["items"])
