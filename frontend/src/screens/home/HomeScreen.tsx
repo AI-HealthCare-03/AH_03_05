@@ -176,7 +176,7 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
     useCallback(() => {
       Promise.all([
         notificationsApi.getUnreadCount(),
-        notificationsApi.getNotifications(),
+        notificationsApi.getNotifications({ size: 100 }),
       ])
         .then(([unread, notifRes]) => {
           setUnreadCount(unread.unread_count);

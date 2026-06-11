@@ -42,7 +42,7 @@ export default function NotificationDrawer() {
   useEffect(() => {
     if (!notifDrawerOpen) return;
     notificationsApi
-      .getNotifications()
+      .getNotifications({ size: 100 })
       .then(res => {
         const mapped: Notification[] = res.items.map(item => {
           const d = item.created_at ? new Date(item.created_at) : new Date();

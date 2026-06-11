@@ -102,7 +102,7 @@ export function NotificationsScreen({ navigation }: { navigation: NavProp }) {
 
   useEffect(() => {
     notificationsApi
-      .getNotifications()
+      .getNotifications({ size: 100 })
       .then(res => {
         const mapped: Notification[] = res.items.map(item => {
           const d = item.created_at ? new Date(item.created_at) : new Date();
