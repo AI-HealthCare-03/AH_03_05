@@ -6,6 +6,7 @@ from app.dependencies.security import get_request_user
 from app.dtos.guideline_sources import GuidelineSourceCreateRequest
 from app.models.users import User
 from app.services import guideline_sources as guideline_sources_service
+from app.services import rag_service
 
 rag_router = APIRouter(prefix="/rag", tags=["RAG"])
 
@@ -29,8 +30,13 @@ async def list_guideline_sources(
 
 
 @rag_router.get("/search")
-async def search_guidelines(query: str):
+async def search_guidelines(
+    user: Annotated[User, Depends(get_request_user)],
+    query: str = Query(...),
+    top_k: int = Query(default=3, ge=1, le=10),
+):
+    results = await rag_service.search_similar_chunks(query, top_k=top_k)
     return {
         "query": query,
-        "sources": [],
+        "sources": results,
     }

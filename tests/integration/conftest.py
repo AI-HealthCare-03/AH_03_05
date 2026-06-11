@@ -39,6 +39,17 @@ from tests.integration.fixtures.mfds_responses import (
     SEARCH_TYLENOL,
 )
 
+
+@pytest.fixture
+def mock_get_rag_context(mocker):
+    """RAG 벡터 검색 mock"""
+    return mocker.patch(
+        "app.services.chatbot_service.get_rag_context",
+        new_callable=AsyncMock,
+        return_value="",
+    )
+
+
 # llm_service.generate_guide() 용
 # generate_guide는 OpenAI를 2번 호출 (복약 -> 생활습관)
 
@@ -99,7 +110,7 @@ def mock_generate_guide_over65(mocker):
 
 
 @pytest.fixture
-def mock_chat_normal(mocker):
+def mock_chat_normal(mocker, mock_get_rag_context):
     """일반 복약 질문 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
@@ -109,7 +120,7 @@ def mock_chat_normal(mocker):
 
 
 @pytest.fixture
-def mock_chat_food(mocker):
+def mock_chat_food(mocker, mock_get_rag_context):
     """음식 관련 질문 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
@@ -119,7 +130,7 @@ def mock_chat_food(mocker):
 
 
 @pytest.fixture
-def mock_chat_out_of_scope(mocker):
+def mock_chat_out_of_scope(mocker, mock_get_rag_context):
     """범위 외 질문 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
@@ -129,7 +140,7 @@ def mock_chat_out_of_scope(mocker):
 
 
 @pytest.fixture
-def mock_chat_safety_true(mocker):
+def mock_chat_safety_true(mocker, mock_get_rag_context):
     """LLM이 safety_flag=true로 판단한 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
@@ -139,7 +150,7 @@ def mock_chat_safety_true(mocker):
 
 
 @pytest.fixture
-def mock_chat_history(mocker):
+def mock_chat_history(mocker, mock_get_rag_context):
     """멀티턴 대화 응답"""
     return mocker.patch(
         "app.services.chatbot_service.client.chat.completions.create",
