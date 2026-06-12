@@ -94,7 +94,6 @@ class UserManageService:
             user.withdrawn_at = datetime.now(UTC)
             await user.save()
             await AuthToken.filter(user=user).update(revoked_at=datetime.now(UTC))
-            # 이정훈님 OCR 연동 후 처리 예정 (진행 중인 jobs CANCELLED 처리)
 
     async def update_fcm_token(self, user: User, fcm_token: str) -> None:
         """FCM 토큰 업데이트"""
