@@ -37,8 +37,9 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
     2. ocr_lines 저장
     3. MedicalRecord 상태 업데이트
     """
-    record = await job.record
-    await ProcessingJob.filter(id=job.id).update(status=JobStatus.PROCESSING)
+    await job.fetch_related("record")
+    record = job.record
+    await ProcessingJob.filter(id=job.id).update(status=JobStatus.PENDING)
     await MedicalRecord.filter(id=record.id).update(status=RecordStatus.OCR_PENDING)
 
     try:
