@@ -179,3 +179,24 @@ class TestSingleMedicationVerifyAPI(TestCase):
         body = response.json()
         assert body["verified_count"] == 1
         assert body["medications"][0]["is_verified"] is True
+
+    async def test_single_verify_record_not_found_returns_404(self):
+        """medication은 있지만 record가 없는 경우 404."""
+        from unittest.mock import AsyncMock, patch
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "single_verify_record_404@example.com")
+            record, meds = await _create_record_with_medications(
+                "single_verify_record_404@example.com", num_medications=1
+            )
+            with patch(
+                "app.apis.v1.medication_routers.MedicationVerifyService.verify_medications_batch",
+                new_callable=AsyncMock,
+                return_value=None,
+            ):
+                response = await client.patch(
+                    f"/api/v1/medications/{meds[0].id}/verify",
+                    json={"verifications": [{"medication_id": meds[0].id}]},
+                    headers=headers,
+                )
+        assert response.status_code == status.HTTP_404_NOT_FOUND

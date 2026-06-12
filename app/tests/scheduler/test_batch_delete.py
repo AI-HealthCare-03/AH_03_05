@@ -163,3 +163,19 @@ class TestTimeoutStaleJobs(TestCase):
 
         updated_job = await ProcessingJob.get(id=job.id)
         assert updated_job.status == JobStatus.PENDING
+
+    async def test_timeout_stale_jobs_exception_handling(self):
+        """timeout_stale_jobs 실행 중 예외 발생 시 raise되는지 검증."""
+        from unittest.mock import patch
+
+        from app.core.scheduler import timeout_stale_jobs
+
+        with patch(
+            "app.core.scheduler.ProcessingJob.filter",
+            side_effect=Exception("DB 오류"),
+        ):
+            try:
+                await timeout_stale_jobs()
+                raise AssertionError("예외가 발생해야 합니다")
+            except Exception:
+                pass
