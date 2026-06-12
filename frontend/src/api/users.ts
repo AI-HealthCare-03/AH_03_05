@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import type {
   UserInfo,
   UpdateUserRequest,
+  UserUpdateResponse,
   ChangePasswordRequest,
   ConsentsResponse,
   ConsentType,
@@ -12,8 +13,8 @@ export async function getMe(): Promise<UserInfo> {
   return res.data;
 }
 
-export async function updateMe(data: UpdateUserRequest): Promise<UserInfo> {
-  const res = await apiClient.patch<UserInfo>('/users/me', data);
+export async function updateMe(data: UpdateUserRequest): Promise<UserUpdateResponse> {
+  const res = await apiClient.patch<UserUpdateResponse>('/users/me', data);
   return res.data;
 }
 
