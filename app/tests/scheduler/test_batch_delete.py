@@ -126,7 +126,7 @@ class TestTimeoutStaleJobs(TestCase):
             job_type=JobType.OCR,
             status=JobStatus.PENDING,
         )
-        old_time = datetime.now(UTC) - timedelta(seconds=31)
+        old_time = datetime.now(UTC) - timedelta(seconds=121)
         await ProcessingJob.filter(id=job.id).update(created_at=old_time)
 
         # timeout_stale_jobs 실행

@@ -68,6 +68,7 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
     """
     await job.fetch_related("record")
     record = job.record
+    await record.fetch_related("user")
     await ProcessingJob.filter(id=job.id).update(status=JobStatus.PENDING)
     await MedicalRecord.filter(id=record.id).update(status=RecordStatus.OCR_PENDING)
 

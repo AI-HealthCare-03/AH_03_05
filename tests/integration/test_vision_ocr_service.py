@@ -10,6 +10,7 @@ def mock_job():
     job.fetch_related = AsyncMock()
     record = MagicMock()
     record.id = 1
+    record.fetch_related = AsyncMock()
     user = MagicMock()
     user.fcm_token = None
     record.user = user

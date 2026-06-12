@@ -35,7 +35,7 @@ async def delete_expired_records() -> None:
         raise
 
 
-DEFAULT_TIMEOUT_SECONDS = 30
+DEFAULT_TIMEOUT_SECONDS = 120
 
 
 async def timeout_stale_jobs() -> None:
