@@ -15,36 +15,51 @@ jobs_router = APIRouter(prefix="/processing-jobs", tags=["processing-jobs"])
 
 @ocr_router.post("/jobs", response_model=OcrJobResponse, status_code=status.HTTP_202_ACCEPTED)
 async def create_ocr_job(
-    background_tasks: BackgroundTasks,
+    request: OcrJobCreateRequest,
     user: Annotated[User, Depends(get_request_user)],
     processing_job_service: Annotated[ProcessingJobService, Depends(ProcessingJobService)],
-    request: OcrJobCreateRequest | None = None,
-    record_id: Annotated[int | None, Form()] = None,
-    file: Annotated[UploadFile | None, File()] = None,
-    provider: Annotated[str | None, Form()] = None,
 ) -> OcrJobResponse:
-    # JSON 바디 또는 Form 데이터 둘 다 지원
-    actual_record_id = record_id if record_id is not None else (request.record_id if request else None)
-    actual_provider = provider if provider is not None else (request.provider if request else None)
-
-    if actual_record_id is None:
-        raise NotFoundException(detail="record_id가 필요합니다.")
-
+    """OCR 잡 생성 (JSON)"""
     job = await processing_job_service.create_ocr_job(
         user=user,
-        record_id=actual_record_id,
-        provider=actual_provider,
+        record_id=request.record_id,
+        provider=request.provider,
     )
     if job is None:
         raise NotFoundException(detail="기록을 찾을 수 없습니다.")
 
-    if file is not None:
-        image_data = await file.read()
-        background_tasks.add_task(process_ocr_job, job, image_data)
+    return OcrJobResponse(
+        job_id=job.id,
+        record_id=request.record_id,
+        job_type=job.job_type,
+        status=job.status,
+    )
+
+
+@ocr_router.post("/jobs/upload", response_model=OcrJobResponse, status_code=status.HTTP_202_ACCEPTED)
+async def create_ocr_job_with_file(
+    background_tasks: BackgroundTasks,
+    user: Annotated[User, Depends(get_request_user)],
+    processing_job_service: Annotated[ProcessingJobService, Depends(ProcessingJobService)],
+    record_id: Annotated[int, Form()],
+    file: Annotated[UploadFile, File()],
+    provider: Annotated[str | None, Form()] = None,
+) -> OcrJobResponse:
+    """OCR 잡 생성 + 파일 업로드 (Form + File)"""
+    job = await processing_job_service.create_ocr_job(
+        user=user,
+        record_id=record_id,
+        provider=provider,
+    )
+    if job is None:
+        raise NotFoundException(detail="기록을 찾을 수 없습니다.")
+
+    image_data = await file.read()
+    background_tasks.add_task(process_ocr_job, job, image_data)
 
     return OcrJobResponse(
         job_id=job.id,
-        record_id=actual_record_id,
+        record_id=record_id,
         job_type=job.job_type,
         status=job.status,
     )
