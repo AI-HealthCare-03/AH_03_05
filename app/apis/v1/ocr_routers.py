@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, UploadFile, status
 
 from app.dependencies.security import get_request_user
-from app.dtos.processing_jobs import OcrJobResponse, ProcessingJobResponse
+from app.dtos.processing_jobs import OcrJobCreateRequest, OcrJobResponse, ProcessingJobResponse
 from app.exceptions.common import NotFoundException
 from app.models.users import User
 from app.services.processing_jobs import ProcessingJobService
@@ -18,24 +18,33 @@ async def create_ocr_job(
     background_tasks: BackgroundTasks,
     user: Annotated[User, Depends(get_request_user)],
     processing_job_service: Annotated[ProcessingJobService, Depends(ProcessingJobService)],
-    record_id: Annotated[int, Form()],
-    file: Annotated[UploadFile, File()],
+    request: OcrJobCreateRequest | None = None,
+    record_id: Annotated[int | None, Form()] = None,
+    file: Annotated[UploadFile | None, File()] = None,
     provider: Annotated[str | None, Form()] = None,
 ) -> OcrJobResponse:
+    # JSON 바디 또는 Form 데이터 둘 다 지원
+    actual_record_id = record_id if record_id is not None else (request.record_id if request else None)
+    actual_provider = provider if provider is not None else (request.provider if request else None)
+
+    if actual_record_id is None:
+        raise NotFoundException(detail="record_id가 필요합니다.")
+
     job = await processing_job_service.create_ocr_job(
         user=user,
-        record_id=record_id,
-        provider=provider,
+        record_id=actual_record_id,
+        provider=actual_provider,
     )
     if job is None:
         raise NotFoundException(detail="기록을 찾을 수 없습니다.")
 
-    image_data = await file.read()
-    background_tasks.add_task(process_ocr_job, job, image_data)
+    if file is not None:
+        image_data = await file.read()
+        background_tasks.add_task(process_ocr_job, job, image_data)
 
     return OcrJobResponse(
         job_id=job.id,
-        record_id=record_id,
+        record_id=actual_record_id,
         job_type=job.job_type,
         status=job.status,
     )
