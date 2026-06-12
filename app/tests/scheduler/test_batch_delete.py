@@ -174,11 +174,12 @@ class TestTimeoutStaleJobs(TestCase):
             "app.core.scheduler.ProcessingJob.filter",
             side_effect=Exception("DB 오류"),
         ):
+            raised = False
             try:
                 await timeout_stale_jobs()
-                raise AssertionError("예외가 발생해야 합니다")
             except Exception:
-                pass
+                raised = True
+            assert raised, "예외가 발생해야 합니다"
 
     async def test_start_scheduler_adds_timeout_job(self):
         """start_scheduler 호출 시 timeout_stale_jobs job이 등록되는지 검증."""
