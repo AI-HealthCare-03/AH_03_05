@@ -153,3 +153,75 @@ class TestFcmService:
 
             result = await send_ocr_failed_notification("token")
             assert result is True
+
+
+class TestNotifyOcrHooks:
+    """_notify_ocr_completed, _notify_ocr_failed 함수 테스트"""
+
+    @pytest.mark.asyncio
+    async def test_notify_ocr_completed_without_fcm(self):
+        """FCM 토큰 없을 때 DB 알림만 생성"""
+        mock_job = MagicMock()
+        mock_job.id = 1
+        mock_record = MagicMock()
+        mock_record.user.fcm_token = None
+
+        with patch("app.services.vision_ocr_service.Notification") as mock_noti:
+            mock_noti.create = AsyncMock()
+            from app.services.vision_ocr_service import _notify_ocr_completed
+
+            await _notify_ocr_completed(mock_job, mock_record)
+            mock_noti.create.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_notify_ocr_completed_with_fcm(self):
+        """FCM 토큰 있을 때 DB 알림 + FCM 푸시"""
+        mock_job = MagicMock()
+        mock_job.id = 1
+        mock_record = MagicMock()
+        mock_record.user.fcm_token = "test_token"
+
+        with patch("app.services.vision_ocr_service.Notification") as mock_noti:
+            with patch(
+                "app.services.vision_ocr_service.send_ocr_completed_notification", AsyncMock(return_value=True)
+            ) as mock_fcm:
+                mock_noti.create = AsyncMock()
+                from app.services.vision_ocr_service import _notify_ocr_completed
+
+                await _notify_ocr_completed(mock_job, mock_record)
+                mock_noti.create.assert_called_once()
+                mock_fcm.assert_called_once_with("test_token")
+
+    @pytest.mark.asyncio
+    async def test_notify_ocr_failed_without_fcm(self):
+        """FCM 토큰 없을 때 DB 알림만 생성"""
+        mock_job = MagicMock()
+        mock_job.id = 1
+        mock_record = MagicMock()
+        mock_record.user.fcm_token = None
+
+        with patch("app.services.vision_ocr_service.Notification") as mock_noti:
+            mock_noti.create = AsyncMock()
+            from app.services.vision_ocr_service import _notify_ocr_failed
+
+            await _notify_ocr_failed(mock_job, mock_record)
+            mock_noti.create.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_notify_ocr_failed_with_fcm(self):
+        """FCM 토큰 있을 때 DB 알림 + FCM 푸시"""
+        mock_job = MagicMock()
+        mock_job.id = 1
+        mock_record = MagicMock()
+        mock_record.user.fcm_token = "test_token"
+
+        with patch("app.services.vision_ocr_service.Notification") as mock_noti:
+            with patch(
+                "app.services.vision_ocr_service.send_ocr_failed_notification", AsyncMock(return_value=True)
+            ) as mock_fcm:
+                mock_noti.create = AsyncMock()
+                from app.services.vision_ocr_service import _notify_ocr_failed
+
+                await _notify_ocr_failed(mock_job, mock_record)
+                mock_noti.create.assert_called_once()
+                mock_fcm.assert_called_once_with("test_token")
