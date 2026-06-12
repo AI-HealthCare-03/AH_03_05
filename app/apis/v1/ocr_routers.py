@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, UploadFile, status
 
 from app.dependencies.security import get_request_user
 from app.dtos.processing_jobs import OcrJobCreateRequest, OcrJobResponse, ProcessingJobResponse
 from app.exceptions.common import NotFoundException
 from app.models.users import User
 from app.services.processing_jobs import ProcessingJobService
+from app.services.vision_ocr_service import process_ocr_job
 
 ocr_router = APIRouter(prefix="/ocr", tags=["ocr"])
 jobs_router = APIRouter(prefix="/processing-jobs", tags=["processing-jobs"])
@@ -18,6 +19,7 @@ async def create_ocr_job(
     user: Annotated[User, Depends(get_request_user)],
     processing_job_service: Annotated[ProcessingJobService, Depends(ProcessingJobService)],
 ) -> OcrJobResponse:
+    """OCR 잡 생성 (JSON)"""
     job = await processing_job_service.create_ocr_job(
         user=user,
         record_id=request.record_id,
@@ -25,9 +27,39 @@ async def create_ocr_job(
     )
     if job is None:
         raise NotFoundException(detail="기록을 찾을 수 없습니다.")
+
     return OcrJobResponse(
         job_id=job.id,
         record_id=request.record_id,
+        job_type=job.job_type,
+        status=job.status,
+    )
+
+
+@ocr_router.post("/jobs/upload", response_model=OcrJobResponse, status_code=status.HTTP_202_ACCEPTED)
+async def create_ocr_job_with_file(
+    background_tasks: BackgroundTasks,
+    user: Annotated[User, Depends(get_request_user)],
+    processing_job_service: Annotated[ProcessingJobService, Depends(ProcessingJobService)],
+    record_id: Annotated[int, Form()],
+    file: Annotated[UploadFile, File()],
+    provider: Annotated[str | None, Form()] = None,
+) -> OcrJobResponse:
+    """OCR 잡 생성 + 파일 업로드 (Form + File)"""
+    job = await processing_job_service.create_ocr_job(
+        user=user,
+        record_id=record_id,
+        provider=provider,
+    )
+    if job is None:
+        raise NotFoundException(detail="기록을 찾을 수 없습니다.")
+
+    image_data = await file.read()
+    background_tasks.add_task(process_ocr_job, job, image_data)
+
+    return OcrJobResponse(
+        job_id=job.id,
+        record_id=record_id,
         job_type=job.job_type,
         status=job.status,
     )
@@ -42,6 +74,7 @@ async def get_processing_job(
     job = await processing_job_service.get_job(user=user, job_id=job_id)
     if job is None:
         raise NotFoundException(detail="작업을 찾을 수 없습니다.")
+
     record_id = job.record_id if hasattr(job, "record_id") else None
     return ProcessingJobResponse(
         job_id=job.id,

@@ -95,3 +95,8 @@ class UserManageService:
             await user.save()
             await AuthToken.filter(user=user).update(revoked_at=datetime.now(UTC))
             # TODO: 진행 중인 processing_jobs cancelled 처리 (이정훈님 연동 필요)
+
+    async def update_fcm_token(self, user: User, fcm_token: str) -> None:
+        """FCM 토큰 업데이트"""
+        user.fcm_token = fcm_token
+        await user.save()

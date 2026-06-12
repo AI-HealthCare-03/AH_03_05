@@ -62,3 +62,13 @@ async def revoke_all_devices(
 ) -> None:
     """전체 기기 로그아웃. 해당 유저의 모든 refresh token을 revoke한다."""
     await auth_service.revoke_all_tokens(user)
+
+
+@user_router.post("/me/fcm-token", status_code=status.HTTP_204_NO_CONTENT)
+async def register_fcm_token(
+    user: Annotated[User, Depends(get_request_user)],
+    user_manage_service: Annotated[UserManageService, Depends(UserManageService)],
+    fcm_token: str,
+) -> None:
+    """FCM 토큰 등록"""
+    await user_manage_service.update_fcm_token(user, fcm_token)
