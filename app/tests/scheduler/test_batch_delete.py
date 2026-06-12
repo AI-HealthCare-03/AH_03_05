@@ -179,3 +179,16 @@ class TestTimeoutStaleJobs(TestCase):
                 raise AssertionError("예외가 발생해야 합니다")
             except Exception:
                 pass
+
+    async def test_start_scheduler_adds_timeout_job(self):
+        """start_scheduler 호출 시 timeout_stale_jobs job이 등록되는지 검증."""
+        from unittest.mock import MagicMock, patch
+
+        from app.core.scheduler import start_scheduler
+
+        with patch("app.core.scheduler.scheduler") as mock_scheduler:
+            mock_scheduler.add_job = MagicMock()
+            mock_scheduler.start = MagicMock()
+            start_scheduler()
+            job_ids = [call.kwargs.get("id") for call in mock_scheduler.add_job.call_args_list]
+            assert "timeout_stale_jobs" in job_ids
