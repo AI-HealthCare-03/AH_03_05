@@ -228,3 +228,35 @@ class TestNotificationAPI(TestCase):
         assert response.json()["total"] == total_count
         assert response.json()["page"] == 1
         assert response.json()["size"] == page_size
+
+    async def test_read_other_user_notification_returns_404(self):
+        """타 사용자 알림 읽음 처리 시 404 반환 (REQ-SEC-001)"""
+        from app.models.notifications import Notification
+        from app.models.users import User
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await get_access_token(client, "sec_noti_owner@example.com")
+            other_token = await get_access_token(client, "sec_noti_other@example.com")
+            owner = await User.get(email="sec_noti_owner@example.com")
+            noti = await Notification.create(user=owner, notification_type="system", title="테스트", message="내용")
+            response = await client.patch(
+                f"/api/v1/notifications/{noti.id}/read",
+                headers={"Authorization": f"Bearer {other_token}"},
+            )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_delete_other_user_notification_returns_404(self):
+        """타 사용자 알림 삭제 시 404 반환 (REQ-SEC-001)"""
+        from app.models.notifications import Notification
+        from app.models.users import User
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await get_access_token(client, "sec_noti_del_owner@example.com")
+            other_token = await get_access_token(client, "sec_noti_del_other@example.com")
+            owner = await User.get(email="sec_noti_del_owner@example.com")
+            noti = await Notification.create(user=owner, notification_type="system", title="테스트", message="내용")
+            response = await client.delete(
+                f"/api/v1/notifications/{noti.id}",
+                headers={"Authorization": f"Bearer {other_token}"},
+            )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
