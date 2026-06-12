@@ -40,31 +40,39 @@ class TestProcessOcrJob:
             with patch("app.services.vision_ocr_service.ProcessingJob") as mock_pj:
                 with patch("app.services.vision_ocr_service.MedicalRecord") as mock_mr:
                     with patch("app.services.vision_ocr_service.OcrLine") as mock_ocr:
-                        mock_client.return_value.document_text_detection.return_value = mock_response
-                        mock_pj.filter.return_value.update = AsyncMock()
-                        mock_mr.filter.return_value.update = AsyncMock()
-                        mock_ocr.create = AsyncMock()
+                        with patch(
+                            "app.services.vision_ocr_service._notify_ocr_completed",
+                            new_callable=AsyncMock,
+                        ):
+                            mock_client.return_value.document_text_detection.return_value = mock_response
+                            mock_pj.filter.return_value.update = AsyncMock()
+                            mock_mr.filter.return_value.update = AsyncMock()
+                            mock_ocr.create = AsyncMock()
 
-                        from app.services.vision_ocr_service import process_ocr_job
+                            from app.services.vision_ocr_service import process_ocr_job
 
-                        result = await process_ocr_job(mock_job, b"fake_image_data")
+                            result = await process_ocr_job(mock_job, b"fake_image_data")
 
-                        assert result is True
+                            assert result is True
 
     @pytest.mark.asyncio
     async def test_ocr_failure(self, mock_job):
         with patch("app.services.vision_ocr_service._get_vision_client") as mock_client:
             with patch("app.services.vision_ocr_service.ProcessingJob") as mock_pj:
                 with patch("app.services.vision_ocr_service.MedicalRecord") as mock_mr:
-                    mock_client.return_value.document_text_detection.side_effect = Exception("API Error")
-                    mock_pj.filter.return_value.update = AsyncMock()
-                    mock_mr.filter.return_value.update = AsyncMock()
+                    with patch(
+                        "app.services.vision_ocr_service._notify_ocr_failed",
+                        new_callable=AsyncMock,
+                    ):
+                        mock_client.return_value.document_text_detection.side_effect = Exception("API Error")
+                        mock_pj.filter.return_value.update = AsyncMock()
+                        mock_mr.filter.return_value.update = AsyncMock()
 
-                    from app.services.vision_ocr_service import process_ocr_job
+                        from app.services.vision_ocr_service import process_ocr_job
 
-                    result = await process_ocr_job(mock_job, b"fake_image_data")
+                        result = await process_ocr_job(mock_job, b"fake_image_data")
 
-                    assert result is False
+                        assert result is False
 
 
 class TestClassifyLineType:

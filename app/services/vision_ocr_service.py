@@ -1,8 +1,10 @@
 from google.cloud import vision
 
 from app.models.medical_records import MedicalRecord, RecordStatus
+from app.models.notifications import Notification, NotificationType
 from app.models.ocr_lines import LineType, OcrLine
 from app.models.processing_jobs import JobStatus, ProcessingJob
+from app.services.fcm_service import send_ocr_completed_notification, send_ocr_failed_notification
 
 
 def _get_vision_client():
@@ -30,12 +32,39 @@ def _classify_line_type(text: str) -> LineType:
     return LineType.OTHER
 
 
+async def _notify_ocr_completed(job: ProcessingJob, record) -> None:
+    """OCR 완료 알림 생성 (DB + FCM)"""
+    await Notification.create(
+        user=record.user,
+        notification_type=NotificationType.OCR_COMPLETED,
+        title="처방전 분석이 완료됐어요 ✅",
+        message="약 정보를 확인하고 복약 가이드를 받아보세요!",
+        related_job=job,
+    )
+    if record.user.fcm_token:
+        await send_ocr_completed_notification(record.user.fcm_token)
+
+
+async def _notify_ocr_failed(job: ProcessingJob, record) -> None:
+    """OCR 실패 알림 생성 (DB + FCM)"""
+    await Notification.create(
+        user=record.user,
+        notification_type=NotificationType.OCR_FAILED,
+        title="처방전 분석에 실패했어요 ❌",
+        message="다시 시도하거나 사진을 다시 촬영해주세요.",
+        related_job=job,
+    )
+    if record.user.fcm_token:
+        await send_ocr_failed_notification(record.user.fcm_token)
+
+
 async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
     """
     GoogleVision OCR 처리 메인 함수
     1. Vision API 호출
     2. ocr_lines 저장
     3. MedicalRecord 상태 업데이트
+    4. 알림 생성 (DB + FCM)
     """
     await job.fetch_related("record")
     record = job.record
@@ -97,6 +126,7 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
             status=RecordStatus.OCR_COMPLETED,
         )
         await ProcessingJob.filter(id=job.id).update(status=JobStatus.COMPLETED)
+        await _notify_ocr_completed(job, record)
         return True
 
     except Exception as e:
@@ -105,4 +135,5 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
             status=JobStatus.FAILED,
             result_payload={"error": str(e)},
         )
+        await _notify_ocr_failed(job, record)
         return False
