@@ -1,7 +1,6 @@
 import { apiClient } from './client';
 import type {
   MedicationVerifyItem,
-  VerifyMedicationResponse,
   MedicationsBatchVerifyResponse,
   MedicationAlarm,
   MedicationAlarmUpdateRequest,
@@ -12,8 +11,8 @@ import type {
 export async function verifyMedication(
   medicationId: number,
   data: MedicationVerifyItem
-): Promise<VerifyMedicationResponse> {
-  const res = await apiClient.patch<VerifyMedicationResponse>(
+): Promise<MedicationsBatchVerifyResponse> {
+  const res = await apiClient.patch<MedicationsBatchVerifyResponse>(
     `/medications/${medicationId}/verify`,
     data
   );
