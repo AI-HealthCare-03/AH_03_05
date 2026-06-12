@@ -8,6 +8,7 @@ from app.dtos.users import (
     PasswordChangeResponse,
     UserInfoResponse,
     UserUpdateRequest,
+    UserUpdateResponse,
     WithdrawRequest,
     WithdrawResponse,
 )
@@ -25,14 +26,14 @@ async def user_me_info(
     return UserInfoResponse.model_validate(user)
 
 
-@user_router.patch("/me", response_model=UserInfoResponse, status_code=status.HTTP_200_OK)
+@user_router.patch("/me", response_model=UserUpdateResponse, status_code=status.HTTP_200_OK)
 async def update_user_me_info(
     update_data: UserUpdateRequest,
     user: Annotated[User, Depends(get_request_user)],
     user_manage_service: Annotated[UserManageService, Depends(UserManageService)],
-) -> UserInfoResponse:
+) -> UserUpdateResponse:
     updated_user = await user_manage_service.update_user(user=user, data=update_data)
-    return UserInfoResponse.model_validate(updated_user)
+    return UserUpdateResponse.model_validate(updated_user)
 
 
 @user_router.patch("/me/password", response_model=PasswordChangeResponse, status_code=status.HTTP_200_OK)
