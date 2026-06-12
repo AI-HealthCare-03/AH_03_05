@@ -96,3 +96,70 @@ class TestBatchDeleteExpiredRecords(TestCase):
                 except Exception:
                     pass
                 mock_logger.error.assert_called_once()
+
+
+class TestTimeoutStaleJobs(TestCase):
+    """timeout_stale_jobs() 단위 테스트."""
+
+    async def test_timeout_pending_job(self):
+        """PENDING 상태에서 30초 초과한 job이 TIMEOUT으로 처리되는지 검증."""
+        from datetime import UTC, datetime, timedelta
+
+        from app.core.scheduler import timeout_stale_jobs
+        from app.models.processing_jobs import JobStatus, JobType, ProcessingJob
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "timeout_test@example.com",
+                    "password": "Password123!",
+                    "name": "타임아웃테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            user = await User.get(email="timeout_test@example.com")
+
+        # 31초 전에 생성된 PENDING job 생성
+        job = await ProcessingJob.create(
+            user=user,
+            job_type=JobType.OCR,
+            status=JobStatus.PENDING,
+        )
+        old_time = datetime.now(UTC) - timedelta(seconds=31)
+        await ProcessingJob.filter(id=job.id).update(created_at=old_time)
+
+        # timeout_stale_jobs 실행
+        await timeout_stale_jobs()
+
+        # TIMEOUT으로 변경됐는지 확인
+        updated_job = await ProcessingJob.get(id=job.id)
+        assert updated_job.status == JobStatus.TIMEOUT
+
+    async def test_no_timeout_for_fresh_job(self):
+        """방금 생성된 PENDING job은 TIMEOUT 처리되지 않는지 검증."""
+        from app.core.scheduler import timeout_stale_jobs
+        from app.models.processing_jobs import JobStatus, JobType, ProcessingJob
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "fresh_job_test@example.com",
+                    "password": "Password123!",
+                    "name": "신선한테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            user = await User.get(email="fresh_job_test@example.com")
+
+        job = await ProcessingJob.create(
+            user=user,
+            job_type=JobType.OCR,
+            status=JobStatus.PENDING,
+        )
+
+        await timeout_stale_jobs()
+
+        updated_job = await ProcessingJob.get(id=job.id)
+        assert updated_job.status == JobStatus.PENDING
