@@ -96,3 +96,100 @@ class TestBatchDeleteExpiredRecords(TestCase):
                 except Exception:
                     pass
                 mock_logger.error.assert_called_once()
+
+
+class TestTimeoutStaleJobs(TestCase):
+    """timeout_stale_jobs() 단위 테스트."""
+
+    async def test_timeout_pending_job(self):
+        """PENDING 상태에서 30초 초과한 job이 TIMEOUT으로 처리되는지 검증."""
+        from datetime import UTC, datetime, timedelta
+
+        from app.core.scheduler import timeout_stale_jobs
+        from app.models.processing_jobs import JobStatus, JobType, ProcessingJob
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "timeout_test@example.com",
+                    "password": "Password123!",
+                    "name": "타임아웃테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            user = await User.get(email="timeout_test@example.com")
+
+        # 31초 전에 생성된 PENDING job 생성
+        job = await ProcessingJob.create(
+            user=user,
+            job_type=JobType.OCR,
+            status=JobStatus.PENDING,
+        )
+        old_time = datetime.now(UTC) - timedelta(seconds=121)
+        await ProcessingJob.filter(id=job.id).update(created_at=old_time)
+
+        # timeout_stale_jobs 실행
+        await timeout_stale_jobs()
+
+        # TIMEOUT으로 변경됐는지 확인
+        updated_job = await ProcessingJob.get(id=job.id)
+        assert updated_job.status == JobStatus.TIMEOUT
+
+    async def test_no_timeout_for_fresh_job(self):
+        """방금 생성된 PENDING job은 TIMEOUT 처리되지 않는지 검증."""
+        from app.core.scheduler import timeout_stale_jobs
+        from app.models.processing_jobs import JobStatus, JobType, ProcessingJob
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/auth/signup",
+                json={
+                    "email": "fresh_job_test@example.com",
+                    "password": "Password123!",
+                    "name": "신선한테스터",
+                    "consents": CONSENTS,
+                },
+            )
+            user = await User.get(email="fresh_job_test@example.com")
+
+        job = await ProcessingJob.create(
+            user=user,
+            job_type=JobType.OCR,
+            status=JobStatus.PENDING,
+        )
+
+        await timeout_stale_jobs()
+
+        updated_job = await ProcessingJob.get(id=job.id)
+        assert updated_job.status == JobStatus.PENDING
+
+    async def test_timeout_stale_jobs_exception_handling(self):
+        """timeout_stale_jobs 실행 중 예외 발생 시 raise되는지 검증."""
+        from unittest.mock import patch
+
+        from app.core.scheduler import timeout_stale_jobs
+
+        with patch(
+            "app.core.scheduler.ProcessingJob.filter",
+            side_effect=Exception("DB 오류"),
+        ):
+            raised = False
+            try:
+                await timeout_stale_jobs()
+            except Exception:
+                raised = True
+            assert raised, "예외가 발생해야 합니다"
+
+    async def test_start_scheduler_adds_timeout_job(self):
+        """start_scheduler 호출 시 timeout_stale_jobs job이 등록되는지 검증."""
+        from unittest.mock import MagicMock, patch
+
+        from app.core.scheduler import start_scheduler
+
+        with patch("app.core.scheduler.scheduler") as mock_scheduler:
+            mock_scheduler.add_job = MagicMock()
+            mock_scheduler.start = MagicMock()
+            start_scheduler()
+            job_ids = [call.kwargs.get("id") for call in mock_scheduler.add_job.call_args_list]
+            assert "timeout_stale_jobs" in job_ids

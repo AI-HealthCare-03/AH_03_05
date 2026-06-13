@@ -149,3 +149,54 @@ class TestMedicationVerifyAPI(TestCase):
         # DB에서도 실제 업데이트 확인
         updated = await Medication.get(id=meds[0].id)
         assert updated.is_verified is True
+
+
+class TestSingleMedicationVerifyAPI(TestCase):
+    """PATCH /medications/{medication_id}/verify 단건 확정 테스트."""
+
+    async def test_single_verify_not_found_returns_404(self):
+        """존재하지 않는 medication_id로 호출 시 404."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "single_verify_404@example.com")
+            response = await client.patch(
+                "/api/v1/medications/99999/verify",
+                json={"verifications": [{"medication_id": 99999}]},
+                headers=headers,
+            )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_single_verify_success_returns_200(self):
+        """정상 단건 확정 시 200 + is_verified True 확인."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "single_verify_ok@example.com")
+            record, meds = await _create_record_with_medications("single_verify_ok@example.com", num_medications=1)
+            response = await client.patch(
+                f"/api/v1/medications/{meds[0].id}/verify",
+                json={"verifications": [{"medication_id": meds[0].id}]},
+                headers=headers,
+            )
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["verified_count"] == 1
+        assert body["medications"][0]["is_verified"] is True
+
+    async def test_single_verify_record_not_found_returns_404(self):
+        """medication은 있지만 record가 없는 경우 404."""
+        from unittest.mock import AsyncMock, patch
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            headers = await _signup_and_login(client, "single_verify_record_404@example.com")
+            record, meds = await _create_record_with_medications(
+                "single_verify_record_404@example.com", num_medications=1
+            )
+            with patch(
+                "app.apis.v1.medication_routers.MedicationVerifyService.verify_medications_batch",
+                new_callable=AsyncMock,
+                return_value=None,
+            ):
+                response = await client.patch(
+                    f"/api/v1/medications/{meds[0].id}/verify",
+                    json={"verifications": [{"medication_id": meds[0].id}]},
+                    headers=headers,
+                )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
