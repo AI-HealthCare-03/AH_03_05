@@ -81,6 +81,7 @@ async def get_medical_records(
         items=[MedicalRecordListItem.model_validate(r) for r in records],
         page=page,
         size=size,
+        total=total,
     )
 
 

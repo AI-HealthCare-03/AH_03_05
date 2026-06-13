@@ -25,6 +25,7 @@ class MedicalRecordListResponse(BaseModel):
     items: list[MedicalRecordListItem]
     page: int
     size: int
+    total: int
 
 
 class MedicalRecordDetailResponse(BaseSerializerModel):
