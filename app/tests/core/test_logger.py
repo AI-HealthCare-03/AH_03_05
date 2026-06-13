@@ -26,7 +26,7 @@ class TestMaskSensitive:
 
     def test_multiple_sensitive_data(self):
         """여러 민감정보 동시 마스킹"""
-        message = 'email: test@test.com, token: eyJhbGciOiJIUzI1NiJ9.test.sig'
+        message = "email: test@test.com, token: eyJhbGciOiJIUzI1NiJ9.test.sig"
         result = mask_sensitive(message)
         assert "***EMAIL***" in result
         assert "***TOKEN***" in result
