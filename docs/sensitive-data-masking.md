@@ -55,7 +55,7 @@ MediPT는 의료 문서 업로드 및 AI 분석을 다루는 헬스케어 서비
 
 ## 마스킹 검증
 
-`app/core/logger.py` 마스킹 동작은 `app/tests/core/test_smtp.py` 및 로거 단위 테스트를 통해 검증합니다.
+`app/core/logger.py`의 `mask_sensitive()` 함수 동작은 `app/tests/core/test_logger.py`에서 검증합니다.
 
 마스킹 정상 동작 확인 방법:
 ```python
