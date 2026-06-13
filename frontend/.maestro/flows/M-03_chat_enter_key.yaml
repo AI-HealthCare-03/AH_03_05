@@ -1,0 +1,37 @@
+# M-03 | 채팅 Enter 키 전송 (모바일 — returnKeyType="send")
+#
+# 전제: 로그인 상태
+# 스텝:
+#   1. 건강상담 탭 → 새 상담
+#   2. 입력창에 메시지 입력
+#   3. 키보드의 "전송" 리턴키 탭 (returnKeyType="send")
+#   4. 입력창 cleared + AI 응답 수신 확인
+# 기대:
+#   - 전송 버튼 탭 없이 리턴키로 전송됨
+#   - 입력창 비워짐
+#   - AI 응답 버블 렌더링
+
+appId: host.exp.exponent
+---
+- runFlow: _login.yaml
+
+# Step 1: 건강상담 탭 → 새 상담
+- tapOn: "건강상담"
+- waitForAnimationToEnd
+- tapOn: "새 상담"
+- waitForAnimationToEnd
+
+# Step 2: 입력창 포커스 및 메시지 입력
+- tapOn: "궁금한 점을 입력해주세요"
+- inputText: "혈압약 복용 중 주의사항이 있나요?"
+
+# Step 3: 리턴키("전송") 탭
+- pressKey: Return
+- waitForAnimationToEnd
+
+# Step 4: 입력창 비워짐 확인 및 응답 대기
+- assertNotVisible: "혈압약 복용 중 주의사항이 있나요?"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "AI"
+    timeout: 30000

@@ -1,0 +1,11 @@
+# 헬퍼: 채팅 세션 1개 생성 (세션 없을 때 선행 조건 충족용)
+
+- tapOn: "새 상담"
+- waitForAnimationToEnd
+- assertVisible: "궁금한 점을 입력해주세요"
+- tapOn: "궁금한 점을 입력해주세요"
+- inputText: "스와이프 삭제 테스트용 메시지"
+- tapOn: "전송"
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd

@@ -220,3 +220,108 @@ test('TC-15: 위험 키워드 메시지 → 경고 표시', async ({ page }) => 
   // 경고 배너 표시 확인 (LLM 응답 대기)
   await expect(page.getByText('주의가 필요한 답변입니다')).toBeVisible({ timeout: 30_000 });
 });
+
+/**
+ * TC-20 | 채팅 입력창 Enter 키로 전송 (웹)
+ * 전제: 로그인 상태
+ * 스텝:
+ *   1. /chat 진입 → 새 상담 생성
+ *   2. 메시지 입력 후 Shift+Enter → 줄바꿈만 추가되고 전송 안 됨 확인
+ *   3. 입력창에 본문 남아있는 상태에서 Enter → 전송
+ *   4. 입력창이 비워지고 AI 응답 수신 확인
+ * 기대:
+ *   - Shift+Enter: 입력값에 '\n' 포함, AI 응답 없음
+ *   - Enter: 입력창 cleared, 내 메시지 버블 렌더링, AI 응답 수신
+ */
+test('TC-20: 채팅 입력창 Enter 키로 전송', async ({ page }) => {
+  await mockLLMResponse(page);
+  await loginAndGoHome(page);
+
+  await page.goto('/chat');
+  await page.waitForTimeout(1_500);
+
+  await page.getByText('새 상담').first().click({ force: true });
+  await page.waitForTimeout(2_000);
+
+  const input = page.getByPlaceholder('궁금한 점을 입력해주세요');
+  await expect(input).toBeVisible({ timeout: 5_000 });
+
+  // Step 2: Shift+Enter → 줄바꿈만, 입력창에 텍스트 유지
+  await input.fill('혈압약 복용 중');
+  await input.press('Shift+Enter');
+  await page.waitForTimeout(300);
+  const valueAfterShift = await input.inputValue();
+  expect(valueAfterShift).toContain('\n');
+  // Shift+Enter 후 입력창이 비워지지 않아야 함 (전송 안 됨)
+  expect(valueAfterShift.trim().length).toBeGreaterThan(0);
+
+  // Step 3: 이어서 입력 후 Enter → 전송
+  await input.type('주의사항이 있나요?');
+  await input.press('Enter');
+  await page.waitForTimeout(500);
+
+  // Step 4: 입력창 cleared + AI 응답 버블 수신
+  // (AI 응답 버블은 채팅 메시지 컨테이너 안에서 'AI' 레이블을 가짐)
+  const clearedValue = await input.inputValue();
+  expect(clearedValue.trim()).toBe('');
+  await expect(page.getByText('혈압약 복용 중에는 주의가 필요합니다.').first()).toBeVisible({ timeout: 10_000 });
+});
+
+/**
+ * TC-21 | 채팅 세션 삭제 (데스크탑 X 버튼)
+ * 전제: 로그인 상태
+ * 스텝:
+ *   1. /chat 진입, 세션 없으면 메시지 전송하여 세션 1개 생성
+ *   2. 목록으로 돌아와 세션 행의 X 버튼(accessibilityLabel="삭제") 확인
+ *   3. X 버튼 클릭 → window.confirm 승인
+ *   4. 해당 세션 사라짐 확인 (토스트 or 목록 변화)
+ *   5. 취소 시나리오: confirm 거부 → 세션 유지 확인
+ * 기대:
+ *   - 승인: 세션 제거, 토스트 표시 or 빈 상태
+ *   - 거부: 세션 목록 그대로 유지
+ */
+test('TC-21: 채팅 세션 삭제 (X 버튼)', async ({ page }) => {
+  await mockLLMResponse(page);
+  await loginAndGoHome(page);
+
+  await page.goto('/chat');
+  await page.waitForTimeout(1_500);
+
+  // Step 1: 세션 없으면 생성
+  const noSession = page.getByText(/새 상담을 시작해보세요|상담 기록이 없/);
+  if (await noSession.count().then((n: number) => n > 0)) {
+    await page.getByText('새 상담').first().click({ force: true });
+    await page.waitForTimeout(2_000);
+    const input = page.getByPlaceholder('궁금한 점을 입력해주세요');
+    await expect(input).toBeVisible({ timeout: 5_000 });
+    await input.fill('삭제 테스트용 메시지');
+    await page.getByText('전송').click({ force: true });
+    await page.waitForTimeout(2_000);
+    await page.goto('/chat');
+    await page.waitForTimeout(1_500);
+  }
+
+  const deleteBtns = page.getByRole('button', { name: '삭제' });
+  if (await deleteBtns.count().then((n: number) => n === 0)) return;
+
+  // 삭제 전 세션 수 기록
+  const countBefore = await deleteBtns.count();
+
+  // Step 5: confirm 거부 → 세션 유지 확인
+  page.once('dialog', dialog => dialog.dismiss());
+  await deleteBtns.first().click({ force: true });
+  await page.waitForTimeout(1_000);
+  expect(await page.getByRole('button', { name: '삭제' }).count()).toBe(countBefore);
+
+  // Step 3-4: confirm 승인 → 세션 1개 제거 확인
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: '삭제' }).first().click({ force: true });
+  await page.waitForTimeout(2_000);
+
+  const countAfter = await page.getByRole('button', { name: '삭제' }).count();
+  const emptyState = page.getByText(/새 상담을 시작해보세요|상담 기록이 없/);
+  const isRemoved =
+    countAfter < countBefore ||
+    (await emptyState.count().then((n: number) => n > 0));
+  expect(isRemoved).toBeTruthy();
+});
