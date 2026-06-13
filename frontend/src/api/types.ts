@@ -74,6 +74,13 @@ export interface UpdateUserRequest {
   nickname: string;
 }
 
+export interface UserUpdateResponse {
+  user_id: number;
+  name: string;
+  nickname: string | null;
+  last_login_at: string | null;
+}
+
 export interface ChangePasswordRequest {
   current_password: string;
   new_password: string;

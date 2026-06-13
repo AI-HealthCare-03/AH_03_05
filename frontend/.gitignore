@@ -37,6 +37,7 @@ yarn-error.*
 
 # test coverage
 coverage/
+test-results/
 
 # lint / format cache
 .eslintcache
