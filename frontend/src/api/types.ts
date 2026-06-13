@@ -288,12 +288,6 @@ export interface MedicationVerifyItem {
   drug_ref_id: string | null;
 }
 
-export interface VerifyMedicationResponse {
-  medication_id: number;
-  drug_name: string;
-  is_verified: boolean;
-}
-
 export interface MedicationsBatchVerifyResponse {
   record_id: number;
   record_status: string;
