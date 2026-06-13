@@ -15,6 +15,15 @@ CONSENTS = [
 ]
 
 
+async def _signup_and_get_headers(client: AsyncClient, email: str) -> dict[str, str]:
+    await client.post(
+        "/api/v1/auth/signup",
+        json={"email": email, "password": "Password123!", "name": "테스터", "consents": CONSENTS},
+    )
+    login = await client.post("/api/v1/auth/login", json={"email": email, "password": "Password123!"})
+    return {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+
 class TestMedicalRecordAPI(TestCase):
     async def test_upload_record_success(self):
         # Given
@@ -462,3 +471,33 @@ class TestMedicalRecordAPI(TestCase):
 
         # Then
         assert response.status_code == status.HTTP_413_CONTENT_TOO_LARGE
+
+    async def test_get_other_user_record_returns_404(self):
+        """타 사용자 record 상세 조회 시 404 반환 (REQ-SEC-001)"""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            owner_headers = await _signup_and_get_headers(client, "sec_owner@example.com")
+            other_headers = await _signup_and_get_headers(client, "sec_other@example.com")
+            upload = await client.post(
+                "/api/v1/records",
+                data={"record_type": "prescription"},
+                files={"file": ("test.jpg", BytesIO(b"test"), "image/jpeg")},
+                headers=owner_headers,
+            )
+            record_id = upload.json()["record_id"]
+            response = await client.get(f"/api/v1/records/{record_id}", headers=other_headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_delete_other_user_record_returns_404(self):
+        """타 사용자 record 삭제 시 404 반환 (REQ-SEC-001)"""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            owner_headers = await _signup_and_get_headers(client, "sec_del_owner@example.com")
+            other_headers = await _signup_and_get_headers(client, "sec_del_other@example.com")
+            upload = await client.post(
+                "/api/v1/records",
+                data={"record_type": "prescription"},
+                files={"file": ("test.jpg", BytesIO(b"test"), "image/jpeg")},
+                headers=owner_headers,
+            )
+            record_id = upload.json()["record_id"]
+            response = await client.delete(f"/api/v1/records/{record_id}", headers=other_headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND

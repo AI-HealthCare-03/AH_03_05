@@ -33,6 +33,13 @@ class UserInfoResponse(BaseSerializerModel):
     created_at: datetime
 
 
+class UserUpdateResponse(BaseSerializerModel):
+    id: int = Field(serialization_alias="user_id")
+    name: str
+    nickname: str | None
+    last_login_at: datetime | None = None
+
+
 class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: Annotated[str, Field(min_length=8, max_length=20)]
