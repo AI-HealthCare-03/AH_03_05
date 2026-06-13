@@ -72,5 +72,5 @@ assert "***" in mask_sensitive('"password": "mypassword"')
 
 | 구분 | 담당 |
 |---|---|
-| 구현 및 유지보수 | Backend A (돈유정) |
+| 구현 및 유지보수 | Backend A (돈유정), Backend B (신정호) |
 | 정책 검토 | 팀 전체 |
