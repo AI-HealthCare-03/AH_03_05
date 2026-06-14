@@ -1,0 +1,19 @@
+# 공통 로그인 플로우 — 다른 플로우에서 runFlow로 포함
+# 사용: - runFlow: _login.yaml
+
+- tapOn:
+    text: "이메일"
+    optional: true
+- inputText: "ui_test@test.com"
+- tapOn:
+    text: "비밀번호"
+    optional: true
+- inputText: "Test1234!"
+- tapOn: "로그인"
+- waitForAnimationToEnd
+# 온보딩 모달이 있으면 건너뜀
+- tapOn:
+    text: "건너뛰고 둘러보기"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible: "안녕하세요"

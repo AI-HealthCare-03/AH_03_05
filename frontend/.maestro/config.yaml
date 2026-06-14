@@ -1,0 +1,14 @@
+# Maestro 모바일 E2E 설정
+# 실행: maestro test .maestro/flows/
+#
+# 사전 조건:
+#   - iOS: Expo Go 또는 개발 빌드 시뮬레이터에서 실행 중
+#   - Android: 에뮬레이터 또는 실기기에서 실행 중
+#   - 백엔드: localhost:8000 실행 중
+#
+# appId는 Expo Go 기준. 직접 빌드 시 아래 값으로 교체:
+#   iOS:     com.medipt05.app  (EAS build에서 설정)
+#   Android: com.medipt05.app
+
+appId: host.exp.exponent  # Expo Go
+---

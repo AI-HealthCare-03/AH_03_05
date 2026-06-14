@@ -157,7 +157,7 @@ export function ChatListScreen({ navigation, route }: Props) {
   }, []);
 
   const filtered = useMemo(
-    () => sessions.filter(c => !query || c.title.toLowerCase().includes(query.toLowerCase())),
+    () => sessions.filter(c => !query || (c.title ?? '').toLowerCase().includes(query.toLowerCase())),
     [sessions, query]
   );
 
