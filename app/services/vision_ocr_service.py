@@ -143,6 +143,7 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
         await ProcessingJob.filter(id=job.id).update(
             status=JobStatus.FAILED,
             result_payload={"error": str(e)},
+            completed_at=datetime.now(UTC),
         )
         await _notify_ocr_failed(job, record)
         return False
