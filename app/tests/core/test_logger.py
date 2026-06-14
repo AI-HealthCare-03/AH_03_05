@@ -17,7 +17,7 @@ class TestMaskSensitive:
         message = '{"email": "test@test.com", "password": "mypassword123"}'
         result = mask_sensitive(message)
         assert "mypassword123" not in result
-        assert "***" in result
+        assert '"password": "***"' in result
 
     def test_no_sensitive_data_unchanged(self):
         """민감정보 없는 메시지는 그대로 유지"""
