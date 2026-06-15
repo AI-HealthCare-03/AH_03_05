@@ -25,3 +25,37 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --build
             docker image prune -f
+
+  # 프론트엔드 웹 번들 빌드 → EC2 frontend-dist 디렉터리로 전송 (nginx가 이 경로를 서빙)
+  deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 프로젝트 peer dependency 구성상 legacy-peer-deps 필요 (로컬 설치와 동일)
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web bundle
+        working-directory: frontend
+        run: npm run build:web
+
+      - name: Copy web bundle to EC2 frontend-dist
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          # 서버의 frontend-dist 절대경로 (예: /home/ubuntu/AH_03_05/frontend-dist) — 시크릿으로 주입
+          target: ${{ secrets.EC2_FRONTEND_PATH }}
+          source: "frontend/dist/*"
+          strip_components: 2
+          rm: true
