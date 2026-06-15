@@ -1,12 +1,33 @@
-import { scheduleMedicationNotifications } from '../utils/notifications';
+import {
+  scheduleMedicationNotifications,
+  registerForPushNotificationsAsync,
+} from '../utils/notifications';
 
 const mockCancelAll = jest.fn();
 const mockSchedule = jest.fn();
+const mockGetPermissions = jest.fn();
+const mockRequestPermissions = jest.fn();
+const mockGetDeviceToken = jest.fn();
+const mockRegisterFcmToken = jest.fn();
 
 jest.mock('expo-notifications', () => ({
   cancelAllScheduledNotificationsAsync: (...args: any[]) => mockCancelAll(...args),
   scheduleNotificationAsync: (...args: any[]) => mockSchedule(...args),
+  getPermissionsAsync: (...args: any[]) => mockGetPermissions(...args),
+  requestPermissionsAsync: (...args: any[]) => mockRequestPermissions(...args),
+  getDevicePushTokenAsync: (...args: any[]) => mockGetDeviceToken(...args),
   SchedulableTriggerInputTypes: { DAILY: 'daily' },
+}));
+
+jest.mock('expo-device', () => ({
+  get isDevice() {
+    return jest.requireMock('expo-device').__isDevice;
+  },
+  __isDevice: true,
+}));
+
+jest.mock('../api', () => ({
+  usersApi: { registerFcmToken: (...args: any[]) => mockRegisterFcmToken(...args) },
 }));
 
 jest.mock('react-native', () => ({
@@ -16,6 +37,7 @@ jest.mock('react-native', () => ({
 beforeEach(() => {
   jest.clearAllMocks();
   jest.requireMock('react-native').Platform.OS = 'ios';
+  jest.requireMock('expo-device').__isDevice = true;
 });
 
 const BASE_SETTINGS = {
@@ -75,5 +97,67 @@ describe('scheduleMedicationNotifications', () => {
       dinner: { on: false, time: '18:00' },
     } as any);
     expect(mockSchedule).not.toHaveBeenCalled();
+  });
+});
+
+describe('registerForPushNotificationsAsync', () => {
+  it('웹에서는 등록하지 않고 false', async () => {
+    jest.requireMock('react-native').Platform.OS = 'web';
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(false);
+    expect(mockRegisterFcmToken).not.toHaveBeenCalled();
+  });
+
+  it('실기기가 아니면(시뮬레이터) 등록하지 않고 false', async () => {
+    jest.requireMock('expo-device').__isDevice = false;
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(false);
+    expect(mockGetPermissions).not.toHaveBeenCalled();
+    expect(mockRegisterFcmToken).not.toHaveBeenCalled();
+  });
+
+  it('권한 거부 시 등록하지 않고 false', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissions.mockResolvedValue({ status: 'denied' });
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(false);
+    expect(mockRegisterFcmToken).not.toHaveBeenCalled();
+  });
+
+  it('권한 허용 + 토큰 획득 시 원시 토큰을 백엔드에 등록', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'granted' });
+    mockGetDeviceToken.mockResolvedValue({ data: 'raw-fcm-token-123' });
+    mockRegisterFcmToken.mockResolvedValue(undefined);
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(true);
+    expect(mockRequestPermissions).not.toHaveBeenCalled(); // 이미 granted면 재요청 안 함
+    expect(mockRegisterFcmToken).toHaveBeenCalledWith('raw-fcm-token-123');
+  });
+
+  it('권한 미정 시 요청 후 허용되면 등록', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissions.mockResolvedValue({ status: 'granted' });
+    mockGetDeviceToken.mockResolvedValue({ data: 'raw-fcm-token-456' });
+    mockRegisterFcmToken.mockResolvedValue(undefined);
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(true);
+    expect(mockRequestPermissions).toHaveBeenCalledTimes(1);
+    expect(mockRegisterFcmToken).toHaveBeenCalledWith('raw-fcm-token-456');
+  });
+
+  it('토큰이 비어 있으면 등록하지 않고 false', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'granted' });
+    mockGetDeviceToken.mockResolvedValue({ data: '' });
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(false);
+    expect(mockRegisterFcmToken).not.toHaveBeenCalled();
+  });
+
+  it('등록 중 예외가 나도 throw하지 않고 false', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'granted' });
+    mockGetDeviceToken.mockResolvedValue({ data: 'raw-fcm-token-123' });
+    mockRegisterFcmToken.mockRejectedValue(new Error('network'));
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(false);
   });
 });

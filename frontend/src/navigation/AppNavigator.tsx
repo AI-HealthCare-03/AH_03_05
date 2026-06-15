@@ -14,6 +14,7 @@ import UploadModalScreen from '../screens/UploadModalScreen';
 import MedicationAlarmScreen from '../screens/medication/MedicationAlarmScreen';
 import { colors } from '../theme';
 import Toast from '../components/Toast';
+import { registerForPushNotificationsAsync } from '../utils/notifications';
 
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const noHeader = { headerShown: false };
@@ -105,6 +106,13 @@ export default function AppNavigator() {
     });
     return () => sub.remove();
   }, []);
+
+  // 로그인 상태가 되면 디바이스 푸시 토큰을 백엔드에 등록 (네이티브 실기기 전용)
+  useEffect(() => {
+    if (user.loggedIn) {
+      void registerForPushNotificationsAsync();
+    }
+  }, [user.loggedIn]);
 
   if (!isReady) {
     return <View style={{ flex: 1, backgroundColor: colors.canvas }} />;
