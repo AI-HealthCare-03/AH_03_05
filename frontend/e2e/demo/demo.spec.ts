@@ -200,31 +200,39 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
     await tapIfPresent(page, page.getByText('🚶 생활습관', { exact: true }), 2_500); // 생활습관 탭 전환
   });
 
-  // 5. 건강상담 — 탭 이동 → 새 상담 → 메시지 전송 → AI 응답(라이브).
+  // 5. 건강상담 — 가이드 화면의 "건강상담에 물어보기"로 자연스럽게 진입(없으면 탭으로 폴백)
+  //    → 새 상담 → 메시지 전송 → AI 응답(라이브).
   await section('건강상담', async () => {
-    await navTo(page, '건강상담');
+    const askFromGuide = page.getByText('건강상담에 물어보기');
+    if ((await askFromGuide.count()) > 0) {
+      await moveAndClick(page, askFromGuide);
+      await pause(page, 1_500);
+    } else {
+      await navTo(page, '건강상담');
+    }
     await waitForScreen(page, '**/chat', page.getByText('새 상담').first());
     await pause(page, 2_000);
     await tapIfPresent(page, page.getByText('새 상담').first(), 2_000);
 
     const input = page.getByPlaceholder('궁금한 점을 입력해주세요');
     if ((await input.count()) === 0) return;
-    await input.fill('혈압약 복용 시 주의할 점이 있나요?');
+    const question = '혈압약 복용 시 주의할 점이 있나요?';
+    await input.fill(question);
     await pause(page, 1_000);
     await moveAndClick(page, page.getByText('전송').first());
 
-    // 라이브 LLM 응답 대기 — 입력창이 비워지고(전송 완료) 답변 버블이 뜰 때까지.
+    // 내 질문 버블이 뜨는지 먼저 확인(전송됨)
     await page
-      .waitForFunction(
-        () => {
-          const ta = document.querySelector(
-            'textarea, input[placeholder="궁금한 점을 입력해주세요"]'
-          ) as HTMLInputElement | HTMLTextAreaElement | null;
-          return !ta || ta.value.trim() === '';
-        },
-        { timeout: 30_000 }
-      )
+      .getByText(question)
+      .first()
+      .waitFor({ state: 'visible', timeout: 10_000 })
       .catch(() => {});
-    await pause(page, 2_500); // 답변 본문 노출
+    // 라이브 AI 답변 대기 — 답변 후 노출되는 별점(피드백)을 "답변 도착" 신호로 사용.
+    await page
+      .getByRole('button', { name: /별점/ })
+      .first()
+      .waitFor({ state: 'visible', timeout: 40_000 })
+      .catch(() => {});
+    await pause(page, 4_500); // 답변 본문을 충분히 읽도록 노출
   });
 });
