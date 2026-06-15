@@ -113,10 +113,21 @@ describe('rag API', () => {
 });
 
 describe('ocr API', () => {
-  it('createOcrJobWithFile calls POST /ocr/jobs/upload (multipart)', async () => {
+  it('createOcrJobWithFile (네이티브 uri) → POST /ocr/jobs/upload', async () => {
     mockPost.mockResolvedValue({ data: {} });
     const file = { uri: 'file:///x.png', name: 'x.png', type: 'image/png' } as any;
     await createOcrJobWithFile(1, file);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/ocr/jobs/upload',
+      expect.any(FormData),
+      expect.objectContaining({ headers: { 'Content-Type': undefined } })
+    );
+  });
+
+  it('createOcrJobWithFile (웹 File, uri 없음) → POST /ocr/jobs/upload', async () => {
+    mockPost.mockResolvedValue({ data: {} });
+    const webFile = { name: 'x.png', type: 'image/png', size: 10 } as any; // uri 없음 → File 분기
+    await createOcrJobWithFile(2, webFile);
     expect(mockPost).toHaveBeenCalledWith(
       '/ocr/jobs/upload',
       expect.any(FormData),
