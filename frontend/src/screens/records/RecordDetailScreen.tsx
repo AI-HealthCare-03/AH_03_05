@@ -151,7 +151,7 @@ export function RecordDetailScreen({ navigation, route }: Props) {
   }
 
   const typeLabel = RECORD_LABEL[record.record_type];
-  const guideReady = guide?.status === 'completed';
+  const guideReady = guide?.status?.toLowerCase() === 'completed';
   const accentColor = getRecordColor(record.record_id);
 
   return (
