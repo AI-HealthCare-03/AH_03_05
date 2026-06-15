@@ -58,6 +58,8 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
   const { top: safeTop } = useSafeAreaInsets();
   const recordId: number | undefined = route?.params?.recordId;
   const [step, setStep] = useState(0);
+  // BE가 progress 실제값을 내려주면 사용, 아니면 null → step 기반 애니메이션으로 폴백
+  const [realProgress, setRealProgress] = useState<number | null>(null);
   const [error, setError] = useState('');
   const spinAnim = useRef(new Animated.Value(0)).current;
   // RN Web에서 % / alignSelf:stretch 가 Card padding을 무시하고 border-box 기준으로 계산되는
@@ -98,6 +100,7 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
           }
           try {
             const status = await jobsApi.getProcessingJob(job.job_id);
+            if (typeof status.progress === 'number') setRealProgress(status.progress);
             if (status.status === 'completed') {
               clearInterval(pollTimer);
               clearInterval(progressTimer);
@@ -124,7 +127,9 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
     };
   }, [recordId]);
 
-  const progress = Math.min(100, (step / STEPS.length) * 100);
+  const stepProgress = Math.min(100, (step / STEPS.length) * 100);
+  // 실제값이 step 기반보다 클 때만 채택 — 역행(되감김) 방지
+  const progress = realProgress != null ? Math.max(stepProgress, realProgress) : stepProgress;
   const fillWidth = trackWidth > 0 ? (trackWidth * progress) / 100 : 0;
   const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 

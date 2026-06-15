@@ -37,6 +37,8 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
 
   const [phase, setPhase] = useState<'loading' | 'failed' | 'timeout'>('loading');
   const [jobStatus, setJobStatus] = useState<AsyncJobStatus | null>(null);
+  // BE가 progress 실제값을 내려주면 사용, 아니면 null → status 기반 매핑으로 폴백
+  const [realProgress, setRealProgress] = useState<number | null>(null);
   const [statusText, setStatusText] = useState('가이드 생성 준비 중...');
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef(false);
@@ -45,6 +47,7 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
     abortRef.current = false;
     setPhase('loading');
     setJobStatus(null);
+    setRealProgress(null);
     setErrorMsg('');
     setStatusText('가이드 생성 준비 중...');
     run();
@@ -85,6 +88,7 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
         }
 
         setJobStatus(job.status);
+        if (typeof job.progress === 'number') setRealProgress(job.progress);
         setStatusText(STATUS_TEXT[job.status] ?? '분석 중...');
         const delay = BACKOFF_DELAYS[Math.min(attempt, BACKOFF_DELAYS.length - 1)];
         attempt++;
@@ -187,7 +191,10 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
           {statusText}
         </Text>
         <ProgressBar
-          progress={jobStatus ? (JOB_PROGRESS[jobStatus] ?? 40) : 20}
+          progress={Math.max(
+            jobStatus ? (JOB_PROGRESS[jobStatus] ?? 40) : 20,
+            realProgress ?? 0
+          )}
           style={{ alignSelf: 'stretch', marginBottom: spacing.s20 }}
         />
         <Text style={{ fontSize: typography.fz12, color: colors.muted2 }}>

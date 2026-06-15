@@ -247,6 +247,9 @@ export interface ProcessingJobResponse {
   job_type: 'ocr' | 'guide_generation';
   status: AsyncJobStatus;
   record_id?: number;
+  // BE가 채우면 실제 진행률(0~100)·결과 참조. 미연동 시 null → FE 자체 진행 표시로 폴백.
+  progress?: number | null;
+  result_ref?: string | null;
 }
 
 export interface GetGuideJobResponse {
