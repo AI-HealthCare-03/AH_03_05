@@ -74,6 +74,7 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
     await ProcessingJob.filter(id=job.id).update(
         status=JobStatus.RUNNING,
         started_at=datetime.now(UTC),
+        progress=0,
     )
     await MedicalRecord.filter(id=record.id).update(status=RecordStatus.OCR_PENDING)
 
@@ -134,6 +135,8 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
         await ProcessingJob.filter(id=job.id).update(
             status=JobStatus.COMPLETED,
             completed_at=datetime.now(UTC),
+            progress=100,
+            result_ref=str(record.id),
         )
         await _notify_ocr_completed(job, record)
         return True
@@ -144,6 +147,7 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
             status=JobStatus.FAILED,
             result_payload={"error": str(e)},
             completed_at=datetime.now(UTC),
+            progress=0,
         )
         await _notify_ocr_failed(job, record)
         return False
