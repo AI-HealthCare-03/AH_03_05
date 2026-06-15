@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Body, Depends, status
 
 from app.dependencies.security import get_request_user
 from app.dtos.users import (
@@ -69,7 +69,7 @@ async def revoke_all_devices(
 async def register_fcm_token(
     user: Annotated[User, Depends(get_request_user)],
     user_manage_service: Annotated[UserManageService, Depends(UserManageService)],
-    fcm_token: str,
+    fcm_token: Annotated[str, Body(embed=True)],
 ) -> None:
     """FCM 토큰 등록"""
     await user_manage_service.update_fcm_token(user, fcm_token)
