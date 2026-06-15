@@ -14,6 +14,9 @@ export default defineConfig({
     viewport: { width: 1280, height: 800 },
     video: { mode: 'on', size: { width: 1280, height: 800 } },
     launchOptions: { slowMo: 350 },
+    // 액션별 상한을 둬 특정 요소에서 무한 대기(테스트 타임아웃까지 멈춤)하는 것을 방지
+    actionTimeout: 15_000,
+    navigationTimeout: 15_000,
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 });
