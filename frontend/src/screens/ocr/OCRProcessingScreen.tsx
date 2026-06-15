@@ -21,6 +21,16 @@ const STEPS = [
   { label: '복약 정보 정리', icon: 'check-circle' },
 ];
 
+// BE가 OCR 완료 시 result_ref에 결과 record_id(문자열)를 채운다. 유효한 양의 정수면 그 값을
+// 결과 화면 라우팅의 정본으로, 아니면(없음/비정상) 요청 시점 recordId로 폴백한다.
+export function resolveResultRecordId(
+  resultRef: string | null | undefined,
+  fallbackId: number | undefined
+): number | undefined {
+  const parsed = Number(resultRef);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallbackId;
+}
+
 type StepItemProps = {
   st: { label: string; icon: string };
   index: number;
@@ -105,7 +115,8 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
               clearInterval(pollTimer);
               clearInterval(progressTimer);
               setStep(STEPS.length);
-              setTimeout(() => navigation.replace('OCRResult', { recordId }), 400);
+              const targetId = resolveResultRecordId(status.result_ref, recordId);
+              setTimeout(() => navigation.replace('OCRResult', { recordId: targetId }), 400);
             } else if (status.status === 'failed' || status.status === 'timeout') {
               clearInterval(pollTimer);
               clearInterval(progressTimer);
