@@ -29,6 +29,8 @@ class ProcessingJob(models.Model):
     timeout_seconds = fields.IntField(null=True)
     started_at = fields.DatetimeField(null=True)
     completed_at = fields.DatetimeField(null=True)
+    progress = fields.IntField(default=0)
+    result_ref = fields.CharField(max_length=500, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
