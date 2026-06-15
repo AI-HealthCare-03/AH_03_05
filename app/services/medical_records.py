@@ -59,6 +59,10 @@ class MedicalRecordService:
                 "manufacturer": m.manufacturer,
                 "confidence": float(m.ocr_confidence) if m.ocr_confidence else None,
                 "is_verified": m.is_verified,
+                "dosage": m.dosage,
+                "frequency": m.frequency,
+                "timing": m.timing,
+                "caution": m.caution,
             }
             for m in medications
         ]

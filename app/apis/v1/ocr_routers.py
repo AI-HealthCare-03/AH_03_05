@@ -75,7 +75,7 @@ async def get_processing_job(
     if job is None:
         raise NotFoundException(detail="작업을 찾을 수 없습니다.")
 
-    record_id = job.record_id if hasattr(job, "record_id") else None
+    record_id = job.record_id
     return ProcessingJobResponse(
         job_id=job.id,
         job_type=job.job_type,
