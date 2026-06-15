@@ -1,6 +1,8 @@
 # 화면별 API 연결 현황
 
-> 2026-06-06 · 조이레 (서버 및 코드 전수 대조 — 엔드포인트 오류 수정·누락 항목 추가)
+> 2026-06-15 · 조이레 (서버 및 코드 전수 대조 — 엔드포인트 오류 수정·누락 항목 추가)
+>
+> 웹 빌드는 API base URL을 same-origin으로 fallback 해석 (#197). `GET /processing-jobs/{id}` 폴링은 응답의 `progress`/`result_ref`를 사용하고 미연동 시 status 기반 표시로 폴백 (#202).
 
 ## 연결 완료
 
@@ -20,7 +22,7 @@
 | 온보딩 | `PUT /health-profile` |
 | 홈 | `GET /notifications/unread-count` · `GET /notifications` · `GET /records` |
 | 업로드 모달 | `POST /records` · `POST /records/manual-input` |
-| OCR 처리 중 | `POST /ocr/jobs` · `GET /processing-jobs/{id}` |
+| OCR 처리 중 | `POST /ocr/jobs` · `GET /processing-jobs/{id}` (progress 폴백) |
 | OCR 결과 | `GET /records/{id}/ocr-result` · `PATCH /records/{id}/ocr-text` |
 | 약품 후보 선택 | `PATCH /medications/{id}/verify` · `POST /records/{id}/medications/verify` |
 | 약품 복용법 저장 | `PATCH /medications/{id}` |
@@ -28,7 +30,7 @@
 | 진료기록 목록 | `GET /records` |
 | 진료기록 상세 | `GET /records/{id}` · `GET /records/{id}/medications` · `GET /records/{id}/guide` · `DELETE /records/{id}` |
 | 약품 상세 | `GET /drugs/{id}` |
-| 가이드 생성 중 | `POST /guides/generate` · `GET /processing-jobs/{id}` |
+| 가이드 생성 중 | `POST /guides/generate` · `GET /processing-jobs/{id}` (progress 폴백) |
 | 가이드 결과 | `GET /guides/{id}` |
 | 챗봇 목록 | `GET /chat/sessions` · `POST /chat/sessions` · `DELETE /chat/sessions/{id}` |
 | 챗봇 대화 | `GET /chat/sessions/{id}/messages` · `POST /chat/sessions/{id}/messages` · `POST /feedbacks` · `GET /rag/search` |
