@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from google.cloud import vision
 
 from app.models.medical_records import MedicalRecord, RecordStatus
@@ -69,7 +71,10 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
     await job.fetch_related("record")
     record = job.record
     await record.fetch_related("user")
-    await ProcessingJob.filter(id=job.id).update(status=JobStatus.PENDING)
+    await ProcessingJob.filter(id=job.id).update(
+        status=JobStatus.RUNNING,
+        started_at=datetime.now(UTC),
+    )
     await MedicalRecord.filter(id=record.id).update(status=RecordStatus.OCR_PENDING)
 
     try:
@@ -126,7 +131,10 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
             ocr_confidence=round(avg_conf, 4),
             status=RecordStatus.OCR_COMPLETED,
         )
-        await ProcessingJob.filter(id=job.id).update(status=JobStatus.COMPLETED)
+        await ProcessingJob.filter(id=job.id).update(
+            status=JobStatus.COMPLETED,
+            completed_at=datetime.now(UTC),
+        )
         await _notify_ocr_completed(job, record)
         return True
 
@@ -135,6 +143,7 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
         await ProcessingJob.filter(id=job.id).update(
             status=JobStatus.FAILED,
             result_payload={"error": str(e)},
+            completed_at=datetime.now(UTC),
         )
         await _notify_ocr_failed(job, record)
         return False

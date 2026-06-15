@@ -18,3 +18,5 @@ class ProcessingJobResponse(BaseModel):
     job_type: str
     status: str
     record_id: int | None = None
+    progress: float | None = None
+    result_ref: str | None = None
