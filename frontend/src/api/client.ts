@@ -4,16 +4,18 @@ import type { ApiError } from './types';
 
 // Set EXPO_PUBLIC_API_URL in .env for non-local environments.
 // 웹 배포(same-origin 서빙) 시 빌드에 env가 누락돼도 현재 origin을 기준으로 동작하도록 fallback.
-function resolveApiBaseUrl(): string {
-  const fromEnv =
-    typeof process !== 'undefined' ? process.env?.EXPO_PUBLIC_API_URL : undefined;
-  if (fromEnv) return fromEnv;
-  if (
-    typeof window !== 'undefined' &&
-    window.location?.hostname &&
-    window.location.hostname !== 'localhost'
-  ) {
-    return `${window.location.origin}/api/v1`;
+// 인자는 테스트에서 주입하기 위함 — 기본값으로 런타임 env/window를 읽는다.
+export function resolveApiBaseUrl(
+  envUrl: string | undefined = typeof process !== 'undefined'
+    ? process.env?.EXPO_PUBLIC_API_URL
+    : undefined,
+  loc: { hostname?: string; origin?: string } | undefined = typeof window !== 'undefined'
+    ? window.location
+    : undefined
+): string {
+  if (envUrl) return envUrl;
+  if (loc?.hostname && loc.hostname !== 'localhost' && loc.origin) {
+    return `${loc.origin}/api/v1`;
   }
   return 'http://localhost:80/api/v1';
 }
