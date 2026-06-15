@@ -134,6 +134,25 @@ describe('registerForPushNotificationsAsync', () => {
     expect(mockRegisterFcmToken).toHaveBeenCalledWith('raw-fcm-token-123');
   });
 
+  it('권한 미정 시 요청 후 허용되면 등록', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissions.mockResolvedValue({ status: 'granted' });
+    mockGetDeviceToken.mockResolvedValue({ data: 'raw-fcm-token-456' });
+    mockRegisterFcmToken.mockResolvedValue(undefined);
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(true);
+    expect(mockRequestPermissions).toHaveBeenCalledTimes(1);
+    expect(mockRegisterFcmToken).toHaveBeenCalledWith('raw-fcm-token-456');
+  });
+
+  it('토큰이 비어 있으면 등록하지 않고 false', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'granted' });
+    mockGetDeviceToken.mockResolvedValue({ data: '' });
+    const result = await registerForPushNotificationsAsync();
+    expect(result).toBe(false);
+    expect(mockRegisterFcmToken).not.toHaveBeenCalled();
+  });
+
   it('등록 중 예외가 나도 throw하지 않고 false', async () => {
     mockGetPermissions.mockResolvedValue({ status: 'granted' });
     mockGetDeviceToken.mockResolvedValue({ data: 'raw-fcm-token-123' });
