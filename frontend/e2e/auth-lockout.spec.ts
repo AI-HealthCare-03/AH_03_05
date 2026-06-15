@@ -24,5 +24,8 @@ test('TC-06: 로그인 5회 실패 → 잠금', async ({ page }) => {
   await page.locator('input[type="password"]').fill('wrongpass1!');
   await page.getByText('로그인').last().click();
 
-  await expect(page.getByText(/잠시 후 다시 시도해주세요/)).toBeVisible({ timeout: 10_000 });
+  // 429 로그인 잠금 고유 문구 — /잠시 후…/만 검사하면 다른 서버 에러에도 매칭됨
+  await expect(
+    page.getByText('로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.')
+  ).toBeVisible({ timeout: 10_000 });
 });

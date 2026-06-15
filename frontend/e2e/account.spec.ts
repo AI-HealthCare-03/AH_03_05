@@ -80,8 +80,9 @@ test.describe('TC-29', () => {
       await page.waitForTimeout(1_000);
     }
 
+    // 429 잠금 고유 문구 — '잠시 후…'만 검사하면 네트워크 오류 메시지에도 매칭돼 거짓 통과
     await expect(
-      page.getByText('잠시 후 다시 시도해주세요.')
+      page.getByText('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.')
     ).toBeVisible({ timeout: 10_000 });
   });
 });
