@@ -200,16 +200,10 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
     await tapIfPresent(page, page.getByText('🚶 생활습관', { exact: true }), 2_500); // 생활습관 탭 전환
   });
 
-  // 5. 건강상담 — 가이드 화면의 "건강상담에 물어보기"로 자연스럽게 진입(없으면 탭으로 폴백)
-  //    → 새 상담 → 메시지 전송 → AI 응답(라이브).
+  // 5. 건강상담 — 탭으로 이동 → 새 상담 → 메시지 전송 → AI 응답(라이브).
+  //    (가이드의 "건강상담에 물어보기" 버튼은 컨텍스트 전달 미구현이라 탭 진입 사용)
   await section('건강상담', async () => {
-    const askFromGuide = page.getByText('건강상담에 물어보기');
-    if ((await askFromGuide.count()) > 0) {
-      await moveAndClick(page, askFromGuide);
-      await pause(page, 1_500);
-    } else {
-      await navTo(page, '건강상담');
-    }
+    await navTo(page, '건강상담');
     await waitForScreen(page, '**/chat', page.getByText('새 상담').first());
     await pause(page, 2_000);
     await tapIfPresent(page, page.getByText('새 상담').first(), 2_000);
