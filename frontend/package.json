@@ -20,6 +20,7 @@
     "@react-navigation/native-stack": "^6.9.26",
     "axios": "^1.16.1",
     "expo": "~55.0.25",
+    "expo-device": "~55.0.17",
     "expo-document-picker": "~55.0.13",
     "expo-image-picker": "~55.0.20",
     "expo-linear-gradient": "~55.0.14",
