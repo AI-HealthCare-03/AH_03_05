@@ -91,8 +91,8 @@ class TestOcrAPI(TestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["job_id"] == job_id
         assert response.json()["status"] == "pending"
-        assert "progress" in response.json()
-        assert "result_ref" in response.json()
+        assert response.json()["progress"] == 0
+        assert response.json()["result_ref"] is None
 
     async def test_get_ocr_result_success(self):
         # Given
