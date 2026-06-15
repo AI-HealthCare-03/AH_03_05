@@ -198,11 +198,6 @@ export interface RecordGuideResponse {
 
 // ─── OCR ──────────────────────────────────────────────────────────────────────
 
-export interface OcrJobRequest {
-  record_id: number;
-  provider?: 'upstage';
-}
-
 export interface OcrJobResponse {
   job_id: number;
   record_id: number;
