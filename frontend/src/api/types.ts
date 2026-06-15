@@ -74,6 +74,13 @@ export interface UpdateUserRequest {
   nickname: string;
 }
 
+export interface UserUpdateResponse {
+  user_id: number;
+  name: string;
+  nickname: string | null;
+  last_login_at: string | null;
+}
+
 export interface ChangePasswordRequest {
   current_password: string;
   new_password: string;
@@ -279,12 +286,6 @@ export interface DrugDetail {
 export interface MedicationVerifyItem {
   medication_id: number;
   drug_ref_id: string | null;
-}
-
-export interface VerifyMedicationResponse {
-  medication_id: number;
-  drug_name: string;
-  is_verified: boolean;
 }
 
 export interface MedicationsBatchVerifyResponse {

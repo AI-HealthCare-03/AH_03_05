@@ -21,20 +21,30 @@ from app.services.medications import MedicationDosageService, MedicationVerifySe
 medication_router = APIRouter(prefix="/medications", tags=["Medications"])
 
 
-@medication_router.patch("/{medication_id}/verify")
-async def verify_medication(medication_id: int):
+@medication_router.patch("/{medication_id}/verify", response_model=MedicationVerifyResponse)
+async def verify_medication(
+    medication_id: int,
+    request: MedicationVerifyRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[MedicationVerifyService, Depends(MedicationVerifyService)],
+) -> MedicationVerifyResponse:
     """
     약품 후보 선택 (확정) API - 단건.
-
     OCR 결과로 추출된 약품 후보를 사용자가 식약처 API 검색 결과로
     최종 확정할 때 호출된다.
     """
-    return {
-        "medication_id": medication_id,
-        "is_verified": True,
-        "api_status": "selected",
-        "message": "약품 후보가 선택되었습니다.",
-    }
+    medication = await Medication.get_or_none(id=medication_id, user=user)
+    if medication is None:
+        raise NotFoundException(detail="약품을 찾을 수 없습니다.")
+    record_id = medication.record_id
+    result = await service.verify_medications_batch(
+        user=user,
+        record_id=record_id,
+        items=request.verifications,
+    )
+    if result is None:
+        raise NotFoundException(detail="진료기록을 찾을 수 없습니다.")
+    return MedicationVerifyResponse(**result)
 
 
 # ─── 스프린트 3: 맞춤형 복용 알림 관리 API 추가 ───

@@ -126,6 +126,7 @@ const ItemSeparator = () => <View style={{ height: spacing.s12 }} />;
 export function RecordListScreen({ navigation }: { navigation: NavProp }) {
   const [filter, setFilter] = useState('전체');
   const [records, setRecords] = useState<RecordSummary[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -143,6 +144,7 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
           size: 50,
         });
         setRecords(res.items);
+        setTotal(res.total ?? null);
       } catch (e) {
         setError(extractApiError(e));
       } finally {
@@ -197,7 +199,7 @@ export function RecordListScreen({ navigation }: { navigation: NavProp }) {
 
   const headerProps = {
     title: '진료기록',
-    subtitle: '업로드한 의료 문서와 분석 결과를 확인할 수 있어요.',
+    subtitle: total != null && total > 0 ? `총 ${total}건` : '업로드한 의료 문서와 분석 결과를 확인할 수 있어요.',
     right: (
       <Button
         variant="primary"

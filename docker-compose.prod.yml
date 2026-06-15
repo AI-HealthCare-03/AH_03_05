@@ -80,6 +80,7 @@ services:
       - static_volume:/vol/web/static
       - certbot-conf:/etc/letsencrypt
       - certbot-www:/var/www/certbot
+      - /home/ubuntu/AH_03_05/frontend-dist:/vol/web/frontend
     ports:
       - "80:80"
       - "443:443"

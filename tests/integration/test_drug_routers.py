@@ -74,6 +74,34 @@ class TestDrugSearch:
         await client.get("/api/v1/drugs/search?keyword=존재하지않는약품")
         assert mock_mfds_search_empty.call_count == 2
 
+    async def test_cache_serves_when_external_api_down(self, mocker, client):
+        """외부 식약처 API가 다운돼도, 이미 캐싱된 검색어는 정상 응답한다."""
+        from tests.integration.fixtures.mfds_responses import SEARCH_TYLENOL
+
+        # 1차: 외부 API 정상 → 결과 캐싱됨
+        mock_search = mocker.patch(
+            "app.services.mfds_client.MFDSClient.search_drug",
+            return_value=SEARCH_TYLENOL,
+        )
+        first = await client.get("/api/v1/drugs/search?keyword=타이레놀")
+        assert first.status_code == 200
+        assert first.json()["cache_used"] is False
+
+        # 외부 API 다운 시뮬레이션 (이후 호출은 무조건 503 유발)
+        import httpx
+
+        mock_search.side_effect = httpx.HTTPStatusError(
+            "Service Unavailable",
+            request=httpx.Request("GET", "http://test"),
+            response=httpx.Response(503, request=httpx.Request("GET", "http://test")),
+        )
+
+        # 2차: 외부 API는 죽었지만 캐시로 정상 응답
+        second = await client.get("/api/v1/drugs/search?keyword=타이레놀")
+        assert second.status_code == 200
+        assert second.json()["cache_used"] is True
+        assert second.json()["results"] == first.json()["results"]
+
 
 class TestDrugDetail:
     """GET /api/v1/drugs/{drug_id}"""

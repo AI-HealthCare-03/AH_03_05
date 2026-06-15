@@ -1,0 +1,59 @@
+# M-04 | 식약처 약품 검색 (모바일)
+#
+# 전제: 로그인 상태, 백엔드 실행 중
+# 스텝:
+#   1. OCR 결과 화면 또는 직접 약품 추가 경로로 진입
+#   2. 검색바에 약품명 입력
+#   3. 키보드 검색 리턴키 또는 검색 버튼 탭
+#   4. 결과 카드 렌더링 확인 ("검색 결과 N건")
+#   5. 없는 약품명으로 검색 → "검색 결과가 없어요" 확인
+# 기대:
+#   - 유효 검색어: 결과 목록 + 건수
+#   - 무효 검색어: 빈 상태 안내
+
+appId: host.exp.exponent
+---
+- runFlow: _login.yaml
+
+# Step 1: 진료기록 탭 → OCR 업로드 → 직접 약품 추가 버튼
+# (DrugCandidateScreen 진입 경로: OCR결과 → "약품 직접 추가")
+# 또는 Expo deep link로 직접 접근 가능한 경우 아래 주석 해제:
+# - openLink: "medipt://drug/candidate"
+
+- tapOn: "진료기록"
+- waitForAnimationToEnd
+
+# 진료기록이 있으면 첫 번째 항목 진입
+- tapOn:
+    index: 0
+    below:
+      text: "진료기록"
+    optional: true
+- waitForAnimationToEnd
+
+# "약품 직접 추가" 버튼 탭
+- tapOn:
+    accessibilityLabel: "약품 직접 추가"
+    optional: true
+- waitForAnimationToEnd
+
+# Step 2: 검색바 확인 및 입력
+- assertVisible: "약품명으로 검색"
+- tapOn: "약품명으로 검색"
+- inputText: "타이레놀"
+
+# Step 3: 검색 버튼 탭
+- tapOn: "검색"
+- waitForAnimationToEnd
+
+# Step 4: 결과 확인
+- assertVisible:
+    text: "검색 결과"
+    timeout: 10000
+
+# Step 5: 없는 약품 검색
+- clearText
+- inputText: "zzz없는약품xyz"
+- tapOn: "검색"
+- waitForAnimationToEnd
+- assertVisible: "검색 결과가 없어요"
