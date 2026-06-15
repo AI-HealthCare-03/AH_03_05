@@ -9,7 +9,8 @@
     "platforms": ["ios", "android", "web"],
     "web": {
       "name": "MediPT",
-      "lang": "ko"
+      "lang": "ko",
+      "output": "single"
     },
     "extra": {
       "apiUrl": "https://medipt05.store"
