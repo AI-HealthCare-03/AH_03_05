@@ -334,7 +334,7 @@ export interface CreateGuideRequest {
 }
 
 export interface CreateGuideResponse {
-  job_id: number;
+  // BE /guides/generate는 동기 처리라 job_id가 없고 완료 status를 즉시 반환한다.
   guide_id: number;
   status: AsyncJobStatus;
 }
