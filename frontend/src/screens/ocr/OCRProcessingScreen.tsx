@@ -83,7 +83,7 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
     );
     anim.start();
     return () => anim.stop();
-  }, []);
+  }, [spinAnim]);
 
   useEffect(() => {
     if (!recordId) return;
@@ -136,7 +136,8 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
       clearInterval(pollTimer);
       clearInterval(progressTimer);
     };
-  }, [recordId]);
+    // recordId당 1회만 실행 — navigation 추가 시 OCR job 중복 생성 위험
+  }, [recordId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stepProgress = Math.min(100, (step / STEPS.length) * 100);
   // 실제값이 step 기반보다 클 때만 채택 — 역행(되감김) 방지
