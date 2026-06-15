@@ -10,6 +10,9 @@
     "web": {
       "name": "MediPT",
       "lang": "ko"
+    },
+    "extra": {
+      "apiUrl": "https://medipt05.store"
     }
   }
 }
