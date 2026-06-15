@@ -141,7 +141,8 @@ async function waitForScreen(page: Page, urlGlob: string, guard: Locator) {
 
 async function loginDemo(page: Page) {
   await page.goto('/login');
-  await page.waitForLoadState('networkidle');
+  // networkidle은 SPA 폴링에 도달하지 못해 길게 멈추므로, 입력 필드 노출만 기다린다.
+  await page.getByPlaceholder('name@example.com').waitFor({ state: 'visible', timeout: 15_000 });
   await page.getByPlaceholder('name@example.com').fill(DEMO_EMAIL);
   await page.locator('input[type="password"]').fill(DEMO_PASSWORD);
   await moveAndClick(page, page.getByText('로그인').last());
@@ -178,18 +179,15 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
   // 3. 진료기록 — 사이드바로 이동 → 목록 → 상세(약품)
   await section('진료기록', async () => {
     await navTo(page, '진료기록');
-    await waitForScreen(
-      page,
-      '**/records',
-      page.getByText('업로드한 의료 문서와 분석 결과를 확인할 수 있어요.')
-    );
-    await pause(page, 2_500);
+    // 가드는 기록 유무와 무관하게 항상 있는 필터 탭으로(부제는 기록 있으면 "총 N건"으로 바뀜).
+    await waitForScreen(page, '**/records', page.getByText('전체', { exact: true }));
+    await pause(page, 2_000);
     // 기록 카드(예: " 처방전 완료 … ")를 클릭해 상세로 진입. 카드 버튼만 정확히 겨냥한다.
     const card = page.getByRole('button', { name: /처방전.*완료/ }).first();
     if ((await card.count()) > 0) {
       await moveAndClick(page, card);
       await page.waitForURL('**/records/*', { timeout: 10_000 }).catch(() => {});
-      await pause(page, 3_500); // 상세: 약품(암로디핀·메트포르민)·복용법 노출
+      await pause(page, 2_500); // 상세: 약품(암로디핀·메트포르민)·복용법 노출
     }
   });
 
@@ -198,8 +196,8 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
   await section('복약 가이드', async () => {
     if (!(await clickNonTab(page, '가이드'))) return; // 상세에 가이드 버튼 없으면 건너뜀
     await waitForScreen(page, '**/guide**', page.getByText('💊 복약 안내'));
-    await pause(page, 3_500); // 복약 안내 본문 노출
-    await tapIfPresent(page, page.getByText('🚶 생활습관', { exact: true }), 3_500); // 생활습관 탭 전환
+    await pause(page, 2_500); // 복약 안내 본문 노출
+    await tapIfPresent(page, page.getByText('🚶 생활습관', { exact: true }), 2_500); // 생활습관 탭 전환
   });
 
   // 5. 건강상담 — 탭 이동 → 새 상담 → 메시지 전송 → AI 응답(라이브).
@@ -227,6 +225,6 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
         { timeout: 30_000 }
       )
       .catch(() => {});
-    await pause(page, 5_000); // 답변 본문 노출
+    await pause(page, 2_500); // 답변 본문 노출
   });
 });
