@@ -419,7 +419,7 @@ export interface ChatMessageItem {
   safety_notice?: string;
   created_at?: string;
   category?: 'general' | 'side_effect' | 'dosage_timing' | 'lifestyle' | 'emergency';
-  // TODO: [BE 대기] GET /rag/search — BE 구현 완료 후 실데이터로 교체
+  // GET /rag/search 연동됨(ChatSessionPane). prod에서 코퍼스 비면 sources 빈 배열로 옴.
   rag_sources?: RagSource[];
   // TODO: [BE 대기] message.summary — 요약 API 스펙 미확정
   summary?: string;
