@@ -67,7 +67,7 @@ async def _create_medications_from_ocr(record, lines: list) -> None:
     DRUG_NAME 라인 → 식약처 검색 → Medication 생성
     검색 실패 시 raw 텍스트로라도 저장
     """
-    drug_lines = [l for l in lines if l["line_type"] == LineType.DRUG_NAME]
+    drug_lines = [line for line in lines if line["line_type"] == LineType.DRUG_NAME]
     if not drug_lines:
         return
 
