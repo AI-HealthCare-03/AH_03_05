@@ -127,6 +127,8 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 label="이메일"
+                returnKeyType="next"
+                onSubmitEditing={submit}
               />
               {fieldErrors.email ? (
                 <Text style={styles.fieldError}>{fieldErrors.email}</Text>
@@ -141,6 +143,8 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
                 onChangeText={setPw}
                 secureTextEntry
                 autoComplete="current-password"
+                returnKeyType="go"
+                onSubmitEditing={submit}
               />
               <Button
                 variant="ghost"

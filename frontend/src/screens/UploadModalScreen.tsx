@@ -10,6 +10,7 @@ import {
   TextInput,
   ScrollView,
   Keyboard,
+  Pressable,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -320,6 +321,17 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
             onChangeText={setManualText}
             style={s.manualInput}
             accessibilityLabel="진료 내용 직접 입력"
+            onKeyPress={(e: any) => {
+              // 웹: Enter=분석 시작 / Shift+Enter=줄바꿈 (채팅 입력과 동일 관용)
+              if (
+                Platform.OS === 'web' &&
+                e.nativeEvent.key === 'Enter' &&
+                !e.nativeEvent.shiftKey
+              ) {
+                e.nativeEvent.preventDefault?.();
+                doManualInput();
+              }
+            }}
           />
           {uploadError ? (
             <View style={s.errorBox}>
@@ -398,26 +410,24 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
     </>
   );
 
+  // scrim/카드는 배경 클릭 닫기·클릭 흡수용. TouchableOpacity(role=button)면 내부 입력의
+  // Space 키가 버튼 활성화로 처리돼 모달이 닫히므로, focusable={false} Pressable로 키보드 활성화를 끈다.
   if (isTabletOrAbove) {
     return (
-      <TouchableOpacity style={s.scrimCenter} activeOpacity={1} onPress={handleClose} accessibilityRole="button" accessibilityLabel="닫기">
-        <TouchableOpacity
-          activeOpacity={1}
-          style={[s.modalCenter, { width: cardWidth }]}
-          onPress={() => {}}
-        >
+      <Pressable style={s.scrimCenter} onPress={handleClose} focusable={false} accessibilityLabel="닫기">
+        <Pressable style={[s.modalCenter, { width: cardWidth }]} onPress={() => {}} focusable={false}>
           {content}
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </Pressable>
+      </Pressable>
     );
   }
 
   return (
-    <TouchableOpacity style={s.scrim} activeOpacity={1} onPress={handleClose} accessibilityRole="button" accessibilityLabel="닫기">
-      <TouchableOpacity activeOpacity={1} style={s.modal} onPress={() => {}}>
+    <Pressable style={s.scrim} onPress={handleClose} focusable={false} accessibilityLabel="닫기">
+      <Pressable style={s.modal} onPress={() => {}} focusable={false}>
         {content}
-      </TouchableOpacity>
-    </TouchableOpacity>
+      </Pressable>
+    </Pressable>
   );
 }
 
