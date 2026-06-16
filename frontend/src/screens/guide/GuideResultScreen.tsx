@@ -156,6 +156,16 @@ export function GuideResultScreen({ navigation, route }: Props) {
           ) : (
             <EmptyState icon="doc" message="가이드 정보를 불러오지 못했습니다." />
           )}
+
+          {/* 복약 주의사항 (warning_message) */}
+          {!guideLoading && !guideError && guide?.warning_message ? (
+            <Banner
+              variant="warning"
+              title="복약 주의사항"
+              body={guide.warning_message}
+              style={{ marginBottom: spacing.s14 }}
+            />
+          ) : null}
         </>
       )}
 
@@ -179,6 +189,24 @@ export function GuideResultScreen({ navigation, route }: Props) {
           ) : (
             <EmptyState icon="doc" message="가이드 정보를 불러오지 못했습니다." />
           )}
+
+          {/* 음식·약물 상호작용 → 건강상담 진입 */}
+          {!guideLoading && !guideError ? (
+            <TouchableOpacity
+              onPress={openGuideChat}
+              disabled={chatStarting}
+              accessibilityRole="button"
+              accessibilityLabel="음식·약물 상호작용 건강상담에 물어보기"
+            >
+              <Banner
+                variant="info"
+                icon="chat"
+                title="음식·약물 상호작용이 궁금하신가요?"
+                body="건강상담에 물어보기 →"
+                style={{ marginBottom: spacing.s14 }}
+              />
+            </TouchableOpacity>
+          ) : null}
         </>
       )}
 
