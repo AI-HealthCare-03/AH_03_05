@@ -45,9 +45,23 @@ describe('drugs API', () => {
   });
 
   it('getDrug calls GET /drugs/{id}', async () => {
-    mockGet.mockResolvedValue({ data: {} });
+    mockGet.mockResolvedValue({ data: { data: {} } });
     await getDrug(1);
     expect(mockGet).toHaveBeenCalledWith('/drugs/1');
+  });
+
+  it('getDrug unwraps { data } envelope and maps dosage→usage_method', async () => {
+    mockGet.mockResolvedValue({
+      data: {
+        drug_code: '202005623',
+        source: 'MFDS',
+        data: { drug_name: '타이레놀', efficacy: '해열', dosage: '1일 3회' },
+      },
+    });
+    const d = await getDrug(202005623);
+    expect(d.drug_name).toBe('타이레놀');
+    expect(d.efficacy).toBe('해열');
+    expect(d.usage_method).toBe('1일 3회');
   });
 });
 
