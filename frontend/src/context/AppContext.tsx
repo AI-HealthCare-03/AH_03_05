@@ -37,7 +37,6 @@ export interface User {
   conditions: string;
   allergies: string;
   otherMeds: string;
-  history: string;
   notes: string;
   pregnant: string;
   smoking: string;
@@ -171,7 +170,6 @@ export const defaultUser: User = {
   conditions: '',
   allergies: '',
   otherMeds: '',
-  history: '',
   notes: '',
   pregnant: '',
   smoking: '',
