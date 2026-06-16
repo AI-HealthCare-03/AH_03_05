@@ -58,4 +58,6 @@ jobs:
           target: ${{ secrets.EC2_FRONTEND_PATH }}
           source: "frontend/dist/*"
           strip_components: 2
-          rm: true
+          # rm: true 금지 — 대상 폴더를 통째로 삭제하면 전송 실패 시 frontend-dist가 빈 폴더가 돼
+          # nginx가 403/500을 낸다. dist 내용물만 덮어쓰도록 rm 없이 전송한다.
+          overwrite: true
