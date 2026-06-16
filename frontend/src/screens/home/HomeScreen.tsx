@@ -3,8 +3,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useApp } from '../../context/AppContext';
+import type { Drug } from '../../context/AppContext';
 import { notificationsApi, recordsApi, chatApi } from '../../api';
-import type { ChatSession } from '../../api';
+import type { ChatSession, MedicationItem } from '../../api';
 import { formatRelativeTime } from '../../utils/date';
 import type { Notification } from '../../context/AppContext';
 import Icon from '../../components/Icon';
@@ -22,6 +23,25 @@ import ScreenLayout from '../../components/ScreenLayout';
 import BellButton from '../../components/BellButton';
 import ProgressBar from '../../components/ProgressBar';
 import EmptyState from '../../components/EmptyState';
+
+// ─── 진료기록 약 → 복약현황 Drug 매핑 ───────────────────────────────────────────
+// 서버는 복용 타이밍을 따로 주지 않아 dosage/frequency만 표시에 사용. 복약 체크 상태는
+// 서버 미보존이라 클라이언트 토글(status='' ↔ '완료')로만 동작.
+const SCHEDULE_COLORS = [colors.scheduleMorning, colors.scheduleLunch, colors.scheduleEvening];
+
+function mapRecordMedications(meds: MedicationItem[]): Drug[] {
+  return meds.map((m, i) => ({
+    id: `rec-med-${m.medication_id}`,
+    name: m.drug_name,
+    maker: '',
+    ingredient: '',
+    freq: m.frequency ?? '',
+    time: m.dosage ?? '',
+    color: SCHEDULE_COLORS[i % SCHEDULE_COLORS.length],
+    status: '',
+    defaultStatus: '',
+  }));
+}
 
 // ─── Month calendar helpers ───────────────────────────────────────────────────
 
@@ -171,7 +191,7 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
   } = useApp();
   const { isTabletOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
-  const [drugsLoading, setDrugsLoading] = useState(false);
+  const [drugsLoading, setDrugsLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
@@ -198,19 +218,34 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
         })
         .catch(() => flash('알림을 불러오지 못했어요'));
 
+      setDrugsLoading(true);
       recordsApi
         .getRecords({ size: 1 })
         .then(res => {
           const latestRecord = res.items[0];
-          if (!latestRecord) return;
+          if (!latestRecord) {
+            setDrugs([]);
+            setDrugsLoading(false);
+            return;
+          }
           recordsApi
             .getRecordGuide(latestRecord.record_id)
             .then(guide => {
               if (guide) setRecentGuideId(guide.guide_id);
             })
             .catch(() => {});
+          // 최근 진료기록의 약을 복약현황에 반영 (하드코딩 시드 대체)
+          recordsApi
+            .getRecordMedications(latestRecord.record_id)
+            .then(med => setDrugs(mapRecordMedications(med.medications)))
+            .catch(() => setDrugs([]))
+            .finally(() => setDrugsLoading(false));
         })
-        .catch(() => flash('최근 기록을 불러오지 못했어요'));
+        .catch(() => {
+          flash('최근 기록을 불러오지 못했어요');
+          setDrugs([]);
+          setDrugsLoading(false);
+        });
 
       chatApi
         .getChatSessions({ limit: 1, offset: 0 })
@@ -669,7 +704,7 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
                     {d.name}
                   </Text>
                   <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
-                    {d.freq} · {d.time}
+                    {[d.freq, d.time].filter(Boolean).join(' · ')}
                   </Text>
                 </View>
                 {d.status === '완료' ? (
