@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  testIgnore: ['**/auth-lockout.spec.ts'],
+  testIgnore: ['**/auth-lockout.spec.ts', 'demo/**'],
   workers: 1,
   timeout: 30_000,
   retries: 0,
