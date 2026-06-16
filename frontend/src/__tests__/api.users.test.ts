@@ -1,14 +1,24 @@
-import { getMe, updateMe, changePassword, deleteAccount, getConsents, updateConsent } from '../api/users';
+import {
+  getMe,
+  updateMe,
+  changePassword,
+  deleteAccount,
+  getConsents,
+  updateConsent,
+  registerFcmToken,
+} from '../api/users';
 
 const mockGet = jest.fn();
 const mockPatch = jest.fn();
 const mockDelete = jest.fn();
+const mockPost = jest.fn();
 
 jest.mock('../api/client', () => ({
   apiClient: {
     get: (...args: any[]) => mockGet(...args),
     patch: (...args: any[]) => mockPatch(...args),
     delete: (...args: any[]) => mockDelete(...args),
+    post: (...args: any[]) => mockPost(...args),
   },
 }));
 
@@ -49,5 +59,11 @@ describe('users API', () => {
     mockPatch.mockResolvedValue({ data: {} });
     await updateConsent('terms', true);
     expect(mockPatch).toHaveBeenCalledWith('/users/me/consents/terms', expect.any(Object));
+  });
+
+  it('registerFcmToken calls POST /users/me/fcm-token with body', async () => {
+    mockPost.mockResolvedValue({ data: undefined });
+    await registerFcmToken('raw-fcm-token-123');
+    expect(mockPost).toHaveBeenCalledWith('/users/me/fcm-token', { fcm_token: 'raw-fcm-token-123' });
   });
 });

@@ -198,11 +198,6 @@ export interface RecordGuideResponse {
 
 // ─── OCR ──────────────────────────────────────────────────────────────────────
 
-export interface OcrJobRequest {
-  record_id: number;
-  provider?: 'upstage';
-}
-
 export interface OcrJobResponse {
   job_id: number;
   record_id: number;
@@ -247,8 +242,10 @@ export interface ProcessingJobResponse {
   job_type: 'ocr' | 'guide_generation';
   status: AsyncJobStatus;
   record_id?: number;
-  // BE가 채우면 실제 진행률(0~100)·결과 참조. 미연동 시 null → FE 자체 진행 표시로 폴백.
+  // BE가 채우면 실제 진행률(0~100). 미연동 시 null → FE 자체 진행 표시로 폴백.
   progress?: number | null;
+  // OCR 완료 시 결과 record_id(문자열). OCRProcessingScreen이 결과 화면 라우팅 정본으로 소비.
+  // 가이드 job은 동기 처리라 채우지 않음(null).
   result_ref?: string | null;
 }
 
@@ -334,7 +331,7 @@ export interface CreateGuideRequest {
 }
 
 export interface CreateGuideResponse {
-  job_id: number;
+  // BE /guides/generate는 동기 처리라 job_id가 없고 완료 status를 즉시 반환한다.
   guide_id: number;
   status: AsyncJobStatus;
 }

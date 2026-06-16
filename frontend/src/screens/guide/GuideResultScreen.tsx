@@ -13,7 +13,7 @@ import { useApp } from '../../context/AppContext';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
-import { guidesApi, feedbacksApi, extractApiError } from '../../api';
+import { guidesApi, feedbacksApi, chatApi, extractApiError } from '../../api';
 import type { GuideResponse } from '../../api';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParams } from '../../navigation/types';
@@ -67,6 +67,26 @@ export function GuideResultScreen({ navigation, route }: Props) {
   const apiMedItems = guide?.guide_items.filter(it => it.item_type === 'medication') ?? [];
   const apiLifeItems = guide?.guide_items.filter(it => it.item_type === 'lifestyle') ?? [];
 
+  const [chatStarting, setChatStarting] = useState(false);
+  const openGuideChat = async () => {
+    if (chatStarting) return;
+    setChatStarting(true);
+    try {
+      const session = await chatApi.createChatSession({
+        guide_id: guideId,
+        title: '가이드 상담',
+      });
+      navigation.getParent()?.navigate('ChatTab', {
+        screen: 'ChatSession',
+        params: { sessionId: String(session.session_id), title: session.title },
+      });
+    } catch (e) {
+      flash(extractApiError(e));
+    } finally {
+      setChatStarting(false);
+    }
+  };
+
   return (
     <ScreenLayout
       title="복약 · 생활습관 가이드"
@@ -78,7 +98,9 @@ export function GuideResultScreen({ navigation, route }: Props) {
           variant="ghost"
           size="sm"
           leftIcon="chat"
-          onPress={() => navigation.getParent()?.navigate('ChatTab', { screen: 'ChatList' })}
+          loading={chatStarting}
+          disabled={chatStarting}
+          onPress={openGuideChat}
         >
           건강상담에 물어보기
         </Button>
@@ -134,6 +156,16 @@ export function GuideResultScreen({ navigation, route }: Props) {
           ) : (
             <EmptyState icon="doc" message="가이드 정보를 불러오지 못했습니다." />
           )}
+
+          {/* 복약 주의사항 (warning_message) */}
+          {!guideLoading && !guideError && guide?.warning_message ? (
+            <Banner
+              variant="warning"
+              title="복약 주의사항"
+              body={guide.warning_message}
+              style={{ marginBottom: spacing.s14 }}
+            />
+          ) : null}
         </>
       )}
 
@@ -157,6 +189,24 @@ export function GuideResultScreen({ navigation, route }: Props) {
           ) : (
             <EmptyState icon="doc" message="가이드 정보를 불러오지 못했습니다." />
           )}
+
+          {/* 음식·약물 상호작용 → 건강상담 진입 */}
+          {!guideLoading && !guideError ? (
+            <TouchableOpacity
+              onPress={openGuideChat}
+              disabled={chatStarting}
+              accessibilityRole="button"
+              accessibilityLabel="음식·약물 상호작용 건강상담에 물어보기"
+            >
+              <Banner
+                variant="info"
+                icon="chat"
+                title="음식·약물 상호작용이 궁금하신가요?"
+                body="건강상담에 물어보기 →"
+                style={{ marginBottom: spacing.s14 }}
+              />
+            </TouchableOpacity>
+          ) : null}
         </>
       )}
 

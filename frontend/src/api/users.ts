@@ -36,3 +36,7 @@ export async function getConsents(): Promise<ConsentsResponse> {
 export async function updateConsent(type: ConsentType, is_agreed: boolean): Promise<void> {
   await apiClient.patch(`/users/me/consents/${type}`, { is_agreed });
 }
+
+export async function registerFcmToken(fcmToken: string): Promise<void> {
+  await apiClient.post('/users/me/fcm-token', { fcm_token: fcmToken });
+}

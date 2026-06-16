@@ -6,6 +6,7 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
+    "build:web": "expo export -p web",
     "test": "jest",
     "test:coverage": "jest --coverage"
   },
@@ -20,6 +21,7 @@
     "@react-navigation/native-stack": "^6.9.26",
     "axios": "^1.16.1",
     "expo": "~55.0.25",
+    "expo-device": "~55.0.17",
     "expo-document-picker": "~55.0.13",
     "expo-image-picker": "~55.0.20",
     "expo-linear-gradient": "~55.0.14",

@@ -294,7 +294,7 @@ export function SignupScreen({ navigation }: { navigation: AuthNavProp }) {
           loggedIn: true,
           profileComplete: false,
         });
-        (navigation as any).reset({ index: 0, routes: [{ name: 'Onboarding' as never }] });
+        // loggedIn 전환 시 AppNavigator가 자동으로 Onboarding을 첫 화면으로 마운트
       } catch {
         flash('자동 로그인에 실패했습니다. 로그인 화면에서 다시 시도해주세요.');
         navigation.navigate('Login');

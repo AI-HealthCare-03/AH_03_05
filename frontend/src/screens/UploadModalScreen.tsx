@@ -17,6 +17,7 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 import Icon from '../components/Icon';
 import { colors, radii, spacing, typography } from '../theme';
 import { uploadRecord, createManualRecord } from '../api/records';
+import { createOcrJobWithFile } from '../api/ocr';
 import type { UploadFile } from '../api/records';
 import type { RecordType } from '../api/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -113,11 +114,17 @@ export default function UploadModalScreen({ navigation }: { navigation: NavProp 
     setUploading(true);
     try {
       const res = await uploadRecord(file, TYPE_MAP[type]);
+      // OCR 처리는 이미지를 직접 첨부하는 /ocr/jobs/upload 경로에서만 트리거된다.
+      // 여기서 job을 만들고 job_id를 넘겨 OCRProcessing은 폴링만 하도록 한다.
+      const job = await createOcrJobWithFile(res.record_id, file);
       setUploadDone(true);
       setTimeout(() => {
         (navigation as NativeStackNavigationProp<RootStackParams>).navigate('Main', {
           screen: 'HomeTab',
-          params: { screen: 'OCRProcessing', params: { recordId: res.record_id } },
+          params: {
+            screen: 'OCRProcessing',
+            params: { recordId: res.record_id, jobId: job.job_id },
+          },
         });
       }, 700);
     } catch (e: any) {

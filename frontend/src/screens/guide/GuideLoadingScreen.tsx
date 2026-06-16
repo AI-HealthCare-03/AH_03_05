@@ -7,27 +7,11 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ScreenLayout from '../../components/ScreenLayout';
 import ProgressBar from '../../components/ProgressBar';
-import { guidesApi, jobsApi, extractApiError } from '../../api';
-import type { AsyncJobStatus } from '../../api';
+import { guidesApi, extractApiError } from '../../api';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParams } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParams, 'GuideLoading'>;
-
-// ─── 모듈 레벨 상수 ────────────────────────────────────────────────────────────
-
-const BACKOFF_DELAYS = [1000, 2000, 4000];
-const TIMEOUT_MS = 90_000;
-
-const STATUS_TEXT: Partial<Record<AsyncJobStatus, string>> = {
-  pending: '가이드 생성 준비 중...',
-  running: '복약 정보 분석 중...',
-};
-
-const JOB_PROGRESS: Partial<Record<AsyncJobStatus, number>> = {
-  pending: 20,
-  running: 60,
-};
 
 // ─── GuideLoadingScreen ────────────────────────────────────────────────────────
 
@@ -36,70 +20,49 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
   const recordId: number | undefined = route?.params?.recordId;
 
   const [phase, setPhase] = useState<'loading' | 'failed' | 'timeout'>('loading');
-  const [jobStatus, setJobStatus] = useState<AsyncJobStatus | null>(null);
-  // BE가 progress 실제값을 내려주면 사용, 아니면 null → status 기반 매핑으로 폴백
-  const [realProgress, setRealProgress] = useState<number | null>(null);
-  const [statusText, setStatusText] = useState('가이드 생성 준비 중...');
+  const [progress, setProgress] = useState(8);
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef(false);
 
   const startGuide = () => {
     abortRef.current = false;
     setPhase('loading');
-    setJobStatus(null);
-    setRealProgress(null);
+    setProgress(8);
     setErrorMsg('');
-    setStatusText('가이드 생성 준비 중...');
     run();
   };
 
+  // 가이드 생성은 동기 API(POST /guides/generate)가 완료까지 블록하고 결과를 반환한다.
+  // 별도 비동기 job/폴링이 없으며 응답에 job_id도 없으므로, 성공하면 바로 결과 화면으로 이동한다.
   const run = async () => {
-    const deadline = Date.now() + TIMEOUT_MS;
     try {
       const created = await guidesApi.createGuide({ record_id: recordId });
       if (abortRef.current) return;
-
-      const guideId = created.guide_id;
-      const jobId = created.job_id;
-      let attempt = 0;
-
-      while (true) {
-        if (abortRef.current) return;
-        if (Date.now() > deadline) {
-          setPhase('timeout');
-          return;
-        }
-
-        const job = await jobsApi.getProcessingJob(jobId);
-        if (abortRef.current) return;
-
-        if (job.status === 'completed') {
-          navigation.replace('GuideResult', { guideId });
-          return;
-        }
-        if (job.status === 'failed') {
-          setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.');
-          setPhase('failed');
-          return;
-        }
-        if (job.status === 'timeout') {
-          setPhase('timeout');
-          return;
-        }
-
-        setJobStatus(job.status);
-        if (typeof job.progress === 'number') setRealProgress(job.progress);
-        setStatusText(STATUS_TEXT[job.status] ?? '분석 중...');
-        const delay = BACKOFF_DELAYS[Math.min(attempt, BACKOFF_DELAYS.length - 1)];
-        attempt++;
-        await new Promise<void>(res => setTimeout(res, delay));
+      // BE는 status를 대문자(COMPLETED/FAILED)로 내려줄 수 있어 소문자로 비교한다.
+      if (created.status?.toLowerCase() === 'failed') {
+        setErrorMsg('가이드 생성에 실패했어요. 다시 시도해주세요.');
+        setPhase('failed');
+        return;
       }
+      setProgress(100);
+      navigation.replace('GuideResult', { guideId: created.guide_id });
     } catch (err: any) {
       if (abortRef.current) return;
+      if (err?.code === 'ECONNABORTED') {
+        setPhase('timeout');
+        return;
+      }
       setErrorMsg(extractApiError(err) || '가이드 생성 중 오류가 발생했어요.');
       setPhase('failed');
     }
   };
+
+  // 동기 생성이 진행되는 동안 진행 막대를 천천히 채워 멈춘 느낌을 방지(완료 시 100).
+  useEffect(() => {
+    if (phase !== 'loading') return;
+    const t = setInterval(() => setProgress(p => Math.min(p + 4, 90)), 1200);
+    return () => clearInterval(t);
+  }, [phase]);
 
   useEffect(() => {
     startGuide();
@@ -188,13 +151,10 @@ export function GuideLoadingScreen({ navigation, route }: Props) {
           맞춤 가이드를 만들고 있어요
         </Text>
         <Text style={{ fontSize: typography.fz13, color: colors.muted, marginBottom: spacing.s20 }}>
-          {statusText}
+          복약 정보를 분석하고 있어요...
         </Text>
         <ProgressBar
-          progress={Math.max(
-            jobStatus ? (JOB_PROGRESS[jobStatus] ?? 40) : 20,
-            realProgress ?? 0
-          )}
+          progress={progress}
           style={{ alignSelf: 'stretch', marginBottom: spacing.s20 }}
         />
         <Text style={{ fontSize: typography.fz12, color: colors.muted2 }}>

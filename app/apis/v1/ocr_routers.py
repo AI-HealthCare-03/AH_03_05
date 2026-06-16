@@ -81,4 +81,6 @@ async def get_processing_job(
         job_type=job.job_type,
         status=job.status,
         record_id=record_id,
+        progress=job.progress,
+        result_ref=job.result_ref,
     )

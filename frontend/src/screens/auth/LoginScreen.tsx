@@ -60,8 +60,7 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
         profileComplete: profileFlags[email] ?? false,
       };
       setUser(updatedUser);
-      const destination = updatedUser.profileComplete ? 'Main' : 'Onboarding';
-      (navigation as any).reset({ index: 0, routes: [{ name: destination as never }] });
+      // 화면 전환은 AppNavigator가 loggedIn 상태 변화로 자동 처리 (수동 reset 제거)
     } catch (e) {
       if (axios.isAxiosError(e) && e.response?.status === 403) {
         setFieldErrors(prev => ({ ...prev, form: '탈퇴한 계정입니다.' }));
