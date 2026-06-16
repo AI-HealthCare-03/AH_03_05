@@ -3,7 +3,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useApp } from '../../context/AppContext';
-import { notificationsApi, recordsApi } from '../../api';
+import { notificationsApi, recordsApi, chatApi } from '../../api';
+import type { ChatSession } from '../../api';
+import { formatRelativeTime } from '../../utils/date';
 import type { Notification } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
@@ -163,7 +165,6 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
     setDrugs,
     adherence,
     streak,
-    chats,
     flash,
     setNotifications,
     setUnreadCount,
@@ -210,6 +211,11 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
             .catch(() => {});
         })
         .catch(() => flash('최근 기록을 불러오지 못했어요'));
+
+      chatApi
+        .getChatSessions({ limit: 1, offset: 0 })
+        .then(res => setRecentSession(res.items[0]))
+        .catch(() => {});
     }, [])
   );
 
@@ -265,14 +271,22 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
           ? drugs.map((d, i) => ({ ...d, status: i === 1 ? '미복용' : '완료' }))
           : drugs.map(d => ({ ...d, status: '예정' }));
 
+  const [recentGuideId, setRecentGuideId] = useState<number | undefined>(undefined);
+  const [recentSession, setRecentSession] = useState<ChatSession | undefined>(undefined);
+
   const dayCompleted = drugsForDay.filter(d => d.status === '완료').length;
-  const recentChat = chats[0];
-  const lastAiMsg = recentChat?.messages.filter(m => m.from === 'ai').slice(-1)[0]?.text || '';
+  const recentChat = recentSession
+    ? {
+        id: String(recentSession.session_id),
+        title: recentSession.title || '새 상담',
+        time: formatRelativeTime(recentSession.updated_at),
+      }
+    : undefined;
+  const lastAiMsg = recentSession?.last_message_preview || '';
 
   const dateStr = `${viewY}.${String(viewM).padStart(2, '0')}.${String(selectedDay).padStart(2, '0')}`;
   const donePastDay = selectedStatus === 'done' && !isOnRealToday;
   const missedPastDay = selectedStatus === 'missed' && !isOnRealToday;
-  const [recentGuideId, setRecentGuideId] = useState<number | undefined>(undefined);
 
   return (
     <View style={{ flex: 1 }}>
