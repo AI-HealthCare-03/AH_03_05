@@ -33,6 +33,23 @@ describe('chat API', () => {
     expect(mockGet).toHaveBeenCalledWith('/chat/sessions', expect.any(Object));
   });
 
+  it('getChatSessions가 null/빈 title을 "새 상담"으로 폴백', async () => {
+    mockGet.mockResolvedValue({
+      data: {
+        items: [
+          { session_id: 1, title: null, status: 'ACTIVE' },
+          { session_id: 2, title: '   ', status: 'ACTIVE' },
+          { session_id: 3, title: '고혈압 질문', status: 'ACTIVE' },
+        ],
+        total: 3,
+        limit: 20,
+        offset: 0,
+      },
+    });
+    const res = await getChatSessions();
+    expect(res.items.map(s => s.title)).toEqual(['새 상담', '새 상담', '고혈압 질문']);
+  });
+
   it('getChatMessages calls GET /chat/sessions/{id}/messages', async () => {
     mockGet.mockResolvedValue({ data: { messages: [] } });
     await getChatMessages(1);
