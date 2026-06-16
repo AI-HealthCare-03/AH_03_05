@@ -13,7 +13,7 @@ import { useApp } from '../../context/AppContext';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
-import { guidesApi, feedbacksApi, chatApi, extractApiError } from '../../api';
+import { guidesApi, feedbacksApi, chatApi, recordsApi, extractApiError } from '../../api';
 import type { GuideResponse } from '../../api';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParams } from '../../navigation/types';
@@ -48,13 +48,52 @@ export function GuideResultScreen({ navigation, route }: Props) {
   const [commentText, setCommentText] = useState('');
   const { flash } = useApp();
 
-  const guideId: number | undefined = route?.params?.guideId;
+  // 탭 진입 시엔 params.guideId가 없으므로 최신 기록의 가이드를 찾아 표시한다.
+  const routeGuideId: number | undefined = route?.params?.guideId;
+  const [guideId, setGuideId] = useState<number | undefined>(routeGuideId);
   const [guide, setGuide] = useState<GuideResponse | null>(null);
-  const [guideLoading, setGuideLoading] = useState(!!guideId);
+  const [guideLoading, setGuideLoading] = useState(true);
   const [guideError, setGuideError] = useState('');
+  const [noGuide, setNoGuide] = useState(false);
 
+  // 1) guideId 확정: route param이 있으면 그대로, 없으면(탭) 최신 기록의 가이드를 조회
   useEffect(() => {
-    if (!guideId) return;
+    if (routeGuideId != null) {
+      setGuideId(routeGuideId);
+      return;
+    }
+    let cancelled = false;
+    setGuideLoading(true);
+    setNoGuide(false);
+    // 최근 기록들 중 가이드가 존재하는 첫 건(가장 최신)을 찾는다.
+    recordsApi
+      .getRecords({ size: 10 })
+      .then(async res => {
+        const guides = await Promise.allSettled(
+          res.items.map(r => recordsApi.getRecordGuide(r.record_id))
+        );
+        const found = guides.find(g => g.status === 'fulfilled' && g.value?.guide_id != null);
+        if (cancelled) return;
+        if (found && found.status === 'fulfilled') {
+          setGuideId(found.value.guide_id);
+        } else {
+          setNoGuide(true);
+          setGuideLoading(false);
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setNoGuide(true);
+        setGuideLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [routeGuideId]);
+
+  // 2) 확정된 guideId로 가이드 로드
+  useEffect(() => {
+    if (guideId == null) return;
     setGuideLoading(true);
     setGuideError('');
     guidesApi
@@ -77,7 +116,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
         title: '가이드 상담',
       });
       navigation.getParent()?.navigate('ChatTab', {
-        screen: 'ChatSession',
+        screen: 'ChatList',
         params: { sessionId: String(session.session_id), title: session.title },
       });
     } catch (e) {
@@ -86,6 +125,19 @@ export function GuideResultScreen({ navigation, route }: Props) {
       setChatStarting(false);
     }
   };
+
+  // 탭 진입인데 가이드가 하나도 없을 때: 빈 상태
+  if (noGuide) {
+    return (
+      <ScreenLayout title="복약 · 생활습관 가이드" scrollable>
+        <EmptyState
+          icon="doc"
+          title="아직 생성된 가이드가 없어요"
+          message="진료기록을 업로드하고 가이드를 생성하면 여기에 표시됩니다."
+        />
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout
@@ -149,7 +201,13 @@ export function GuideResultScreen({ navigation, route }: Props) {
             apiMedItems.map(item => <GuideItemCard key={item.sort_order} item={item} />)
           ) : guide?.medication_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
-              <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}>
+              <Text
+                style={{
+                  fontSize: typography.fz13,
+                  color: colors.ink2,
+                  lineHeight: typography.lh20,
+                }}
+              >
                 {guide.medication_guide}
               </Text>
             </Card>
@@ -182,7 +240,13 @@ export function GuideResultScreen({ navigation, route }: Props) {
             apiLifeItems.map(item => <GuideItemCard key={item.sort_order} item={item} />)
           ) : guide?.lifestyle_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
-              <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}>
+              <Text
+                style={{
+                  fontSize: typography.fz13,
+                  color: colors.ink2,
+                  lineHeight: typography.lh20,
+                }}
+              >
                 {guide.lifestyle_guide}
               </Text>
             </Card>
