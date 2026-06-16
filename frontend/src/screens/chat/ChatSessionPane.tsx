@@ -73,7 +73,8 @@ export function ChatSessionPane({
     chatApi
       .getChatMessages(Number(sessionId), { limit: 50 })
       .then(res => {
-        const msgs = res.items.length > 0 ? res.items : [GREETING];
+        // 인사말은 항상 첫 버블로 유지 (모바일 재진입 시 캐시가 없어 사라지던 문제 — 데스크탑 캐시 경로와 일관화)
+        const msgs = res.items.length > 0 ? [GREETING, ...res.items] : [GREETING];
         setMessages(msgs);
         onMessagesChangeRef.current?.(msgs);
       })
