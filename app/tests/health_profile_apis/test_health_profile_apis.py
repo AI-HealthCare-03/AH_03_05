@@ -70,10 +70,13 @@ class TestHealthProfileAPI(TestCase):
             # When
             response = await client.get("/api/v1/health-profile", headers=headers)
 
-        # Then
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json()["profile_id"] is not None
-        assert response.json()["chronic_diseases"] == ["hypertension"]
+            # Then
+            assert response.status_code == status.HTTP_200_OK
+            assert response.json()["profile_id"] is not None
+            assert response.json()["chronic_diseases"] == ["hypertension"]
+            assert response.json()["gender"] == "M"
+            assert response.json()["medical_history"] == "고혈압 진단"
+            assert response.json()["doctor_opinion"] == "식후 복용 권장"
 
     async def test_get_health_profile_not_found(self):
         # Given
