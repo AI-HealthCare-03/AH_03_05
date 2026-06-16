@@ -288,6 +288,13 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
     setSelectedDay(isCurrentM ? now.getDate() : 1);
   };
 
+  // ',' 나 공백만 든 비정상 값은 split·filter 후 빈 배열 → 미입력으로 처리(빈 줄 방지)
+  const conditionChips = (user.conditions ?? '')
+    .split(',')
+    .map(c => c.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+
   const markDose = (id: string) => {
     const target = drugs.find(d => d.id === id);
     if (!target) return;
@@ -347,34 +354,30 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
           안녕하세요{user.nickname || user.name ? `, ${user.nickname || user.name}` : ''}님 👋
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: spacing.s20 }}>
-          {user.conditions ? (
-            user.conditions
-              .split(/,\s*/)
-              .filter(Boolean)
-              .slice(0, 4)
-              .map(c => (
-                <TouchableOpacity
-                  key={c}
-                  onPress={() => {
-                    if (recentGuideId != null)
-                      navigation.navigate('GuideResult', { guideId: recentGuideId });
+          {conditionChips.length > 0 ? (
+            conditionChips.map(c => (
+              <TouchableOpacity
+                key={c}
+                onPress={() => {
+                  if (recentGuideId != null)
+                    navigation.navigate('GuideResult', { guideId: recentGuideId });
+                }}
+                disabled={recentGuideId == null}
+                accessibilityRole="link"
+                accessibilityLabel={`${c} 가이드 보기`}
+                style={[s.conditionChip, recentGuideId == null && { opacity: 0.55 }]}
+              >
+                <Text
+                  style={{
+                    fontSize: typography.fz12,
+                    color: colors.accent700,
+                    fontWeight: typography.fw5,
                   }}
-                  disabled={recentGuideId == null}
-                  accessibilityRole="link"
-                  accessibilityLabel={`${c} 가이드 보기`}
-                  style={[s.conditionChip, recentGuideId == null && { opacity: 0.55 }]}
                 >
-                  <Text
-                    style={{
-                      fontSize: typography.fz12,
-                      color: colors.accent700,
-                      fontWeight: typography.fw5,
-                    }}
-                  >
-                    {c} 관리
-                  </Text>
-                </TouchableOpacity>
-              ))
+                  {c} 관리
+                </Text>
+              </TouchableOpacity>
+            ))
           ) : (
             <View style={[s.conditionChip, { borderStyle: 'dashed', opacity: 0.7 }]}>
               <Text
