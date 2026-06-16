@@ -110,14 +110,16 @@ export default function AppNavigator() {
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data as { type?: string; meal?: string };
-      if (data?.type === 'medication' && navigationRef.isReady()) {
+      // MedicationAlarm은 로그인 상태에서만 트리에 마운트되므로, 미인증 시 navigate하면 no-op.
+      // 로그인 상태에서만 진입을 시도한다.
+      if (data?.type === 'medication' && user.loggedIn && navigationRef.isReady()) {
         navigationRef.navigate('MedicationAlarm', {
           meal: (data.meal ?? 'morning') as 'morning' | 'lunch' | 'dinner',
         });
       }
     });
     return () => sub.remove();
-  }, []);
+  }, [user.loggedIn]);
 
   // 로그인 상태가 되면 디바이스 푸시 토큰을 백엔드에 등록 (네이티브 실기기 전용)
   useEffect(() => {
