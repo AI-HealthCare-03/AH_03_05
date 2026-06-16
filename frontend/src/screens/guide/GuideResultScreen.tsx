@@ -19,7 +19,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParams } from '../../navigation/types';
 import EmptyState from '../../components/EmptyState';
 import Banner from '../../components/Banner';
-import SectionHeader from '../../components/SectionHeader';
+import Icon from '../../components/Icon';
 import { formatGuideDate } from '../../utils/date';
 
 type Props = NativeStackScreenProps<HomeStackParams, 'GuideResult'>;
@@ -28,13 +28,59 @@ type Props = NativeStackScreenProps<HomeStackParams, 'GuideResult'>;
 
 type GuideItem = GuideResponse['guide_items'][number];
 
-function GuideItemCard({ item }: { item: GuideItem }) {
+type GuideCardVariant = 'medication' | 'lifestyle' | 'warning';
+
+const CARD_STYLE: Record<GuideCardVariant, { icon: string; bg: string; fg: string }> = {
+  medication: { icon: 'pill', bg: colors.accent50, fg: colors.accent700 },
+  lifestyle: { icon: 'heart', bg: colors.success50, fg: colors.success },
+  warning: { icon: 'alert-triangle', bg: colors.warning50, fg: colors.warning },
+};
+
+// 생활습관 항목 제목 키워드로 아이콘을 보강한다(매칭 없으면 heart).
+function lifestyleIcon(title?: string): string {
+  if (!title) return 'heart';
+  if (/운동|걷|산책|활동/.test(title)) return 'run';
+  if (/금연|담배|흡연/.test(title)) return 'fire';
+  if (/수면|잠/.test(title)) return 'moon';
+  return 'heart';
+}
+
+function GuideItemCard({ item, variant }: { item: GuideItem; variant: GuideCardVariant }) {
+  const st = CARD_STYLE[variant];
+  const icon = variant === 'lifestyle' ? lifestyleIcon(item.title) : st.icon;
   return (
-    <Card shadow style={{ marginBottom: spacing.s14 }}>
-      {item.title ? <SectionHeader icon="link" label={item.title} /> : null}
-      <Text style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}>
-        {item.content}
-      </Text>
+    <Card shadow style={{ marginBottom: spacing.s14, flexDirection: 'row', gap: spacing.s12 }}>
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: radii.pill,
+          backgroundColor: st.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Icon name={icon} size={18} color={st.fg} />
+      </View>
+      <View style={{ flex: 1 }}>
+        {item.title ? (
+          <Text
+            style={{
+              fontSize: typography.fz14,
+              fontWeight: typography.fw7,
+              color: colors.ink,
+              marginBottom: spacing.s4,
+            }}
+          >
+            {item.title}
+          </Text>
+        ) : null}
+        <Text
+          style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}
+        >
+          {item.content}
+        </Text>
+      </View>
     </Card>
   );
 }
@@ -107,6 +153,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
   const itemType = (it: GuideItem) => it.item_type?.toLowerCase();
   const apiMedItems = guide?.guide_items.filter(it => itemType(it) === 'medication') ?? [];
   const apiLifeItems = guide?.guide_items.filter(it => itemType(it) === 'lifestyle') ?? [];
+  const apiWarnItems = guide?.guide_items.filter(it => itemType(it) === 'warning') ?? [];
 
   const [chatStarting, setChatStarting] = useState(false);
   const openGuideChat = async () => {
@@ -200,7 +247,9 @@ export function GuideResultScreen({ navigation, route }: Props) {
           ) : guideError ? (
             <Banner variant="danger" body={guideError} style={{ marginBottom: spacing.s14 }} />
           ) : apiMedItems.length > 0 ? (
-            apiMedItems.map(item => <GuideItemCard key={item.sort_order} item={item} />)
+            apiMedItems.map(item => (
+              <GuideItemCard key={item.sort_order} item={item} variant="medication" />
+            ))
           ) : guide?.medication_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
               <Text
@@ -217,8 +266,12 @@ export function GuideResultScreen({ navigation, route }: Props) {
             <EmptyState icon="doc" message="가이드 정보를 불러오지 못했습니다." />
           )}
 
-          {/* 복약 주의사항 (warning_message) */}
-          {!guideLoading && !guideError && guide?.warning_message ? (
+          {/* 복약 주의사항: WARNING 항목 카드 우선, 없으면 warning_message 배너 폴백 */}
+          {!guideLoading && !guideError && apiWarnItems.length > 0 ? (
+            apiWarnItems.map(item => (
+              <GuideItemCard key={`warn-${item.sort_order}`} item={item} variant="warning" />
+            ))
+          ) : !guideLoading && !guideError && guide?.warning_message ? (
             <Banner
               variant="warning"
               title="복약 주의사항"
@@ -239,7 +292,9 @@ export function GuideResultScreen({ navigation, route }: Props) {
           ) : guideError ? (
             <Banner variant="danger" body={guideError} style={{ marginBottom: spacing.s14 }} />
           ) : apiLifeItems.length > 0 ? (
-            apiLifeItems.map(item => <GuideItemCard key={item.sort_order} item={item} />)
+            apiLifeItems.map(item => (
+              <GuideItemCard key={item.sort_order} item={item} variant="lifestyle" />
+            ))
           ) : guide?.lifestyle_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
               <Text
