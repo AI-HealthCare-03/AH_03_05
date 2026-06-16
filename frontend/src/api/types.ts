@@ -245,8 +245,8 @@ export interface ProcessingJobResponse {
   record_id?: number;
   // BE가 채우면 실제 진행률(0~100). 미연동 시 null → FE 자체 진행 표시로 폴백.
   progress?: number | null;
-  // OCR 완료 시 결과 record_id(문자열). OCRProcessingScreen이 결과 화면 라우팅 정본으로 소비.
-  // 가이드 job은 동기 처리라 채우지 않음(null).
+  // OCR 완료 시 결과 record_id(문자열). 단 OCR에선 result_ref ≡ 입력 record_id라 FE는 미소비
+  // (OCRProcessingScreen은 recordId로 직접 라우팅). 가이드 job은 동기 처리라 null.
   result_ref?: string | null;
 }
 
