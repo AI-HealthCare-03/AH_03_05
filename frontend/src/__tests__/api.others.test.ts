@@ -52,10 +52,14 @@ describe('drugs API', () => {
 });
 
 describe('guides API', () => {
-  it('createGuide calls POST /guides/generate', async () => {
+  it('createGuide calls POST /guides/generate (긴 타임아웃)', async () => {
     mockPost.mockResolvedValue({ data: {} });
     await createGuide({ record_id: 1 } as any);
-    expect(mockPost).toHaveBeenCalledWith('/guides/generate', expect.any(Object));
+    expect(mockPost).toHaveBeenCalledWith(
+      '/guides/generate',
+      expect.any(Object),
+      expect.objectContaining({ timeout: 90_000 })
+    );
   });
 
   it('getGuide calls GET /guides/{id}', async () => {
