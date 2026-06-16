@@ -38,6 +38,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
   const [textExpanded, setTextExpanded] = useState(false);
   const [savingText, setSavingText] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState(false);
 
   useEffect(() => {
     if (!recordId) return;
@@ -48,6 +49,7 @@ export function OCRResultScreen({ navigation, route }: Props) {
           .getRecord(recordId)
           .then(r => {
             if (r.file_url && r.content_type?.startsWith('image/')) setImageUrl(r.file_url);
+            if (r.content_type === 'application/pdf') setIsPdf(true);
           })
           .catch(() => {});
         const res = await recordsApi.getOcrResult(recordId);
@@ -152,7 +154,14 @@ export function OCRResultScreen({ navigation, route }: Props) {
                   accessibilityLabel="원본 이미지 미리보기"
                 />
               ) : (
-                <Icon name="doc" size={72} color={colors.accentAlpha30} />
+                <View style={{ alignItems: 'center', gap: spacing.s8 }}>
+                  <Icon name="doc" size={56} color={colors.accentAlpha30} />
+                  {isPdf ? (
+                    <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+                      PDF 문서는 미리보기를 지원하지 않아요.
+                    </Text>
+                  ) : null}
+                </View>
               )}
               <TouchableOpacity
                 onPress={() => {

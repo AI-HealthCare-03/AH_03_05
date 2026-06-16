@@ -496,9 +496,15 @@ export function RecordDetailScreen({ navigation, route }: Props) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: spacing.s12,
+                  gap: spacing.s8,
                 }}
               >
-                <Icon name="doc" size={72} color={colors.accentAlpha25} />
+                <Icon name="doc" size={56} color={colors.accentAlpha25} />
+                {record.content_type === 'application/pdf' ? (
+                  <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+                    PDF 문서는 미리보기를 지원하지 않아요. 다운로드로 확인하세요.
+                  </Text>
+                ) : null}
               </View>
             )}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
