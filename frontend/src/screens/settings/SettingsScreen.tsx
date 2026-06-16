@@ -200,17 +200,32 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
             </Text>
           </View>
         </View>
-        <View style={{ flexDirection: 'row', gap: spacing.s8, marginTop: spacing.s12 }}>
-          <View style={s.chip}>
-            <Text
-              style={{
-                fontSize: typography.fz12,
-                color: user.profileComplete ? colors.success : colors.muted,
-              }}
-            >
-              {user.profileComplete ? '건강정보 입력 완료' : '건강정보 미입력'}
-            </Text>
-          </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: spacing.s8,
+            marginTop: spacing.s12,
+          }}
+        >
+          {/* 홈과 동일 모델: 기저질환 칩 노출, 미입력 시 안내 칩 */}
+          {user.conditions ? (
+            user.conditions
+              .split(/,\s*/)
+              .filter(Boolean)
+              .slice(0, 4)
+              .map(c => (
+                <View key={c} style={s.chip}>
+                  <Text style={{ fontSize: typography.fz12, color: colors.ink2 }}>{c}</Text>
+                </View>
+              ))
+          ) : (
+            <View style={s.chip}>
+              <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+                건강정보 미입력
+              </Text>
+            </View>
+          )}
           <View style={s.chip}>
             <Text style={{ fontSize: typography.fz12, color: colors.ink2 }}>
               {user.age || '—'} · {user.sex || '—'}
