@@ -5,6 +5,13 @@ on:
     branches:
       - develop
 
+# 동시 배포 직렬화: 짧은 간격으로 여러 PR이 머지되면 배포 워크플로우가 병렬 실행되어
+# 같은 frontend-dist에 경쟁적으로 scp → 늦게 끝난 옛 빌드가 최신 빌드를 덮어쓰는 레이스 발생.
+# 큐잉(cancel-in-progress: false)으로 한 번에 하나씩, 최신 푸시가 마지막에 배포되도록 한다.
+concurrency:
+  group: deploy-ec2-develop
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
