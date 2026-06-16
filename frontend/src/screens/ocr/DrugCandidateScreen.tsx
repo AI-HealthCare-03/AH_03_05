@@ -16,6 +16,8 @@ type Props = NativeStackScreenProps<HomeStackParams, 'DrugCandidate'>;
 
 export function DrugCandidateScreen({ navigation, route }: Props) {
   const drugIndex: number | undefined = route?.params?.drugIndex;
+  const medicationId: number | undefined = route?.params?.medicationId;
+  const recordId: number | undefined = route?.params?.recordId;
   const [query, setQuery] = useState(route?.params?.medicationName ?? '');
   const [results, setResults] = useState<DrugSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -111,7 +113,14 @@ export function DrugCandidateScreen({ navigation, route }: Props) {
             variant="primary"
             size="md"
             borderRadius={radii.pill}
-            onPress={() => navigation.navigate('DrugDosage', { drugIndex, selectedDrug: c })}
+            onPress={() =>
+              navigation.navigate('DrugDosage', {
+                drugIndex,
+                selectedDrug: c,
+                medicationId,
+                recordId,
+              })
+            }
           >
             이 약품 선택
           </Button>

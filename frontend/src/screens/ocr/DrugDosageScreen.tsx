@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { updateMedicationDosage } from '../../api/medications';
+import { updateMedicationDosage, verifyMedications } from '../../api/medications';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -17,6 +17,7 @@ export function DrugDosageScreen({ navigation, route }: Props) {
   const { flash, ocrSession, setOcrSession } = useApp();
   const drugIndex: number | undefined = route?.params?.drugIndex;
   const medicationId: number | undefined = route?.params?.medicationId;
+  const recordId: number | undefined = route?.params?.recordId;
   const selectedDrug = route?.params?.selectedDrug;
   const fromSearch = !!selectedDrug;
 
@@ -63,6 +64,18 @@ export function DrugDosageScreen({ navigation, route }: Props) {
       } catch {
         flash('복용법 저장에 실패했습니다.');
         return;
+      }
+      // 검색으로 약품을 선택한 경우: 식약처 코드 바인딩(verify)으로 약품 정체를 확정한다.
+      // best-effort — BE가 검색 결과를 DrugReference에 캐시해야 성공(미캐시 시 400). 실패해도
+      // 복용법은 이미 저장됐으므로 흐름을 막지 않고 식별 바인딩만 생략한다.
+      if (recordId != null && selectedDrug?.drug_ref_id != null) {
+        try {
+          await verifyMedications(recordId, [
+            { medication_id: medicationId, drug_ref_id: String(selectedDrug.drug_ref_id) },
+          ]);
+        } catch {
+          /* 식별 바인딩 생략 (BE DrugReference 캐시 미비) */
+        }
       }
     }
 
