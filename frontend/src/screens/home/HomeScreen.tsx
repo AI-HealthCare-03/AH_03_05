@@ -21,7 +21,6 @@ import Badge from '../../components/Badge';
 import SectionHeader from '../../components/SectionHeader';
 import ScreenLayout from '../../components/ScreenLayout';
 import BellButton from '../../components/BellButton';
-import ProgressBar from '../../components/ProgressBar';
 import EmptyState from '../../components/EmptyState';
 
 // ─── 진료기록 약 → 복약현황 Drug 매핑 ───────────────────────────────────────────
@@ -179,16 +178,7 @@ function MonthCalendar({
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export default function HomeScreen({ navigation }: { navigation: NavProp }) {
-  const {
-    user,
-    drugs,
-    setDrugs,
-    adherence,
-    streak,
-    flash,
-    setNotifications,
-    setUnreadCount,
-  } = useApp();
+  const { user, drugs, setDrugs, flash, setNotifications, setUnreadCount } = useApp();
   const { isTabletOrAbove } = useBreakpoint();
   const insets = useSafeAreaInsets();
   const [drugsLoading, setDrugsLoading] = useState(true);
@@ -220,32 +210,49 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
 
       setDrugsLoading(true);
       recordsApi
-        .getRecords({ size: 1 })
-        .then(res => {
-          const latestRecord = res.items[0];
-          if (!latestRecord) {
+        .getRecords({ size: 10 })
+        .then(async res => {
+          const records = res.items;
+          if (records.length === 0) {
             setDrugs([]);
-            setDrugsLoading(false);
             return;
           }
-          recordsApi
-            .getRecordGuide(latestRecord.record_id)
-            .then(guide => {
-              if (guide) setRecentGuideId(guide.guide_id);
-            })
-            .catch(() => {});
-          // 최근 진료기록의 약을 복약현황에 반영 (하드코딩 시드 대체)
-          recordsApi
-            .getRecordMedications(latestRecord.record_id)
-            .then(med => setDrugs(mapRecordMedications(med.medications)))
-            .catch(() => setDrugs([]))
-            .finally(() => setDrugsLoading(false));
+          // recentGuideId: 가이드가 있는 가장 최근 기록 / 복약현황: 가이드+약 둘 다 있는 가장 최근 기록
+          let guideSet = false;
+          let medsSet = false;
+          for (const r of records) {
+            let guideId: number | undefined;
+            try {
+              const guide = await recordsApi.getRecordGuide(r.record_id);
+              guideId = guide?.guide_id;
+            } catch {
+              guideId = undefined;
+            }
+            if (guideId == null) continue;
+            if (!guideSet) {
+              setRecentGuideId(guideId);
+              guideSet = true;
+            }
+            if (!medsSet) {
+              try {
+                const med = await recordsApi.getRecordMedications(r.record_id);
+                if (med.medications.length > 0) {
+                  setDrugs(mapRecordMedications(med.medications));
+                  medsSet = true;
+                }
+              } catch {
+                /* 약 조회 실패는 무시하고 다음 기록 시도 */
+              }
+            }
+            if (guideSet && medsSet) break;
+          }
+          if (!medsSet) setDrugs([]);
         })
         .catch(() => {
           flash('최근 기록을 불러오지 못했어요');
           setDrugs([]);
-          setDrugsLoading(false);
-        });
+        })
+        .finally(() => setDrugsLoading(false));
 
       chatApi
         .getChatSessions({ limit: 1, offset: 0 })
@@ -263,12 +270,6 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
   const isOnRealToday =
     viewY === now.getFullYear() && viewM === now.getMonth() + 1 && selectedDay === now.getDate();
   const selectedStatus = monthData.find(x => x.day === selectedDay)?.status || 'future';
-
-  // 달성률: 현재 월 기준 지난 날(done+missed) 중 done 비율
-  const pastDays = monthData.filter(d => d.status === 'done' || d.status === 'missed');
-  const doneDays = monthData.filter(d => d.status === 'done');
-  const computedAdherence =
-    pastDays.length > 0 ? Math.round((doneDays.length / pastDays.length) * 100) : adherence;
 
   const shiftMonth = (delta: number) => {
     let m = viewM + delta,
@@ -453,54 +454,28 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
         >
           <View style={isTabletOrAbove ? { flex: 2 } : undefined}>
             <Card style={{ backgroundColor: colors.accent, borderColor: 'transparent', flex: 1 }}>
-              <View
+              <Text
                 style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  fontSize: typography.fz13,
+                  color: colors.onAccent85,
                   marginBottom: spacing.s10,
                 }}
               >
-                <Text style={{ fontSize: typography.fz13, color: colors.onAccent85 }}>
-                  {viewM}월 복약 달성률
-                </Text>
-                <View style={s.streakBadge}>
-                  <Text style={{ fontSize: typography.fz12 }}>🔥</Text>
-                  <Text
-                    style={{
-                      fontSize: typography.fz12,
-                      color: colors.warningText,
-                      marginLeft: spacing.s4,
-                    }}
-                  >
-                    {streak}일 연속 달성 중
-                  </Text>
-                </View>
-              </View>
+                {viewM}월 복약 달성률
+              </Text>
               <Text
                 style={{
-                  fontSize: typography.fz36,
+                  fontSize: typography.fz17,
                   fontWeight: typography.fw7,
                   color: colors.white,
                   marginBottom: spacing.s4,
                 }}
               >
-                {computedAdherence}%
+                준비 중
               </Text>
-              <Text
-                style={{
-                  fontSize: typography.fz12,
-                  color: colors.onAccent75,
-                  marginBottom: spacing.s10,
-                }}
-              >
-                총 {doneDays.length}일 완료 · 미복용 {pastDays.length - doneDays.length}일
+              <Text style={{ fontSize: typography.fz12, color: colors.onAccent75 }}>
+                복약 체크 기록이 쌓이면 달성률을 보여드릴게요.
               </Text>
-              <ProgressBar
-                progress={computedAdherence}
-                color={colors.white}
-                trackColor={colors.onAccent25}
-              />
             </Card>
           </View>
 
@@ -681,8 +656,8 @@ export default function HomeScreen({ navigation }: { navigation: NavProp }) {
           ) : drugsForDay.length === 0 ? (
             <EmptyState
               icon="link"
-              message="복약 정보가 없어요. 처방전을 업로드하면 복약 현황을 확인할 수 있어요."
-              action={{ label: '처방전 업로드', onPress: () => (navigation as unknown as any).navigate('UploadModal') }}
+              message="아직 복약 정보가 없어요. 처방전을 올리면 복약 가이드를 만들어 드려요."
+              action={{ label: '처방전 올리고 가이드 생성', onPress: () => (navigation as unknown as any).navigate('UploadModal') }}
             />
           ) : (
             drugsForDay.map((d, i) => (
