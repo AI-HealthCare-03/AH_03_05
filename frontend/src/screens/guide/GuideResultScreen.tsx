@@ -103,8 +103,10 @@ export function GuideResultScreen({ navigation, route }: Props) {
       .finally(() => setGuideLoading(false));
   }, [guideId]);
 
-  const apiMedItems = guide?.guide_items.filter(it => it.item_type === 'medication') ?? [];
-  const apiLifeItems = guide?.guide_items.filter(it => it.item_type === 'lifestyle') ?? [];
+  // BE는 item_type을 대문자(MEDICATION/LIFESTYLE)로 반환 → 대소문자 무시 비교 (기존 소문자 비교는 항상 빈 배열이라 카드가 안 떴음)
+  const itemType = (it: GuideItem) => it.item_type?.toLowerCase();
+  const apiMedItems = guide?.guide_items.filter(it => itemType(it) === 'medication') ?? [];
+  const apiLifeItems = guide?.guide_items.filter(it => itemType(it) === 'lifestyle') ?? [];
 
   const [chatStarting, setChatStarting] = useState(false);
   const openGuideChat = async () => {
