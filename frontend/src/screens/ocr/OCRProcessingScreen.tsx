@@ -6,7 +6,7 @@ import Button from '../../components/Button';
 import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { colors, radii, spacing, typography } from '../../theme';
-import { ocrApi, jobsApi, extractApiError } from '../../api';
+import { jobsApi } from '../../api';
 import { s } from './_ocrShared';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParams, RootStackParams } from '../../navigation/types';
@@ -67,6 +67,7 @@ function StepItem({ st, index: i, step }: StepItemProps) {
 export function OCRProcessingScreen({ navigation, route }: Props) {
   const { top: safeTop } = useSafeAreaInsets();
   const recordId: number | undefined = route?.params?.recordId;
+  const jobId: number | undefined = route?.params?.jobId;
   const [step, setStep] = useState(0);
   // BE가 progress 실제값을 내려주면 사용, 아니면 null → step 기반 애니메이션으로 폴백
   const [realProgress, setRealProgress] = useState<number | null>(null);
@@ -86,9 +87,12 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
   }, [spinAnim]);
 
   useEffect(() => {
-    if (!recordId) return;
+    // OCR job은 업로드 시점(UploadModal)에서 이미지와 함께 생성되어 jobId로 전달된다.
+    if (!recordId || jobId == null) {
+      setError('OCR 작업 정보를 찾을 수 없어요. 다시 시도해주세요.');
+      return;
+    }
 
-    let pollTimer: ReturnType<typeof setInterval>;
     let pollCount = 0;
     const MAX_POLLS = 30;
 
@@ -97,47 +101,39 @@ export function OCRProcessingScreen({ navigation, route }: Props) {
       setStep(s => Math.min(s + 1, STEPS.length - 1));
     }, 3000);
 
-    ocrApi
-      .createOcrJob({ record_id: recordId })
-      .then(job => {
-        pollTimer = setInterval(async () => {
-          pollCount++;
-          if (pollCount > MAX_POLLS) {
-            clearInterval(pollTimer);
-            clearInterval(progressTimer);
-            setError('처리 시간이 초과됐어요. 다시 시도해주세요.');
-            return;
-          }
-          try {
-            const status = await jobsApi.getProcessingJob(job.job_id);
-            if (typeof status.progress === 'number') setRealProgress(status.progress);
-            if (status.status === 'completed') {
-              clearInterval(pollTimer);
-              clearInterval(progressTimer);
-              setStep(STEPS.length);
-              const targetId = resolveResultRecordId(status.result_ref, recordId);
-              setTimeout(() => navigation.replace('OCRResult', { recordId: targetId }), 400);
-            } else if (status.status === 'failed' || status.status === 'timeout') {
-              clearInterval(pollTimer);
-              clearInterval(progressTimer);
-              setError('OCR 처리에 실패했어요. 다시 시도해주세요.');
-            }
-          } catch {
-            /* silent */
-          }
-        }, 2000);
-      })
-      .catch(e => {
+    const pollTimer = setInterval(async () => {
+      pollCount++;
+      if (pollCount > MAX_POLLS) {
+        clearInterval(pollTimer);
         clearInterval(progressTimer);
-        setError(extractApiError(e));
-      });
+        setError('처리 시간이 초과됐어요. 다시 시도해주세요.');
+        return;
+      }
+      try {
+        const status = await jobsApi.getProcessingJob(jobId);
+        if (typeof status.progress === 'number') setRealProgress(status.progress);
+        if (status.status === 'completed') {
+          clearInterval(pollTimer);
+          clearInterval(progressTimer);
+          setStep(STEPS.length);
+          const targetId = resolveResultRecordId(status.result_ref, recordId);
+          setTimeout(() => navigation.replace('OCRResult', { recordId: targetId }), 400);
+        } else if (status.status === 'failed' || status.status === 'timeout') {
+          clearInterval(pollTimer);
+          clearInterval(progressTimer);
+          setError('OCR 처리에 실패했어요. 다시 시도해주세요.');
+        }
+      } catch {
+        /* silent */
+      }
+    }, 2000);
 
     return () => {
       clearInterval(pollTimer);
       clearInterval(progressTimer);
     };
-    // recordId당 1회만 실행 — navigation 추가 시 OCR job 중복 생성 위험
-  }, [recordId]); // eslint-disable-line react-hooks/exhaustive-deps
+    // recordId·jobId 변경 시에만 재폴링; navigation은 안정적이라 deps에서 제외
+  }, [recordId, jobId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stepProgress = Math.min(100, (step / STEPS.length) * 100);
   // 실제값이 step 기반보다 클 때만 채택 — 역행(되감김) 방지

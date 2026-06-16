@@ -12,7 +12,7 @@ export type OnboardingStackParams = {
 
 export type HomeStackParams = {
   Home: undefined;
-  OCRProcessing: { recordId?: number };
+  OCRProcessing: { recordId?: number; jobId?: number };
   OCRResult: { recordId?: number; inputMethod?: string };
   DrugCandidate: { medicationName?: string; drugIndex?: number };
   DrugDosage:

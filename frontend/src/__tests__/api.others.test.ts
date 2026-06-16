@@ -5,7 +5,7 @@ import { getProcessingJob } from '../api/jobs';
 import { createFeedback, getFeedbackSummary } from '../api/feedbacks';
 import { getNotificationSettings, updateNotificationSettings } from '../api/notificationSettings';
 import { searchGuidelines } from '../api/rag';
-import { createOcrJob } from '../api/ocr';
+import { createOcrJobWithFile } from '../api/ocr';
 
 const mockGet = jest.fn();
 const mockPost = jest.fn();
@@ -113,9 +113,25 @@ describe('rag API', () => {
 });
 
 describe('ocr API', () => {
-  it('createOcrJob calls POST /ocr/jobs', async () => {
+  it('createOcrJobWithFile (네이티브 uri) → POST /ocr/jobs/upload', async () => {
     mockPost.mockResolvedValue({ data: {} });
-    await createOcrJob({ record_id: 1 } as any);
-    expect(mockPost).toHaveBeenCalledWith('/ocr/jobs', expect.any(Object));
+    const file = { uri: 'file:///x.png', name: 'x.png', type: 'image/png' } as any;
+    await createOcrJobWithFile(1, file);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/ocr/jobs/upload',
+      expect.any(FormData),
+      expect.objectContaining({ headers: { 'Content-Type': undefined } })
+    );
+  });
+
+  it('createOcrJobWithFile (웹 File, uri 없음) → POST /ocr/jobs/upload', async () => {
+    mockPost.mockResolvedValue({ data: {} });
+    const webFile = { name: 'x.png', type: 'image/png', size: 10 } as any; // uri 없음 → File 분기
+    await createOcrJobWithFile(2, webFile);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/ocr/jobs/upload',
+      expect.any(FormData),
+      expect.objectContaining({ headers: { 'Content-Type': undefined } })
+    );
   });
 });
