@@ -56,7 +56,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
     conditions: user.conditions || '',
     allergies: user.allergies || '',
     otherMeds: user.otherMeds || '',
-    history: user.history || '',
+    notes: user.notes || '',
   });
   const set = (k: string, v: string) => setFormState(prev => ({ ...prev, [k]: v }));
   const [loading, setLoading] = useState(false);
@@ -87,7 +87,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
         chronic_diseases: splitList(form.conditions),
         allergies: splitList(form.allergies),
         current_medications: splitList(form.otherMeds),
-        medical_history: form.history || undefined,
+        medical_history: form.notes || undefined,
       });
       setUser({ ...user, ...form, profileComplete: true });
       setPendingNav(true);
@@ -199,8 +199,8 @@ export default function OnboardingScreen({ navigation, route }: Props) {
               <Input
                 label="병력 메모"
                 placeholder="과거 수술/입원 기록 등"
-                value={form.history}
-                onChangeText={v => set('history', v)}
+                value={form.notes}
+                onChangeText={v => set('notes', v)}
                 multiline
                 style={{ height: 80, textAlignVertical: 'top', paddingTop: spacing.s8 }}
               />

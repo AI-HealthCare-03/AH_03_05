@@ -9,9 +9,20 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokenStore } from '../api/tokenStore';
-import { usersApi } from '../api';
+import { usersApi, healthProfileApi } from '../api';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { colors } from '../theme';
+
+// 서버 HealthProfile → User 필드 역매핑 (HealthProfileEditScreen과 동일 규칙)
+// 주의: 이 파일은 자체 `Record` 인터페이스를 정의하므로 TS 유틸리티 Record<> 사용 불가
+const AGE_GROUP_TO_LABEL: { [k: string]: string } = {
+  '20s': '20대',
+  '30s': '30대',
+  '40s': '40대',
+  '50s': '50대',
+  '60s': '60대+',
+};
+const GENDER_TO_LABEL: { [k: string]: string } = { F: '여성', M: '남성' };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,7 +37,6 @@ export interface User {
   conditions: string;
   allergies: string;
   otherMeds: string;
-  history: string;
   notes: string;
   pregnant: string;
   smoking: string;
@@ -160,7 +170,6 @@ export const defaultUser: User = {
   conditions: '',
   allergies: '',
   otherMeds: '',
-  history: '',
   notes: '',
   pregnant: '',
   smoking: '',
@@ -390,6 +399,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUserState({ ...defaultUser, loggedIn: false });
     });
   }, []);
+
+  // 로그인 상태가 되면 서버에서 건강프로필을 받아 user에 hydrate한다.
+  // medipt_user는 로그아웃 시 삭제되므로 로컬 저장에만 의존하면 재로그인 후 프로필이
+  // 초기화된다 → 서버를 단일 출처로 삼아 복원. (매핑은 HealthProfileEditScreen과 동일)
+  useEffect(() => {
+    if (!user.loggedIn) return;
+    let cancelled = false;
+    healthProfileApi
+      .getHealthProfile()
+      .then(p => {
+        if (cancelled) return;
+        setUserState(prev => ({
+          ...prev,
+          age: AGE_GROUP_TO_LABEL[p.age_group ?? ''] ?? prev.age,
+          sex: GENDER_TO_LABEL[p.gender ?? ''] ?? prev.sex,
+          conditions: p.chronic_diseases.join(', '),
+          allergies: p.allergies.join(', '),
+          otherMeds: p.current_medications.join(', '),
+          notes: p.medical_history ?? prev.notes,
+        }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user.loggedIn]);
 
   useEffect(() => {
     if (drugs.length === 0) return;
