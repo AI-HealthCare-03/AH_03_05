@@ -65,11 +65,18 @@ export function ChatListScreen({ navigation, route }: Props) {
     }, [fetchSessions, loading])
   );
 
+  // 외부(홈 최근상담·가이드 상담)에서 sessionId로 진입.
+  // 데스크탑은 분할뷰 선택, 모바일은 단독 세션 화면으로 이동. 처리 후 param 클리어로 재진입 루프 방지.
   useEffect(() => {
-    if (route?.params?.sessionId) {
-      navigation.navigate('ChatSession', { sessionId: route.params.sessionId });
+    const sid = route?.params?.sessionId;
+    if (!sid) return;
+    if (isDesktop) {
+      setSelectedId(sid);
+    } else {
+      navigation.navigate('ChatSession', { sessionId: sid, title: route?.params?.title });
     }
-  }, [route?.params?.sessionId]);
+    navigation.setParams({ sessionId: undefined, title: undefined });
+  }, [route?.params?.sessionId, isDesktop, navigation]);
 
   const startNew = useCallback(async () => {
     try {

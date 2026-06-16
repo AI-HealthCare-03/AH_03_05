@@ -77,7 +77,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
         title: '가이드 상담',
       });
       navigation.getParent()?.navigate('ChatTab', {
-        screen: 'ChatSession',
+        screen: 'ChatList',
         params: { sessionId: String(session.session_id), title: session.title },
       });
     } catch (e) {
