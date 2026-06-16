@@ -31,7 +31,12 @@ export async function getChatSessions(params?: {
   offset?: number;
 }): Promise<ChatSessionListResponse> {
   const res = await apiClient.get<ChatSessionListResponse>('/chat/sessions', { params });
-  return res.data;
+  // 서버는 메시지가 없는 세션의 title을 null로 반환(첫 메시지가 와야 title 세팅).
+  // 타입 계약(title: string) 복원 + 목록 빈 행 방지를 위해 폴백 정규화.
+  return {
+    ...res.data,
+    items: (res.data.items ?? []).map(s => ({ ...s, title: s.title?.trim() || '새 상담' })),
+  };
 }
 
 export async function getChatMessages(

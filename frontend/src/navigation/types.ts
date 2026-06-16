@@ -38,7 +38,7 @@ export type GuideStackParams = {
 };
 
 export type ChatStackParams = {
-  ChatList: { sessionId?: string } | undefined;
+  ChatList: { sessionId?: string; title?: string } | undefined;
   ChatSession: { sessionId: string; guideId?: string; title?: string; subtitle?: string };
 };
 
