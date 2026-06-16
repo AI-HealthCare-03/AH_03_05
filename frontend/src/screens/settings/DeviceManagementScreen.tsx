@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text } from 'react-native';
-import { NavigationProp } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useApp, defaultUser } from '../../context/AppContext';
 import { authApi } from '../../api';
@@ -8,7 +7,7 @@ import { colors, spacing, typography } from '../../theme';
 import Button from '../../components/Button';
 import ScreenLayout from '../../components/ScreenLayout';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParams, SettingsStackParams } from '../../navigation/types';
+import type { SettingsStackParams } from '../../navigation/types';
 
 type NavProp = NativeStackNavigationProp<SettingsStackParams, 'DeviceManagement'>;
 
@@ -26,9 +25,7 @@ export function DeviceManagementScreen({ navigation }: { navigation: NavProp }) 
       await AsyncStorage.setItem('medipt_profile_flags', JSON.stringify(profileFlags));
       await AsyncStorage.removeItem('medipt_user');
       setUser({ ...defaultUser });
-      (
-        navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined
-      )?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      // loggedIn=false 전환 시 AppNavigator가 자동으로 Auth로 스왑
     } finally {
       setLoading(false);
     }

@@ -8,9 +8,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NavigationProp } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
-import type { RootStackParams, SettingsStackParams } from '../../navigation/types';
+import type { SettingsStackParams } from '../../navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type NavProp = NativeStackNavigationProp<SettingsStackParams, 'Settings'>;
@@ -75,9 +74,7 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
             JSON.stringify({ ...defaultUser, loggedIn: false })
           );
           setUser({ ...defaultUser, loggedIn: false });
-          (
-            navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined
-          )?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+          // loggedIn=false 전환 시 AppNavigator가 자동으로 Auth로 스왑
           return;
         }
       } finally {
@@ -251,9 +248,7 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
             await AsyncStorage.setItem('medipt_profile_flags', JSON.stringify(profileFlags));
             await AsyncStorage.removeItem('medipt_user');
             setUser({ ...defaultUser });
-            (
-              navigation.getParent()?.getParent() as NavigationProp<RootStackParams> | undefined
-            )?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+            // loggedIn=false 전환 시 AppNavigator가 자동으로 Auth로 스왑
             flash('로그아웃 되었어요');
           }}
         />

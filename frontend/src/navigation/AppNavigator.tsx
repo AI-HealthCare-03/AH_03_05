@@ -19,8 +19,12 @@ import { registerForPushNotificationsAsync } from '../utils/notifications';
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const noHeader = { headerShown: false };
 
-const linking: LinkingOptions<any> = {
-  prefixes: ['https://medipt.app', 'medipt://'],
+const prefixes = ['https://medipt.app', 'medipt://'];
+
+// 로그아웃 상태에선 Auth 경로만 인식 — 보호 경로(/records 등) 딥링크는 매칭 실패 후
+// Auth(로그인)로 안전 폴백한다. (트리에 없는 Main을 참조하면 링킹이 throw → 크래시)
+const authLinking: LinkingOptions<any> = {
+  prefixes,
   config: {
     screens: {
       Auth: {
@@ -30,6 +34,14 @@ const linking: LinkingOptions<any> = {
           ForgotPassword: 'forgot-password',
         },
       },
+    },
+  },
+};
+
+const appLinking: LinkingOptions<any> = {
+  prefixes,
+  config: {
+    screens: {
       Onboarding: {
         screens: {
           OnboardingStep: 'onboarding',
@@ -118,25 +130,30 @@ export default function AppNavigator() {
     return <View style={{ flex: 1, backgroundColor: colors.canvas }} />;
   }
 
-  const initialRoute: keyof RootStackParams = !user.loggedIn
-    ? 'Auth'
-    : !user.profileComplete
-      ? 'Onboarding'
-      : 'Main';
+  // 인증 게이트는 loggedIn으로만 — 미인증이면 Auth만 트리에 존재해 URL 딥링크로도
+  // 보호 화면에 도달할 수 없다. 로그인 후 첫 화면(Onboarding/Main)은 initialRouteName으로 결정.
+  // (온보딩 '건너뛰기'는 profileComplete=false인 채 Main 진입이 필요하므로 게이트로 쓰지 않음)
+  const initialRoute: keyof RootStackParams = user.profileComplete ? 'Main' : 'Onboarding';
+  const linking = user.loggedIn ? appLinking : authLinking;
 
   return (
     <View style={styles.root}>
       <NavigationContainer ref={navigationRef} linking={linking}>
         <RootStack.Navigator screenOptions={noHeader} initialRouteName={initialRoute}>
-          <RootStack.Screen name="Auth" component={AuthNavigator} />
-          <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
-          <RootStack.Screen name="Main" component={MainNavigator} />
-          <RootStack.Screen
-            name="UploadModal"
-            component={UploadModalScreen}
-            options={{ presentation: 'transparentModal' }}
-          />
-          <RootStack.Screen name="MedicationAlarm" component={MedicationAlarmScreen} />
+          {!user.loggedIn ? (
+            <RootStack.Screen name="Auth" component={AuthNavigator} />
+          ) : (
+            <>
+              <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
+              <RootStack.Screen name="Main" component={MainNavigator} />
+              <RootStack.Screen
+                name="UploadModal"
+                component={UploadModalScreen}
+                options={{ presentation: 'transparentModal' }}
+              />
+              <RootStack.Screen name="MedicationAlarm" component={MedicationAlarmScreen} />
+            </>
+          )}
         </RootStack.Navigator>
       </NavigationContainer>
       <Toast />
