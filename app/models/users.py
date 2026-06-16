@@ -21,6 +21,7 @@ class User(models.Model):
     withdrawn_at = fields.DatetimeField(null=True)
     nickname_updated_at = fields.DatetimeField(null=True)
     password_changed_at = fields.DatetimeField(null=True)
+    fcm_token = fields.CharField(max_length=255, null=True)
 
     class Meta:
         table = "users"
