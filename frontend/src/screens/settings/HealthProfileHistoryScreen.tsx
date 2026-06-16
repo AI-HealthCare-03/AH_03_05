@@ -18,8 +18,8 @@ export function HealthProfileHistoryScreen({ navigation }: { navigation: NavProp
     >
       <EmptyState
         icon="list"
-        title="변경 이력이 없습니다"
-        message="건강 프로필을 수정하면 이곳에 기록이 표시됩니다."
+        title="변경 이력 준비 중"
+        message="건강 프로필 변경 이력 기능을 준비하고 있어요. 곧 만나보실 수 있어요."
       />
     </ScreenLayout>
   );
