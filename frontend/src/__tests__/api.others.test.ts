@@ -63,6 +63,16 @@ describe('drugs API', () => {
     expect(d.efficacy).toBe('해열');
     expect(d.usage_method).toBe('1일 3회');
   });
+
+  it('getDrug falls back to flat response (봉투 없음) and keeps usage_method', async () => {
+    mockGet.mockResolvedValue({
+      data: { drug_name: '아스피린', efficacy: '진통', usage_method: '1일 1회' },
+    });
+    const d = await getDrug(1);
+    expect(d.drug_name).toBe('아스피린');
+    expect(d.efficacy).toBe('진통');
+    expect(d.usage_method).toBe('1일 1회');
+  });
 });
 
 describe('guides API', () => {
