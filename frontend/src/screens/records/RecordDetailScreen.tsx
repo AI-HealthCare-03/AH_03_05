@@ -9,6 +9,7 @@ import {
   Linking,
   StyleSheet,
   Platform,
+  Image,
 } from 'react-native';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
@@ -474,18 +475,32 @@ export function RecordDetailScreen({ navigation, route }: Props) {
                 </Text>
               </TouchableOpacity>
             </View>
-            <View
-              style={{
-                height: 200,
-                backgroundColor: colors.accent50,
-                borderRadius: radii.md,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: spacing.s12,
-              }}
-            >
-              <Icon name="doc" size={72} color={colors.accentAlpha25} />
-            </View>
+            {record.file_url && record.content_type?.startsWith('image/') ? (
+              <Image
+                source={{ uri: record.file_url }}
+                style={{
+                  height: 200,
+                  borderRadius: radii.md,
+                  marginBottom: spacing.s12,
+                  backgroundColor: colors.accent50,
+                }}
+                resizeMode="contain"
+                accessibilityLabel="원본 이미지 미리보기"
+              />
+            ) : (
+              <View
+                style={{
+                  height: 200,
+                  backgroundColor: colors.accent50,
+                  borderRadius: radii.md,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: spacing.s12,
+                }}
+              >
+                <Icon name="doc" size={72} color={colors.accentAlpha25} />
+              </View>
+            )}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
                 {record.file_name ?? '파일명 없음'}

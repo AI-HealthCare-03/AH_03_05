@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, Image } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Banner from '../../components/Banner';
@@ -37,11 +37,19 @@ export function OCRResultScreen({ navigation, route }: Props) {
   const [ocrText, setOcrText] = useState('');
   const [textExpanded, setTextExpanded] = useState(false);
   const [savingText, setSavingText] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!recordId) return;
     (async () => {
       try {
+        // OCR 결과와 별개로 원본 이미지 url은 record 상세에 있음 — 미리보기용으로 함께 조회
+        recordsApi
+          .getRecord(recordId)
+          .then(r => {
+            if (r.file_url && r.content_type?.startsWith('image/')) setImageUrl(r.file_url);
+          })
+          .catch(() => {});
         const res = await recordsApi.getOcrResult(recordId);
         setOcrText(res.ocr_edited_text ?? res.ocr_text ?? '');
         setCandidates(res.medication_candidates ?? []);
@@ -136,7 +144,16 @@ export function OCRResultScreen({ navigation, route }: Props) {
         (!imageRemoved ? (
           <Card shadow style={{ marginBottom: spacing.s14 }}>
             <View style={s.docPreview}>
-              <Icon name="doc" size={72} color={colors.accentAlpha30} />
+              {imageUrl ? (
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={{ width: '100%', height: '100%', borderRadius: radii.md }}
+                  resizeMode="contain"
+                  accessibilityLabel="원본 이미지 미리보기"
+                />
+              ) : (
+                <Icon name="doc" size={72} color={colors.accentAlpha30} />
+              )}
               <TouchableOpacity
                 onPress={() => {
                   setImageRemoved(true);
