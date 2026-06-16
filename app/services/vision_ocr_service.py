@@ -3,10 +3,12 @@ from datetime import UTC, datetime
 from google.cloud import vision
 
 from app.models.medical_records import MedicalRecord, RecordStatus
+from app.models.medications import ApiStatus, InputMethod, Medication
 from app.models.notifications import Notification, NotificationType
 from app.models.ocr_lines import LineType, OcrLine
 from app.models.processing_jobs import JobStatus, ProcessingJob
 from app.services.fcm_service import send_ocr_completed_notification, send_ocr_failed_notification
+from app.services.mfds_client import MFDSClient, map_mfds_response_to_drug_reference
 
 
 def _get_vision_client():
@@ -60,13 +62,64 @@ async def _notify_ocr_failed(job: ProcessingJob, record) -> None:
         await send_ocr_failed_notification(record.user.fcm_token)
 
 
+async def _create_medications_from_ocr(record, lines: list) -> None:
+    """
+    DRUG_NAME 라인 → 식약처 검색 → Medication 생성
+    검색 실패 시 raw 텍스트로라도 저장
+    """
+    drug_lines = [line for line in lines if line["line_type"] == LineType.DRUG_NAME]
+    if not drug_lines:
+        return
+
+    mfds = MFDSClient()
+    for line in drug_lines:
+        try:
+            results = await mfds.search_drug(line["text"], num_of_rows=1)
+            if results:
+                item = map_mfds_response_to_drug_reference(results[0])
+                await Medication.create(
+                    user=record.user,
+                    record=record,
+                    drug_name=item["drug_name"],
+                    ingredient_name=item.get("ingredient_name"),
+                    manufacturer=item.get("manufacturer"),
+                    dosage=item.get("dosage"),
+                    caution=item.get("caution"),
+                    side_effect=item.get("side_effect"),
+                    input_method=InputMethod.OCR,
+                    api_status=ApiStatus.SEARCHED,
+                    ocr_confidence=line["confidence"],
+                )
+            else:
+                # 검색 결과 없으면 raw 텍스트로 저장
+                await Medication.create(
+                    user=record.user,
+                    record=record,
+                    drug_name=line["text"],
+                    input_method=InputMethod.OCR,
+                    api_status=ApiStatus.FAILED,
+                    ocr_confidence=line["confidence"],
+                )
+        except Exception:
+            # 예외 발생 시에도 raw 텍스트로 저장
+            await Medication.create(
+                user=record.user,
+                record=record,
+                drug_name=line["text"],
+                input_method=InputMethod.OCR,
+                api_status=ApiStatus.FAILED,
+                ocr_confidence=line["confidence"],
+            )
+
+
 async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
     """
     GoogleVision OCR 처리 메인 함수
     1. Vision API 호출
     2. ocr_lines 저장
-    3. MedicalRecord 상태 업데이트
-    4. 알림 생성 (DB + FCM)
+    3. DRUG_NAME 라인 → 식약처 검색 → Medication 생성
+    4. MedicalRecord 상태 업데이트
+    5. 알림 생성 (DB + FCM)
     """
     await job.fetch_related("record")
     record = job.record
@@ -124,6 +177,9 @@ async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
                 confidence=line["confidence"],
                 line_type=line["line_type"],
             )
+
+        # DRUG_NAME 라인 → 식약처 검색 → Medication 생성
+        await _create_medications_from_ocr(record, lines)
 
         # MedicalRecord 업데이트
         avg_conf = sum(line["confidence"] for line in lines) / len(lines) if lines else 0

@@ -130,15 +130,16 @@ async def chat(
     if check_safety(user_input):
         return get_safety_response()
 
-    # 로어북 + RAG 벡터 검색 결합
+    # 로어북 로드
     chronic_diseases = health_profile.get("chronic_diseases", [])
     age_group = health_profile.get("age_group", "")
     lore_context = get_guideline_context(chronic_diseases, age_group)
-    rag_context = await get_rag_context(user_input, top_k=3)
-    guideline_context = "\n\n---\n\n".join(filter(None, [lore_context, rag_context]))
 
-    # LLM 호출
+    # LLM 호출 (RAG 포함 try 블록 안으로 이동 → 예외 시 graceful 폴백)
     try:
+        rag_context = await get_rag_context(user_input, top_k=3)
+        guideline_context = "\n\n---\n\n".join(filter(None, [lore_context, rag_context]))
+
         response = await client.chat.completions.create(
             model=MODEL,
             messages=[

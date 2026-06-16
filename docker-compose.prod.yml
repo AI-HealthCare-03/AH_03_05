@@ -45,31 +45,8 @@ services:
     command: sh -c "uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"
     volumes:
       - static_volume:/app/templates
+      - /home/ubuntu/secrets:/home/ubuntu/secrets  # 추가
     restart: always
-    ports:
-      - "8000:8000"
-    networks:
-      - ws
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  # 4. AI Worker
-  ai-worker:
-    container_name: ai-worker
-    image: ${DOCKER_USER}/${DOCKER_REPOSITORY}:ai-${AI_WORKER_VERSION}
-    env_file: .env
-    restart: always
-    mem_limit: 4G
-    networks:
-      - ws
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
 
   # 5. Nginx
   nginx:
