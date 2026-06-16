@@ -45,6 +45,12 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
   const [nicknameEdit, setNicknameEdit] = useState(false);
   const [nicknameValue, setNicknameValue] = useState('');
   const [nicknameSaving, setNicknameSaving] = useState(false);
+  // ',' 나 공백만 든 비정상 값은 split·filter 후 빈 배열 → 미입력으로 처리(빈 줄 방지)
+  const conditionChips = (user.conditions ?? '')
+    .split(',')
+    .map(c => c.trim())
+    .filter(Boolean)
+    .slice(0, 4);
 
   useFocusEffect(
     useCallback(() => {
@@ -209,16 +215,12 @@ export function SettingsScreen({ navigation }: { navigation: NavProp }) {
           }}
         >
           {/* 홈과 동일 모델: 기저질환 칩 노출, 미입력 시 안내 칩 */}
-          {user.conditions ? (
-            user.conditions
-              .split(/,\s*/)
-              .filter(Boolean)
-              .slice(0, 4)
-              .map(c => (
-                <View key={c} style={s.chip}>
-                  <Text style={{ fontSize: typography.fz12, color: colors.ink2 }}>{c}</Text>
-                </View>
-              ))
+          {conditionChips.length > 0 ? (
+            conditionChips.map(c => (
+              <View key={c} style={s.chip}>
+                <Text style={{ fontSize: typography.fz12, color: colors.ink2 }}>{c}</Text>
+              </View>
+            ))
           ) : (
             <View style={s.chip}>
               <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
