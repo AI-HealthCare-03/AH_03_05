@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 from tortoise.contrib.test import TestCase
 
@@ -19,6 +19,7 @@ CONSENTS = [
 
 async def _create_test_user_and_record(email: str) -> tuple:
     from httpx import ASGITransport, AsyncClient
+
     from app.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -61,8 +62,8 @@ class TestCreateMedicationsFromOcr(TestCase):
             "ITEM_SEQ": "123456",
         }
 
-        with patch("app.services.vision_ocr_service.MFDSClient") as MockClient:
-            mock_instance = MockClient.return_value
+        with patch("app.services.vision_ocr_service.MFDSClient") as mock_client:
+            mock_instance = mock_client.return_value
             mock_instance.search_drug = AsyncMock(return_value=[mock_result])
 
             # When
@@ -83,8 +84,8 @@ class TestCreateMedicationsFromOcr(TestCase):
             {"text": "알수없는약품명", "line_type": LineType.DRUG_NAME, "confidence": 0.80},
         ]
 
-        with patch("app.services.vision_ocr_service.MFDSClient") as MockClient:
-            mock_instance = MockClient.return_value
+        with patch("app.services.vision_ocr_service.MFDSClient") as mock_client:
+            mock_instance = mock_client.return_value
             mock_instance.search_drug = AsyncMock(return_value=[])
 
             # When
@@ -104,8 +105,8 @@ class TestCreateMedicationsFromOcr(TestCase):
             {"text": "타이레놀정500mg", "line_type": LineType.DRUG_NAME, "confidence": 0.90},
         ]
 
-        with patch("app.services.vision_ocr_service.MFDSClient") as MockClient:
-            mock_instance = MockClient.return_value
+        with patch("app.services.vision_ocr_service.MFDSClient") as mock_client:
+            mock_instance = mock_client.return_value
             mock_instance.search_drug = AsyncMock(side_effect=Exception("API 오류"))
 
             # When
@@ -126,8 +127,8 @@ class TestCreateMedicationsFromOcr(TestCase):
             {"text": "주의사항 확인 필요", "line_type": LineType.CAUTION, "confidence": 0.88},
         ]
 
-        with patch("app.services.vision_ocr_service.MFDSClient") as MockClient:
-            mock_instance = MockClient.return_value
+        with patch("app.services.vision_ocr_service.MFDSClient") as mock_client:
+            mock_instance = mock_client.return_value
             mock_instance.search_drug = AsyncMock(return_value=[])
 
             # When
