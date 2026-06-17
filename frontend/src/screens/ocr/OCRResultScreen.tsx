@@ -11,18 +11,19 @@ import ScreenLayout from '../../components/ScreenLayout';
 import { colors, radii, spacing, typography } from '../../theme';
 import { recordsApi, medicationsApi, extractApiError } from '../../api';
 import type { MedicationCandidate } from '../../api';
+import { medicationOverrideStore } from '../../api/medicationOverrideStore';
 import { s } from './_ocrShared';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParams } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParams, 'OCRResult'>;
 
-function buildCandidateTime(c: MedicationCandidate): string {
-  if (!c.frequency && !c.timing) return '';
+// duration은 ocr-result 응답에 없어 로컬 오버라이드(사용자 입력값)로만 채운다. 없으면 생략.
+function buildCandidateTime(c: MedicationCandidate, duration?: string): string {
   const parts: string[] = [];
   if (c.frequency) parts.push(c.frequency);
   if (c.timing) parts.push(c.timing);
-  parts.push('14일');
+  if (duration) parts.push(duration);
   // frequency 값에 이미 "1일 N회"가 포함돼 있어 접두사를 붙이면 "1일 1일 3회"로 중복된다.
   return parts.join(' · ');
 }
@@ -65,13 +66,16 @@ export function OCRResultScreen({ navigation, route }: Props) {
         setCandidates(cands);
         setOcrSession({
           ...ocrSessionRef.current,
-          drugs: cands.map(c => ({
-            name: c.drug_name,
-            maker: '',
-            time: buildCandidateTime(c),
-            confidence: c.confidence != null ? Math.round(c.confidence * 100) : 0,
-            status: !c.is_verified && (c.confidence ?? 1) < 0.7 ? 'needsCheck' : 'ok',
-          })),
+          drugs: cands.map(c => {
+            const ov = c.medication_id != null ? medicationOverrideStore.get(c.medication_id) : null;
+            return {
+              name: ov?.drugName ?? c.drug_name,
+              maker: ov?.manufacturer ?? '',
+              time: buildCandidateTime(c, ov?.duration),
+              confidence: c.confidence != null ? Math.round(c.confidence * 100) : 0,
+              status: !c.is_verified && (c.confidence ?? 1) < 0.7 ? 'needsCheck' : 'ok',
+            };
+          }),
         });
       } catch (e) {
         setError(extractApiError(e));
@@ -86,17 +90,20 @@ export function OCRResultScreen({ navigation, route }: Props) {
   const isManualInput = inputMethod === 'manual';
 
   const displayDrugs = recordId
-    ? candidates.map(c => ({
-        name: c.drug_name,
-        maker: '',
-        time: buildCandidateTime(c),
-        confidence: c.confidence != null ? Math.round(c.confidence * 100) : null,
-        status:
-          !isManualInput && !c.is_verified && (c.confidence ?? 1) < 0.7
-            ? 'needsCheck'
-            : ('ok' as 'ok' | 'needsCheck'),
-        isManual: isManualInput,
-      }))
+    ? candidates.map(c => {
+        const ov = c.medication_id != null ? medicationOverrideStore.get(c.medication_id) : null;
+        return {
+          name: ov?.drugName ?? c.drug_name,
+          maker: ov?.manufacturer ?? '',
+          time: buildCandidateTime(c, ov?.duration),
+          confidence: c.confidence != null ? Math.round(c.confidence * 100) : null,
+          status:
+            !isManualInput && !c.is_verified && (c.confidence ?? 1) < 0.7
+              ? 'needsCheck'
+              : ('ok' as 'ok' | 'needsCheck'),
+          isManual: isManualInput,
+        };
+      })
     : ocrSession.drugs;
 
   const handleGuideGenerate = async () => {
