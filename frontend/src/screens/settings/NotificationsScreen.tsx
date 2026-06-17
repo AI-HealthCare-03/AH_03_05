@@ -8,6 +8,7 @@ import Card from '../../components/Card';
 import ScreenLayout from '../../components/ScreenLayout';
 import { s } from './_settingsShared';
 import { notificationsApi } from '../../api';
+import { formatRelativeTime } from '../../utils/date';
 import EmptyState from '../../components/EmptyState';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { SettingsStackParams, RootStackParams } from '../../navigation/types';
@@ -56,7 +57,9 @@ const NotificationRow = React.memo(function NotificationRow({
               {n.title}
             </Text>
           </View>
-          <Text style={{ fontSize: typography.fz12, color: colors.muted }}>{n.time}</Text>
+          <Text style={{ fontSize: typography.fz12, color: colors.muted }}>
+            {formatRelativeTime(n.date) || n.time}
+          </Text>
         </View>
         <Text style={{ fontSize: typography.fz13, color: colors.muted, marginTop: spacing.s4 }}>
           {n.body}
