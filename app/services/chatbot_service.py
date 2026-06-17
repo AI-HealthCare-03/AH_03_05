@@ -16,7 +16,7 @@ MODEL = "gpt-4o-mini"
 LLM_SEED = 42
 
 
-def build_chatbot_system_prompt(guideline_context: str) -> str:
+def build_chatbot_system_prompt(guideline_context: str, guide_context: str = "") -> str:
     prompt = """당신은 MediPT의 복약 생활 도우미예요.
 의사에게 물어보기엔 너무 소소하지만
 혼자 해결하기엔 애매한 복약·생활습관 일상 질문에
@@ -71,6 +71,14 @@ answer 대신 안전 안내 문구를 반환해요.
   "related_items": []
 }"""
 
+    if guide_context:
+        prompt += (
+            f"\n\n[현재 상담 중인 가이드]\n"
+            f"아래는 이 사용자가 받은 복약·생활습관 가이드예요. "
+            f"질문이 이 가이드와 관련 있으면 가이드 내용을 우선 근거로 답변해주세요.\n"
+            f"{guide_context}"
+        )
+
     if guideline_context:
         prompt += f"\n\n[참고 가이드라인]\n{guideline_context}"
     return prompt
@@ -116,6 +124,7 @@ async def chat(
     user_input: str,
     health_profile: dict,
     conversation_history: list | None = None,
+    guide_context: str = "",
 ) -> dict:
     """
     챗봇 응답 메인 함수
@@ -145,7 +154,7 @@ async def chat(
             messages=[
                 {
                     "role": "system",
-                    "content": build_chatbot_system_prompt(guideline_context),
+                    "content": build_chatbot_system_prompt(guideline_context, guide_context),
                 },
                 {
                     "role": "user",
