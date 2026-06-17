@@ -337,7 +337,8 @@ export interface CreateGuideResponse {
   status: AsyncJobStatus;
 }
 
-export type GuideItemType = 'medication' | 'lifestyle' | 'disclaimer';
+// BE는 대문자로 반환(MEDICATION/LIFESTYLE/WARNING). 소비 시 대소문자 무시 비교 권장.
+export type GuideItemType = 'MEDICATION' | 'LIFESTYLE' | 'WARNING' | 'DISCLAIMER';
 
 export interface GuideItemResponse {
   item_type: GuideItemType;
