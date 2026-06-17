@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokenStore } from '../api/tokenStore';
+import { ratingStore } from '../api/ratingStore';
 import { usersApi, healthProfileApi } from '../api';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { colors } from '../theme';
@@ -360,6 +361,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         AsyncStorage.getItem('medipt_user'),
         AsyncStorage.getItem('medipt_notif_settings'),
         tokenStore.load(),
+        ratingStore.load(),
       ]);
       const hasToken = !!tokenStore.accessToken;
       if (stored) {

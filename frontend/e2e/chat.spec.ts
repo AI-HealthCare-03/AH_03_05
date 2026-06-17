@@ -268,6 +268,109 @@ test('TC-20: 채팅 입력창 Enter 키로 전송', async ({ page }) => {
 });
 
 /**
+ * TC-22 | 채팅 답변 별점이 새로고침 후에도 유지 (로컬 영속)
+ * 전제: 로그인 상태
+ * 스텝:
+ *   1. 세션 목록·메시지를 고정 id(999)로 목킹 → 세션 진입 시 별점 대상 답변 표시
+ *   2. 별점 4점 선택 → 채워진 별(★) 표시 확인
+ *   3. page.reload() → 같은 세션 재진입
+ * 기대: 새로고침·재마운트 후에도 별점(★)이 복원되어 표시 (ratingStore 로컬 영속)
+ */
+test('TC-22: 채팅 답변 별점 새로고침 후 유지', async ({ page }) => {
+  const SESSION_TITLE = '별점테스트';
+  const AI_TEXT = '혈압약 복용 중에는 주의가 필요합니다.';
+
+  await page.route('**/chat/sessions**', async route => {
+    const url = route.request().url();
+    const method = route.request().method();
+    if (url.includes('/messages')) {
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            session_id: 7777,
+            items: [
+              { message_id: 999, sender_type: 'assistant', content: AI_TEXT, category: 'general' },
+            ],
+            total: 1,
+            limit: 50,
+            offset: 0,
+          }),
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            assistant_message: AI_TEXT,
+            safety_flag: false,
+            safety_notice: null,
+            category: 'general',
+          }),
+        });
+      }
+      return;
+    }
+    if (method === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          items: [
+            {
+              session_id: 7777,
+              title: SESSION_TITLE,
+              status: 'ACTIVE',
+              updated_at: new Date().toISOString(),
+              last_message_preview: AI_TEXT,
+            },
+          ],
+          total: 1,
+          limit: 20,
+          offset: 0,
+        }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+  await page.route('**/feedbacks', async route => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ feedback_id: 1, review_status: 'pending' }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  await loginAndGoHome(page);
+  await page.goto('/chat');
+  await page.waitForTimeout(1_500);
+
+  // 세션 진입 → 별점 대상 답변(고정 id 999) 표시
+  await page.getByText(SESSION_TITLE).first().click({ force: true });
+  await expect(page.getByRole('button', { name: '별점 4점' }).first()).toBeVisible({
+    timeout: 10_000,
+  });
+
+  // 별점 4점 → 채워진 별 표시
+  await page.getByRole('button', { name: '별점 4점' }).first().click({ force: true });
+  await expect(page.getByText('★').first()).toBeVisible({ timeout: 5_000 });
+
+  // 새로고침 → 같은 세션 재진입 → 별점(★) 유지 확인
+  await page.reload();
+  await page.waitForTimeout(2_000);
+  await page.goto('/chat');
+  await page.waitForTimeout(1_500);
+  await page.getByText(SESSION_TITLE).first().click({ force: true });
+  await expect(page.getByText('★').first()).toBeVisible({ timeout: 10_000 });
+});
+
+/**
  * TC-21 | 채팅 세션 삭제 (데스크탑 X 버튼)
  * 전제: 로그인 상태
  * 스텝:

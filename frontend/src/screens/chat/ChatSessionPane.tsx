@@ -16,6 +16,7 @@ import Button from '../../components/Button';
 import { StyleSheet } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { chatApi, feedbacksApi, ragApi, extractApiError } from '../../api';
+import { ratingStore } from '../../api/ratingStore';
 import type { ChatMessageItem, RagSource } from '../../api';
 import { s } from './_chatShared';
 
@@ -234,7 +235,10 @@ export function ChatSessionPane({
 const AI_INDENT = s.aiAvatar.width + spacing.s8;
 
 const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
-  const [fb, setFb] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
+  // 로컬 영속 별점에서 초기화 — 재마운트·새로고침 시에도 제출한 별점을 유지(BE my_rating 미반환 보완)
+  const [fb, setFb] = useState<1 | 2 | 3 | 4 | 5 | null>(() =>
+    msg.message_id != null && msg.message_id !== -1 ? ratingStore.get(msg.message_id) : null
+  );
   const { flash } = useApp();
   const isUser = msg.sender_type?.toLowerCase() === 'user';
   const isFlagged = msg.safety_flag === true;
@@ -343,6 +347,9 @@ const Bubble = React.memo(function Bubble({ msg }: { msg: ChatMessageItem }) {
                 disabled={fb !== null}
                 onPress={() => {
                   setFb(star);
+                  if (msg.message_id != null && msg.message_id !== -1) {
+                    ratingStore.set(msg.message_id, star);
+                  }
                   submitFeedback(star);
                 }}
                 accessibilityRole="button"
