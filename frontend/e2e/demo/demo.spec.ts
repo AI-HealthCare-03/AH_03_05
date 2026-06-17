@@ -190,7 +190,7 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
 
     const input = page.getByPlaceholder('궁금한 점을 입력해주세요');
     if ((await input.count()) === 0) return;
-    const question = '암로디핀이랑 같이 먹으면 안 되는 거 있어요?';
+    const question = '내가 먹고 있는 약이랑 같이 먹으면 안되는 거 있어?';
     await input.click();
     await input.fill(question);
     await pause(page, 1_000);
