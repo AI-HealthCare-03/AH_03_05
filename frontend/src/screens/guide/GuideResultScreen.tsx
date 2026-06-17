@@ -33,13 +33,13 @@ type GuideCardVariant = 'medication' | 'lifestyle' | 'warning';
 const CARD_STYLE: Record<GuideCardVariant, { icon: string; bg: string; fg: string }> = {
   medication: { icon: 'pill', bg: colors.accent50, fg: colors.accent700 },
   lifestyle: { icon: 'heart', bg: colors.success50, fg: colors.success },
-  warning: { icon: 'alert-triangle', bg: colors.warning50, fg: colors.warning },
+  warning: { icon: 'alert', bg: colors.warning50, fg: colors.warning },
 };
 
 // 생활습관 항목 제목 키워드로 아이콘을 보강한다(매칭 없으면 heart).
 function lifestyleIcon(title?: string): string {
   if (!title) return 'heart';
-  if (/운동|걷|산책|활동/.test(title)) return 'run';
+  if (/운동|걷|산책|활동/.test(title)) return 'running';
   if (/금연|담배|흡연/.test(title)) return 'fire';
   if (/수면|잠/.test(title)) return 'moon';
   return 'heart';
