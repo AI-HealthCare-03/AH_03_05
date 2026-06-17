@@ -414,6 +414,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         setUserState(prev => ({
           ...prev,
+          profileComplete: prev.profileComplete || healthProfileApi.isHealthProfileFilled(p),
           age: AGE_GROUP_TO_LABEL[p.age_group ?? ''] ?? prev.age,
           sex: GENDER_TO_LABEL[p.gender ?? ''] ?? prev.sex,
           conditions: p.chronic_diseases.join(', '),

@@ -141,7 +141,11 @@ export default function AppNavigator() {
   return (
     <View style={styles.root}>
       <NavigationContainer ref={navigationRef} linking={linking}>
-        <RootStack.Navigator screenOptions={noHeader} initialRouteName={initialRoute}>
+        <RootStack.Navigator
+          key={user.loggedIn ? 'authed' : 'guest'}
+          screenOptions={noHeader}
+          initialRouteName={initialRoute}
+        >
           {!user.loggedIn ? (
             <RootStack.Screen name="Auth" component={AuthNavigator} />
           ) : (
