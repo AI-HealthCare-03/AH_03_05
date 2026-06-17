@@ -1,4 +1,8 @@
-import { getHealthProfile, upsertHealthProfile } from '../api/healthProfile';
+import {
+  getHealthProfile,
+  upsertHealthProfile,
+  isHealthProfileFilled,
+} from '../api/healthProfile';
 import { searchDrugs, getDrug } from '../api/drugs';
 import { createGuide, getGuide } from '../api/guides';
 import { getProcessingJob } from '../api/jobs';
@@ -34,6 +38,30 @@ describe('healthProfile API', () => {
     mockPut.mockResolvedValue({ data: {} });
     await upsertHealthProfile({ diseases: [] } as any);
     expect(mockPut).toHaveBeenCalledWith('/health-profile', expect.any(Object));
+  });
+
+  describe('isHealthProfileFilled', () => {
+    const empty = {
+      profile_id: 1,
+      chronic_diseases: [],
+      allergies: [],
+      current_medications: [],
+    } as any;
+
+    it('null/undefined/빈 프로필은 미입력으로 본다', () => {
+      expect(isHealthProfileFilled(null)).toBe(false);
+      expect(isHealthProfileFilled(undefined)).toBe(false);
+      expect(isHealthProfileFilled(empty)).toBe(false);
+    });
+
+    it('의미있는 값이 하나라도 있으면 입력으로 본다', () => {
+      expect(isHealthProfileFilled({ ...empty, age_group: '40s' })).toBe(true);
+      expect(isHealthProfileFilled({ ...empty, gender: 'M' })).toBe(true);
+      expect(isHealthProfileFilled({ ...empty, chronic_diseases: ['고혈압'] })).toBe(true);
+      expect(isHealthProfileFilled({ ...empty, allergies: ['땅콩'] })).toBe(true);
+      expect(isHealthProfileFilled({ ...empty, current_medications: ['아스피린'] })).toBe(true);
+      expect(isHealthProfileFilled({ ...empty, medical_history: '고혈압 진단' })).toBe(true);
+    });
   });
 });
 
