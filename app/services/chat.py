@@ -3,6 +3,7 @@ from tortoise.transactions import in_transaction
 from app.exceptions.common import NotFoundException
 from app.models.chat_messages import ChatMessage, MessageCategory, SenderType
 from app.models.chat_sessions import ChatSession, ChatSessionStatus
+from app.models.guides import Guide, GuideItem, GuideItemType
 from app.models.medical_records import MedicalRecord
 from app.models.user_health_profiles import UserHealthProfile
 from app.models.users import User
@@ -29,6 +30,44 @@ def _classify_message(message: str) -> MessageCategory:
     if any(k in msg for k in ["운동", "식단", "음식", "술", "담배", "수면", "생활", "체중", "다이어트"]):
         return MessageCategory.LIFESTYLE
     return MessageCategory.GENERAL
+
+
+async def _build_guide_context(session: ChatSession) -> str:
+    """세션에 연결된 가이드를 LLM 프롬프트용 텍스트로 변환.
+
+    가이드가 없거나(guide_id=None) 미완성이면 빈 문자열을 반환해
+    기존 동작(가이드 없이 답변)과 동일하게 폴백한다.
+    """
+    guide_id = session.guide_id
+    if guide_id is None:
+        return ""
+
+    guide = await Guide.get_or_none(id=guide_id)
+    if guide is None:
+        return ""
+
+    parts: list[str] = []
+    if guide.medication_guide:
+        parts.append(f"[복약 안내]\n{guide.medication_guide}")
+    if guide.lifestyle_guide:
+        parts.append(f"[생활습관 안내]\n{guide.lifestyle_guide}")
+    if guide.warning_message:
+        parts.append(f"[주의사항]\n{guide.warning_message}")
+
+    # 약품별/생활습관별 세부 항목 (있으면 함께 제공)
+    items = await GuideItem.filter(guide_id=guide_id).order_by("item_type", "sort_order")
+    item_lines: list[str] = []
+    for item in items:
+        label = {
+            GuideItemType.MEDICATION: "복약",
+            GuideItemType.LIFESTYLE: "생활습관",
+            GuideItemType.WARNING: "주의",
+        }.get(item.item_type, "항목")
+        item_lines.append(f"- ({label}) {item.title}: {item.content}")
+    if item_lines:
+        parts.append("[세부 항목]\n" + "\n".join(item_lines))
+
+    return "\n\n".join(parts)
 
 
 class ChatService:
@@ -90,11 +129,15 @@ class ChatService:
                 for m in reversed(prev_messages)
             ]
 
+            # 세션에 연결된 가이드 컨텍스트 로드 (없으면 빈 문자열로 폴백)
+            guide_context = await _build_guide_context(session)
+
             # LLM 호출
             result = await llm_chat(
                 user_input=message,
                 health_profile=health_profile,
                 conversation_history=conversation_history,
+                guide_context=guide_context,
             )
 
             if result.get("safety_flag"):
