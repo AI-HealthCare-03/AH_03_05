@@ -14,7 +14,7 @@ import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../theme';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import axios from 'axios';
-import { authApi, usersApi, extractApiError } from '../../api';
+import { authApi, usersApi, healthProfileApi, extractApiError } from '../../api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandPanel, styles, type AuthNavProp } from './_authShared';
@@ -50,14 +50,21 @@ export function LoginScreen({ navigation }: { navigation: AuthNavProp }) {
       const res = await authApi.login({ email, password: pw });
       const rawFlags = await AsyncStorage.getItem('medipt_profile_flags').catch(() => null);
       const profileFlags: Record<string, boolean> = rawFlags ? JSON.parse(rawFlags) : {};
-      const me = await usersApi.getMe().catch(() => null);
+      // 완료 판정은 서버 건강프로필(age_group+gender)을 단일 출처로 본다. 로컬 플래그는
+      // 폴백 — 온보딩 '건너뛰기' 등 서버 프로필이 없는 경우 대비. (initialRoute 마운트 전에
+      // 확정돼야 하므로 setUser 전에 동기적으로 받아둔다.)
+      const [me, profile] = await Promise.all([
+        usersApi.getMe().catch(() => null),
+        healthProfileApi.getHealthProfile().catch(() => null),
+      ]);
+      const serverComplete = healthProfileApi.isHealthProfileFilled(profile);
       const updatedUser = {
         ...defaultUser,
         loggedIn: true,
         email,
         name: me?.name ?? res.user.name,
         nickname: me?.nickname ?? res.user.nickname ?? me?.name ?? res.user.name,
-        profileComplete: profileFlags[email] ?? false,
+        profileComplete: serverComplete || (profileFlags[email] ?? false),
       };
       setUser(updatedUser);
       // 화면 전환은 AppNavigator가 loggedIn 상태 변화로 자동 처리 (수동 reset 제거)
