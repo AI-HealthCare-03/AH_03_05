@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { updateMedicationDosage, verifyMedications } from '../../api/medications';
+import { medicationOverrideStore } from '../../api/medicationOverrideStore';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -65,6 +66,14 @@ export function DrugDosageScreen({ navigation, route }: Props) {
         flash('복용법 저장에 실패했습니다.');
         return;
       }
+      // BE가 응답에 안 싣는 값(선택 약품명·복용기간)을 로컬에 영속해 재조회 후에도 반영되게 한다.
+      // (BE search→DrugReference upsert·verify drug_name 갱신·candidate DTO duration 도입 시 대체)
+      await medicationOverrideStore.set(medicationId, {
+        duration,
+        ...(selectedDrug
+          ? { drugName: selectedDrug.drug_name, manufacturer: selectedDrug.manufacturer ?? '' }
+          : {}),
+      });
       // 검색으로 약품을 선택한 경우: 식약처 코드 바인딩(verify)으로 약품 정체를 확정한다.
       // best-effort — BE가 검색 결과를 DrugReference에 캐시해야 성공(미캐시 시 400). 실패해도
       // 복용법은 이미 저장됐으므로 흐름을 막지 않고 식별 바인딩만 생략한다.
