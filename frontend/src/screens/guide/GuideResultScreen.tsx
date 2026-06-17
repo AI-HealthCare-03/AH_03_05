@@ -45,42 +45,62 @@ function lifestyleIcon(title?: string): string {
   return 'heart';
 }
 
-function GuideItemCard({ item, variant }: { item: GuideItem; variant: GuideCardVariant }) {
+function GuideItemGroupCard({ items, variant }: { items: GuideItem[]; variant: GuideCardVariant }) {
   const st = CARD_STYLE[variant];
-  const icon = variant === 'lifestyle' ? lifestyleIcon(item.title) : st.icon;
   return (
-    <Card shadow style={{ marginBottom: spacing.s14, flexDirection: 'row', gap: spacing.s12 }}>
-      <View
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: radii.pill,
-          backgroundColor: st.bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icon name={icon} size={18} color={st.fg} />
-      </View>
-      <View style={{ flex: 1 }}>
-        {item.title ? (
-          <Text
+    <Card shadow style={{ marginBottom: spacing.s14 }}>
+      {items.map((item, i) => {
+        const icon = variant === 'lifestyle' ? lifestyleIcon(item.title) : st.icon;
+        return (
+          <View
+            key={item.sort_order}
             style={{
-              fontSize: typography.fz14,
-              fontWeight: typography.fw7,
-              color: colors.ink,
-              marginBottom: spacing.s4,
+              flexDirection: 'row',
+              gap: spacing.s12,
+              paddingTop: i === 0 ? 0 : spacing.s12,
+              marginTop: i === 0 ? 0 : spacing.s12,
+              borderTopWidth: i === 0 ? 0 : 0.5,
+              borderTopColor: colors.hairline,
             }}
           >
-            {item.title}
-          </Text>
-        ) : null}
-        <Text
-          style={{ fontSize: typography.fz13, color: colors.ink2, lineHeight: typography.lh20 }}
-        >
-          {item.content}
-        </Text>
-      </View>
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: radii.pill,
+                backgroundColor: st.bg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name={icon} size={18} color={st.fg} />
+            </View>
+            <View style={{ flex: 1 }}>
+              {item.title ? (
+                <Text
+                  style={{
+                    fontSize: typography.fz14,
+                    fontWeight: typography.fw7,
+                    color: colors.ink,
+                    marginBottom: spacing.s4,
+                  }}
+                >
+                  {item.title}
+                </Text>
+              ) : null}
+              <Text
+                style={{
+                  fontSize: typography.fz13,
+                  color: colors.ink2,
+                  lineHeight: typography.lh20,
+                }}
+              >
+                {item.content}
+              </Text>
+            </View>
+          </View>
+        );
+      })}
     </Card>
   );
 }
@@ -247,9 +267,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
           ) : guideError ? (
             <Banner variant="danger" body={guideError} style={{ marginBottom: spacing.s14 }} />
           ) : apiMedItems.length > 0 ? (
-            apiMedItems.map(item => (
-              <GuideItemCard key={item.sort_order} item={item} variant="medication" />
-            ))
+            <GuideItemGroupCard items={apiMedItems} variant="medication" />
           ) : guide?.medication_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
               <Text
@@ -268,9 +286,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
 
           {/* 복약 주의사항: WARNING 항목 카드 우선, 없으면 warning_message 배너 폴백 */}
           {!guideLoading && !guideError && apiWarnItems.length > 0 ? (
-            apiWarnItems.map(item => (
-              <GuideItemCard key={`warn-${item.sort_order}`} item={item} variant="warning" />
-            ))
+            <GuideItemGroupCard items={apiWarnItems} variant="warning" />
           ) : !guideLoading && !guideError && guide?.warning_message ? (
             <Banner
               variant="warning"
@@ -292,9 +308,7 @@ export function GuideResultScreen({ navigation, route }: Props) {
           ) : guideError ? (
             <Banner variant="danger" body={guideError} style={{ marginBottom: spacing.s14 }} />
           ) : apiLifeItems.length > 0 ? (
-            apiLifeItems.map(item => (
-              <GuideItemCard key={item.sort_order} item={item} variant="lifestyle" />
-            ))
+            <GuideItemGroupCard items={apiLifeItems} variant="lifestyle" />
           ) : guide?.lifestyle_guide ? (
             <Card shadow style={{ marginBottom: spacing.s14 }}>
               <Text
