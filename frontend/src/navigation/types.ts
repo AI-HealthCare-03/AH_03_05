@@ -14,9 +14,19 @@ export type HomeStackParams = {
   Home: undefined;
   OCRProcessing: { recordId?: number; jobId?: number };
   OCRResult: { recordId?: number; inputMethod?: string };
-  DrugCandidate: { medicationName?: string; drugIndex?: number };
+  DrugCandidate: {
+    medicationName?: string;
+    drugIndex?: number;
+    medicationId?: number;
+    recordId?: number;
+  };
   DrugDosage:
-    | { drugIndex?: number; selectedDrug?: DrugSearchResult; medicationId?: number }
+    | {
+        drugIndex?: number;
+        selectedDrug?: DrugSearchResult;
+        medicationId?: number;
+        recordId?: number;
+      }
     | undefined;
   DrugDetail: { drugId: number };
   GuideLoading: { recordId?: number };
@@ -27,7 +37,12 @@ export type RecordsStackParams = {
   RecordList: undefined;
   RecordDetail: { recordId: number };
   DrugDosage:
-    | { drugIndex?: number; selectedDrug?: DrugSearchResult; medicationId?: number }
+    | {
+        drugIndex?: number;
+        selectedDrug?: DrugSearchResult;
+        medicationId?: number;
+        recordId?: number;
+      }
     | undefined;
   DrugDetail: { drugId: number };
 };

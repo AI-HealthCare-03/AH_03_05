@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, Image } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useApp } from '../../context/AppContext';
 import Icon from '../../components/Icon';
 import Banner from '../../components/Banner';
@@ -40,7 +41,12 @@ export function OCRResultScreen({ navigation, route }: Props) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isPdf, setIsPdf] = useState(false);
 
-  useEffect(() => {
+  // setOcrSession은 값만 받으므로(함수형 미지원) 최신 세션을 ref로 참조해 재조회 루프를 막는다.
+  const ocrSessionRef = useRef(ocrSession);
+  ocrSessionRef.current = ocrSession;
+
+  // 약품 검색·복용법 화면에서 돌아올 때(focus)마다 재조회 → 저장된 변경이 목록에 반영된다.
+  const loadResult = useCallback(() => {
     if (!recordId) return;
     (async () => {
       try {
@@ -54,15 +60,16 @@ export function OCRResultScreen({ navigation, route }: Props) {
           .catch(() => {});
         const res = await recordsApi.getOcrResult(recordId);
         setOcrText(res.ocr_edited_text ?? res.ocr_text ?? '');
-        setCandidates(res.medication_candidates ?? []);
+        const cands = res.medication_candidates ?? [];
+        setCandidates(cands);
         setOcrSession({
-          ...ocrSession,
-          drugs: (res.medication_candidates ?? []).map(c => ({
+          ...ocrSessionRef.current,
+          drugs: cands.map(c => ({
             name: c.drug_name,
             maker: '',
             time: buildCandidateTime(c),
-            confidence: Math.round(c.confidence * 100),
-            status: !c.is_verified && c.confidence < 0.7 ? 'needsCheck' : 'ok',
+            confidence: c.confidence != null ? Math.round(c.confidence * 100) : 0,
+            status: !c.is_verified && (c.confidence ?? 1) < 0.7 ? 'needsCheck' : 'ok',
           })),
         });
       } catch (e) {
@@ -71,7 +78,9 @@ export function OCRResultScreen({ navigation, route }: Props) {
         setLoading(false);
       }
     })();
-  }, [recordId]);
+  }, [recordId, setOcrSession]);
+
+  useFocusEffect(loadResult);
 
   const isManualInput = inputMethod === 'manual';
 
@@ -316,10 +325,16 @@ export function OCRResultScreen({ navigation, route }: Props) {
               style={[s.drugCard, { backgroundColor: bgColor }]}
               onPress={() =>
                 warn || manual
-                  ? navigation.navigate('DrugCandidate', { medicationName: d.name, drugIndex: i })
+                  ? navigation.navigate('DrugCandidate', {
+                      medicationName: d.name,
+                      drugIndex: i,
+                      medicationId: recordId ? candidates[i]?.medication_id : undefined,
+                      recordId,
+                    })
                   : navigation.navigate('DrugDosage', {
                       drugIndex: i,
                       medicationId: recordId ? candidates[i]?.medication_id : undefined,
+                      recordId,
                     })
               }
             >
