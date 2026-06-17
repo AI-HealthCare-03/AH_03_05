@@ -84,10 +84,7 @@ async def _build_guide_medications(session: ChatSession) -> list[dict]:
     if guide is None or guide.record_id is None:
         return []
     meds = await Medication.filter(record_id=guide.record_id)
-    return [
-        {"drug_name": m.drug_name, "frequency": m.frequency or "", "timing": m.timing or ""}
-        for m in meds
-    ]
+    return [{"drug_name": m.drug_name, "frequency": m.frequency or "", "timing": m.timing or ""} for m in meds]
 
 
 class ChatService:
