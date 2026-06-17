@@ -23,7 +23,8 @@ function buildCandidateTime(c: MedicationCandidate): string {
   if (c.frequency) parts.push(c.frequency);
   if (c.timing) parts.push(c.timing);
   parts.push('14일');
-  return `1일 ${parts.join(' · ')}`;
+  // frequency 값에 이미 "1일 N회"가 포함돼 있어 접두사를 붙이면 "1일 1일 3회"로 중복된다.
+  return parts.join(' · ');
 }
 
 export function OCRResultScreen({ navigation, route }: Props) {
