@@ -2,7 +2,7 @@ import re
 from datetime import UTC, datetime, timedelta
 
 from app.models.medical_records import InputMethod, MedicalRecord, RecordStatus, RecordType
-from app.models.medications import Medication
+from app.models.medications import ApiStatus, Medication
 from app.models.users import User
 
 IMAGE_EXPIRES_DAYS = 90
@@ -51,7 +51,9 @@ class MedicalRecordService:
         record = await MedicalRecord.get_or_none(id=record_id, user=user, deleted_at=None)
         if record is None:
             return None
-        medications = await Medication.filter(record=record).all()
+        medications = await Medication.filter(
+            record=record, api_status__in=[ApiStatus.SEARCHED, ApiStatus.SELECTED]
+        ).all()
         candidates = [
             {
                 "medication_id": m.id,
@@ -104,6 +106,7 @@ class MedicalRecordService:
                 record=record,
                 drug_name=drug_name,
                 input_method=InputMethod.MANUAL,
+                api_status=ApiStatus.SEARCHED,
             )
         return record
 
