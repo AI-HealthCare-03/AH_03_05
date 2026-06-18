@@ -1,29 +1,17 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 
-// 시연 영상용 walkthrough — 로그인 → 홈 → 진료기록 목록.
-// 실데이터 기준(모킹 없음). 배포 후 PLAYWRIGHT_BASE_URL을 실사이트로 지정해 녹화.
+// 시연 영상용 walkthrough — 로그인 → 온보딩 → 홈 → 진료기록 → 복약 가이드 → 건강상담.
+// 실데이터 기준(모킹 없음). 로컬 dev(최신 코드) 또는 prod에 PLAYWRIGHT_BASE_URL 지정해 녹화.
 // 자격증명은 런타임 env로만 주입(코드/커밋에 값 미포함):
-//   DEMO_EMAIL=... DEMO_PASSWORD=... PLAYWRIGHT_BASE_URL=https://medipt05.store \
-//     npx playwright test --config playwright.demo.config.ts
+//   DEMO_EMAIL=... DEMO_PASSWORD=... npx playwright test --config playwright.demo.config.ts
 //
-// 화면 전환은 page.goto가 아니라 하단 탭바 클릭으로 수행하고, 전환 직후
-// waitForURL + 화면 고유 요소 visible 가드로 끊김 없이 이어지게 한다.
-// 영상 가독성: (1) 시각적 커서를 주입하고 (2) 클릭 전 마우스를 요소까지
-// 애니메이션 이동시켜 사람이 조작하는 것처럼 보이게 한다.
-// 로그인 외 각 섹션은 실패해도 투어가 끊기지 않도록 section()으로 감싼다.
+// 영상 가독성: 시각 커서 주입 + 클릭 전 마우스 애니메이션 이동. 각 섹션은 실패해도
+// 투어가 끊기지 않도록 section()으로 감싼다.
 //
-// 포함: 로그인 → 홈 → 진료기록(목록·상세) → 복약 가이드(GuideResult) → 건강상담(채팅 라이브).
-// 진료기록·가이드는 데모 계정에 seed된 기록(처방전+약품2종+생성된 가이드) 존재를 가정한다.
-//
-// 범위 제외:
-// - OCR 업로드: prod에서 OCR 처리가 완료되지 않아(파이프라인 미연동/처리 실패) 라이브
-//   시연 불가 → 제외. FE 수정(PR #211)+BE Vision 수정 후 합성 처방전 픽스처
-//   (e2e/fixtures/prescription-demo.png)로 섹션 추가 예정. OCR 결과(약품)는 진료기록
-//   상세에서 이미 노출되므로 영상에 핵심 산출물은 담긴다.
-// 주의:
-// - 가이드 화면(GuideResult)은 guideId 없이 탭으로 진입하면 빈 화면이므로, 진료기록
-//   상세의 "가이드" 버튼으로 진입한다(해당 기록의 guideId를 들고 이동).
-// - 채팅은 일반 세션이라 약 특정 답변은 아니지만 라이브 전송/응답이 정상 동작한다.
+// 데이터 전제: 프로필 미입력 + 가이드 보유 기록(암로디핀·메트포르민 + 생성된 가이드)을 가진 계정.
+//   프로필이 비어 있어 로그인 직후 온보딩이 자연스럽게 노출되고, 가이드는 시드돼 있어 흐름이 이어진다.
+// 핵심: 가이드 화면의 "건강상담에 물어보기"로 진입해 본인 약(암로디핀)을 언급한 질문을 던지면,
+//   챗봇이 guide_id 컨텍스트(#232)를 참조해 개인 가이드 기반으로 답하는 것이 화면으로 증명된다.
 
 const DEMO_EMAIL = process.env.DEMO_EMAIL ?? '';
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD ?? '';
@@ -139,50 +127,55 @@ async function waitForScreen(page: Page, urlGlob: string, guard: Locator) {
     .catch(() => {});
 }
 
-async function loginDemo(page: Page) {
-  await page.goto('/login');
-  // networkidle은 SPA 폴링에 도달하지 못해 길게 멈추므로, 입력 필드 노출만 기다린다.
-  await page.getByPlaceholder('name@example.com').waitFor({ state: 'visible', timeout: 15_000 });
-  await page.getByPlaceholder('name@example.com').fill(DEMO_EMAIL);
-  await page.locator('input[type="password"]').fill(DEMO_PASSWORD);
-  await moveAndClick(page, page.getByText('로그인').last());
-  await page.waitForTimeout(2_000);
-
-  const skipAll = page.getByText('건너뛰고 둘러보기');
-  if ((await skipAll.count()) > 0) {
-    await moveAndClick(page, skipAll);
-    await page.waitForTimeout(2_000);
-  }
-  await expect(page.getByText('안녕하세요')).toBeVisible({ timeout: 10_000 });
-}
-
 test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
   test.setTimeout(120_000);
   test.skip(!DEMO_EMAIL || !DEMO_PASSWORD, 'DEMO_EMAIL/DEMO_PASSWORD env 필요');
 
   await installCursor(page);
 
-  // 1. 로그인 → 홈 (실패 시 시연 불가하므로 유일하게 hard)
-  await loginDemo(page);
-  await pause(page, 2_000);
+  // 1. 로그인 (실패 시 시연 불가하므로 유일하게 hard)
+  await page.goto('/login');
+  await page.getByPlaceholder('name@example.com').waitFor({ state: 'visible', timeout: 15_000 });
+  await page.getByPlaceholder('name@example.com').fill(DEMO_EMAIL);
+  await page.locator('input[type="password"]').fill(DEMO_PASSWORD);
+  await moveAndClick(page, page.getByText('로그인').last());
+  await page.waitForTimeout(2_500);
 
-  // 2. 홈 대시보드 — 로그인 직후 위치. 복약 달성률·최근 상담 카드를 잠시 보여준다.
-  await section('홈 대시보드', async () => {
+  // 2. 온보딩(건강 프로필) — 프로필 미입력 계정이라 로그인 직후 자동으로 온보딩에 안착한다.
+  //    STEP 1(연령대·성별) 선택 → STEP 2(기저질환 입력) → 완료로 저장해 홈에 진입한다.
+  await section('온보딩(건강 프로필)', async () => {
     await page
-      .getByText('안녕하세요')
+      .getByText('연령대')
       .first()
-      .waitFor({ state: 'visible', timeout: 15_000 })
+      .waitFor({ state: 'visible', timeout: 12_000 })
       .catch(() => {});
-    await pause(page, 3_000);
+    await pause(page, 1_500);
+
+    // STEP 1: 연령대·성별 선택
+    await tapIfPresent(page, page.getByText('50대', { exact: true }).first(), 600);
+    await tapIfPresent(page, page.getByText('여성', { exact: true }).first(), 600);
+    await pause(page, 800);
+    await tapIfPresent(page, page.getByText('다음', { exact: true }).last(), 1_500);
+
+    // STEP 2: 기저질환만 입력. 현재 복용약(otherMeds)은 비워야 가이드 세션에서
+    // _build_guide_medications 보강이 작동함 (#249 조건: current_medications 비어야 보강).
+    await page.getByPlaceholder('예: 고혈압, 제2형 당뇨').fill('고혈압').catch(() => {});
+    await pause(page, 1_000);
+    await tapIfPresent(page, page.getByText('완료', { exact: true }).last(), 2_000);
   });
 
-  // 3. 진료기록 — 사이드바로 이동 → 목록 → 상세(약품)
+  // 3. 홈 대시보드 — 짧게 노출(스크롤 없이 길게 멈추지 않도록).
+  await section('홈 대시보드', async () => {
+    await expect(page.getByText('안녕하세요')).toBeVisible({ timeout: 15_000 });
+    await pause(page, 1_800);
+  });
+
+  // 4. 진료기록 — 목록으로 이동 → 기록 카드를 실제로 클릭(모션)해 상세로 진입.
   await section('진료기록', async () => {
     await navTo(page, '진료기록');
-    // 가드는 기록 유무와 무관하게 항상 있는 필터 탭으로(부제는 기록 있으면 "총 N건"으로 바뀜).
     await waitForScreen(page, '**/records', page.getByText('전체', { exact: true }));
-    await pause(page, 2_000);
-    // 기록 카드(예: " 처방전 완료 … ")를 클릭해 상세로 진입. 카드 버튼만 정확히 겨냥한다.
+    await pause(page, 1_500);
+    // 기록 카드(처방전·완료)를 클릭해 상세로. 카드 클릭 모션이 보이도록 moveAndClick 사용.
     const card = page.getByRole('button', { name: /처방전.*완료/ }).first();
     if ((await card.count()) > 0) {
       await moveAndClick(page, card);
@@ -191,31 +184,29 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
     }
   });
 
-  // 4. 복약 가이드 — 진료기록 상세의 "가이드" 버튼으로 진입(해당 기록의 guideId 동반).
-  //    탭으로 들어가면 빈 화면이라 반드시 본문 버튼을 쓴다. 복약/생활습관 탭을 보여준다.
+  // 5. 복약 가이드 — 진료기록 상세의 "가이드" 버튼으로 진입. 복약/생활습관 탭을 보여준다.
   await section('복약 가이드', async () => {
-    if (!(await clickNonTab(page, '가이드'))) return; // 상세에 가이드 버튼 없으면 건너뜀
+    if (!(await clickNonTab(page, '가이드'))) return;
     await waitForScreen(page, '**/guide**', page.getByText('💊 복약 안내'));
-    await pause(page, 2_500); // 복약 안내 본문 노출
-    await tapIfPresent(page, page.getByText('🚶 생활습관', { exact: true }), 2_500); // 생활습관 탭 전환
+    await pause(page, 2_500); // 복약 안내(섹션별 단일 카드) 노출
+    await tapIfPresent(page, page.getByText('🚶 생활습관', { exact: true }), 2_500); // 생활습관 탭
   });
 
-  // 5. 건강상담 — 탭으로 이동 → 새 상담 → 메시지 전송 → AI 응답(라이브).
-  //    (가이드의 "건강상담에 물어보기" 버튼은 컨텍스트 전달 미구현이라 탭 진입 사용)
+  // 6. 건강상담 — 가이드의 "건강상담에 물어보기" 버튼으로 진입(guide_id 컨텍스트 주입 #232).
+  //    본인 가이드를 알아야 답할 수 있는 질문을 던져, 챗봇이 개인 가이드를 참조함을 시각적으로 증명한다.
   await section('건강상담', async () => {
-    await navTo(page, '건강상담');
-    await waitForScreen(page, '**/chat', page.getByText('새 상담').first());
-    await pause(page, 2_000);
-    await tapIfPresent(page, page.getByText('새 상담').first(), 2_000);
+    await tapIfPresent(page, page.getByText('건강상담에 물어보기', { exact: true }).first(), 2_500);
+    await waitForScreen(page, '**/chat**', page.getByPlaceholder('궁금한 점을 입력해주세요'));
+    await pause(page, 1_500);
 
     const input = page.getByPlaceholder('궁금한 점을 입력해주세요');
     if ((await input.count()) === 0) return;
-    const question = '혈압약 복용 시 주의할 점이 있나요?';
+    const question = '내가 먹고 있는 약이랑 같이 먹으면 안되는 영양제가 있어?';
+    await input.click();
     await input.fill(question);
     await pause(page, 1_000);
-    await moveAndClick(page, page.getByText('전송').first());
+    await input.press('Enter'); // 웹은 Enter로 전송
 
-    // 내 질문 버블이 뜨는지 먼저 확인(전송됨)
     await page
       .getByText(question)
       .first()
@@ -225,8 +216,8 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
     await page
       .getByRole('button', { name: /별점/ })
       .first()
-      .waitFor({ state: 'visible', timeout: 40_000 })
+      .waitFor({ state: 'visible', timeout: 60_000 })
       .catch(() => {});
-    await pause(page, 4_500); // 답변 본문을 충분히 읽도록 노출
+    await pause(page, 5_000); // 개인 가이드 참조 답변을 충분히 읽도록 노출
   });
 });
