@@ -166,7 +166,7 @@ class TestOcrAPI(TestCase):
     async def test_get_ocr_result_includes_manufacturer(self):
         # Given
         from app.models.medical_records import InputMethod, MedicalRecord, RecordStatus, RecordType
-        from app.models.medications import Medication
+        from app.models.medications import ApiStatus, Medication
         from app.models.users import User
 
         signup_data = {
@@ -196,6 +196,7 @@ class TestOcrAPI(TestCase):
                 record=record,
                 drug_name="타이레놀정500mg",
                 manufacturer="한국얀센",
+                api_status=ApiStatus.SEARCHED,
             )
 
             # When
