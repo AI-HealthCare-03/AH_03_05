@@ -5,6 +5,7 @@ from app.models.chat_messages import ChatMessage, MessageCategory, SenderType
 from app.models.chat_sessions import ChatSession, ChatSessionStatus
 from app.models.guides import Guide, GuideItem, GuideItemType
 from app.models.medical_records import MedicalRecord
+from app.models.medications import Medication
 from app.models.user_health_profiles import UserHealthProfile
 from app.models.users import User
 from app.services.chatbot_service import chat as llm_chat
@@ -70,6 +71,22 @@ async def _build_guide_context(session: ChatSession) -> str:
     return "\n\n".join(parts)
 
 
+async def _build_guide_medications(session: ChatSession) -> list[dict]:
+    """가이드 세션이면 가이드 record의 처방약을 프롬프트용 dict 리스트로 반환.
+
+    일반 세션(guide_id=None)이나 record 연결이 없으면 빈 리스트를 반환해
+    기존 동작과 동일하게 폴백한다. 키는 user 프롬프트 포맷에 맞춰
+    drug_name/frequency/timing을 사용한다.
+    """
+    if session.guide_id is None:
+        return []
+    guide = await Guide.get_or_none(id=session.guide_id)
+    if guide is None or guide.record_id is None:
+        return []
+    meds = await Medication.filter(record_id=guide.record_id)
+    return [{"drug_name": m.drug_name, "frequency": m.frequency or "", "timing": m.timing or ""} for m in meds]
+
+
 class ChatService:
     """챗봇 세션·메시지 서비스."""
 
@@ -121,6 +138,12 @@ class ChatService:
                     "current_medications": health_profile_obj.current_medications or [],
                     "doctor_opinion": health_profile_obj.doctor_opinion or "",
                 }
+
+            # 가이드 세션이면 가이드 record의 처방약으로 보강 (온보딩 입력값이 비었을 때만)
+            if not health_profile.get("current_medications"):
+                guide_meds = await _build_guide_medications(session)
+                if guide_meds:
+                    health_profile["current_medications"] = guide_meds
 
             # 이전 대화 히스토리 (최근 10개)
             prev_messages = await ChatMessage.filter(session=session).order_by("-created_at").limit(10)
