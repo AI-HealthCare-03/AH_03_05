@@ -319,6 +319,9 @@ export function RecordDetailScreen({ navigation, route }: Props) {
                       {[med.frequency, med.dosage].filter(Boolean).join(' · ')}
                     </Text>
                   ) : null}
+                  {!med.drug_ref_id && (
+                    <Text style={s.noRefText}>식약처 DB 미연결 — 약품 상세 없음</Text>
+                  )}
                 </View>
                 <Button
                   variant="ghost"
@@ -531,4 +534,5 @@ export default RecordDetailScreen;
 
 const s = StyleSheet.create({
   subtitleText: { fontSize: typography.fz12, color: colors.muted, marginTop: spacing.s2 },
+  noRefText: { fontSize: typography.fz11, color: colors.muted2, marginTop: spacing.s2 },
 });
