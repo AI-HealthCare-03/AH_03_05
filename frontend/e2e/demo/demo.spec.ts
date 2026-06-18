@@ -142,15 +142,26 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
   await page.waitForTimeout(2_500);
 
   // 2. 온보딩(건강 프로필) — 프로필 미입력 계정이라 로그인 직후 자동으로 온보딩에 안착한다.
-  //    STEP 1(연령대·성별)을 보여주고, 저장 없이 '건너뛰고 둘러보기'로 홈에 진입한다.
+  //    STEP 1(연령대·성별) 선택 → STEP 2(기저질환 입력) → 완료로 저장해 홈에 진입한다.
   await section('온보딩(건강 프로필)', async () => {
     await page
       .getByText('연령대')
       .first()
       .waitFor({ state: 'visible', timeout: 12_000 })
       .catch(() => {});
-    await pause(page, 2_500);
-    await tapIfPresent(page, page.getByText('건너뛰고 둘러보기'), 1_500);
+    await pause(page, 1_500);
+
+    // STEP 1: 연령대·성별 선택
+    await tapIfPresent(page, page.getByText('50대', { exact: true }).first(), 600);
+    await tapIfPresent(page, page.getByText('여성', { exact: true }).first(), 600);
+    await pause(page, 800);
+    await tapIfPresent(page, page.getByText('다음', { exact: true }).last(), 1_500);
+
+    // STEP 2: 기저질환만 입력. 현재 복용약(otherMeds)은 비워야 가이드 세션에서
+    // _build_guide_medications 보강이 작동함 (#249 조건: current_medications 비어야 보강).
+    await page.getByPlaceholder('예: 고혈압, 제2형 당뇨').fill('고혈압').catch(() => {});
+    await pause(page, 1_000);
+    await tapIfPresent(page, page.getByText('완료', { exact: true }).last(), 2_000);
   });
 
   // 3. 홈 대시보드 — 짧게 노출(스크롤 없이 길게 멈추지 않도록).
@@ -190,7 +201,7 @@ test('시연: 핵심 플로우 walkthrough', async ({ page }) => {
 
     const input = page.getByPlaceholder('궁금한 점을 입력해주세요');
     if ((await input.count()) === 0) return;
-    const question = '내가 먹고 있는 약이랑 같이 먹으면 안되는 거 있어?';
+    const question = '내가 먹고 있는 약이랑 같이 먹으면 안되는 영양제가 있어?';
     await input.click();
     await input.fill(question);
     await pause(page, 1_000);
