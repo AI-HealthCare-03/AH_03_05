@@ -51,7 +51,7 @@ class MedicalRecordService:
         record = await MedicalRecord.get_or_none(id=record_id, user=user, deleted_at=None)
         if record is None:
             return None
-        medications = await Medication.filter(record=record, api_status=ApiStatus.SEARCHED).all()
+        medications = await Medication.filter(record=record, api_status__in=[ApiStatus.SEARCHED, ApiStatus.SELECTED]).all()
         candidates = [
             {
                 "medication_id": m.id,
