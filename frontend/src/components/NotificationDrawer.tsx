@@ -19,6 +19,7 @@ import Icon from './Icon';
 import Card from './Card';
 import Button from './Button';
 import { notificationsApi } from '../api';
+import { formatRelativeTime } from '../utils/date';
 import Toast from './Toast';
 
 const DRAWER_WIDTH = 460;
@@ -149,9 +150,16 @@ export default function NotificationDrawer() {
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(todayStart.getDate() - 1);
   const isToday = (n: { date: string }) => new Date(n.date) >= todayStart;
+  const isYesterday = (n: { date: string }) => {
+    const d = new Date(n.date);
+    return d >= yesterdayStart && d < todayStart;
+  };
   const todayNotifs = notifications.filter(isToday);
-  const earlierNotifs = notifications.filter(n => !isToday(n));
+  const yesterdayNotifs = notifications.filter(isYesterday);
+  const earlierNotifs = notifications.filter(n => !isToday(n) && !isYesterday(n));
 
   if (!rendered) return null;
 
@@ -217,6 +225,7 @@ export default function NotificationDrawer() {
             ) : (
               [
                 { label: '오늘', items: todayNotifs },
+                { label: '어제', items: yesterdayNotifs },
                 { label: '이전', items: earlierNotifs },
               ].map(g =>
                 g.items.length > 0 ? (
@@ -277,7 +286,7 @@ export default function NotificationDrawer() {
                                   <Icon name="x" size={12} color={colors.muted2} />
                                 </TouchableOpacity>
                               )}
-                              <Text style={s.notifTime}>{n.time}</Text>
+                              <Text style={s.notifTime}>{formatRelativeTime(n.date) || n.time}</Text>
                             </View>
                           </View>
                         );
