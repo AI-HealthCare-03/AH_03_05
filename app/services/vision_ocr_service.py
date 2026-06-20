@@ -93,7 +93,7 @@ async def _notify_ocr_failed(job: ProcessingJob, record) -> None:
 async def _create_medications_from_ocr(record, lines: list) -> None:
     """
     DRUG_NAME 라인 → 식약처 검색 → Medication 생성
-    검색 성공 시 SEARCHED, 실패 시 신뢰도 높은 라인만 raw 저장
+    검색 실패 시 raw 텍스트로라도 저장
     """
     drug_lines = [line for line in lines if line["line_type"] == LineType.DRUG_NAME]
     if not drug_lines:
@@ -118,8 +118,7 @@ async def _create_medications_from_ocr(record, lines: list) -> None:
                     api_status=ApiStatus.SEARCHED,
                     ocr_confidence=line["confidence"],
                 )
-            elif line["confidence"] >= 0.85:
-                # 검색 실패: 신뢰도 높은 라인만 raw 텍스트로 저장 (애매한 인식은 버림)
+            else:
                 await Medication.create(
                     user=record.user,
                     record=record,
@@ -129,16 +128,14 @@ async def _create_medications_from_ocr(record, lines: list) -> None:
                     ocr_confidence=line["confidence"],
                 )
         except Exception:
-            # 예외 발생 시에도 신뢰도 높은 라인만 raw 저장
-            if line["confidence"] >= 0.85:
-                await Medication.create(
-                    user=record.user,
-                    record=record,
-                    drug_name=line["text"],
-                    input_method=InputMethod.OCR,
-                    api_status=ApiStatus.FAILED,
-                    ocr_confidence=line["confidence"],
-                )
+            await Medication.create(
+                user=record.user,
+                record=record,
+                drug_name=line["text"],
+                input_method=InputMethod.OCR,
+                api_status=ApiStatus.FAILED,
+                ocr_confidence=line["confidence"],
+            )
 
 
 async def process_ocr_job(job: ProcessingJob, image_data: bytes) -> bool:
