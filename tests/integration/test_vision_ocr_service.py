@@ -103,6 +103,18 @@ class TestClassifyLineType:
 
         assert _classify_line_type("기타 내용") == LineType.OTHER
 
+    def test_header_returns_other(self):
+        from app.models.ocr_lines import LineType
+        from app.services.vision_ocr_service import _classify_line_type
+
+        assert _classify_line_type("처방전 교부 번호 : 환자 정보") == LineType.OTHER
+
+    def test_drug_name_jeong_suffix(self):
+        from app.models.ocr_lines import LineType
+        from app.services.vision_ocr_service import _classify_line_type
+
+        assert _classify_line_type("리바로젯정") == LineType.DRUG_NAME
+
 
 class TestFcmService:
     """fcm_service 함수 테스트"""
