@@ -146,7 +146,13 @@ async def chat(
 
     # LLM 호출 (RAG 포함 try 블록 안으로 이동 → 예외 시 graceful 폴백)
     try:
-        rag_context = await get_rag_context(user_input, top_k=3)
+        try:
+            rag_context = await get_rag_context(user_input, top_k=3)
+        except Exception as rag_err:
+            import logging
+
+            logging.getLogger("chatbot").warning("RAG context failed, fallback to empty: %s", rag_err)
+            rag_context = ""
         guideline_context = "\n\n---\n\n".join(filter(None, [lore_context, rag_context]))
 
         response = await client.chat.completions.create(
@@ -185,6 +191,9 @@ async def chat(
         return result
 
     except Exception as e:
+        import logging
+
+        logging.getLogger("chatbot").exception("chatbot generate failed: %s", e)
         return {
             "answer": "죄송해요, 일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
             "safety_flag": False,

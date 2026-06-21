@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock
+
 import pytest
 
 from app.services.chatbot_service import chat
@@ -95,3 +97,28 @@ class TestChatWithHistory:
         result = await chat("그럼 저녁엔 뭐 먹어요?", health_profile, history)
         assert result["answer"] != ""
         assert result["safety_flag"] is False
+
+
+class TestChatResilience:
+    """RAG 실패 격리 + LLM 예외 로깅 테스트"""
+
+    async def test_rag_failure_falls_back_to_llm(self, mocker, mock_chat_normal, health_profile):
+        # RAG 검색이 실패해도 LLM은 정상 호출되어 답변이 나온다 (graceful degradation)
+        mocker.patch(
+            "app.services.chatbot_service.get_rag_context",
+            new_callable=AsyncMock,
+            side_effect=Exception("RAG down"),
+        )
+        result = await chat("암로디핀 식전에 먹어도 되나요?", health_profile)
+        assert result["answer"] != ""
+        assert result["safety_flag"] is False
+
+    async def test_llm_failure_returns_error_message(self, mocker, mock_get_rag_context, health_profile):
+        # LLM 호출이 실패하면 "일시적 오류" 메시지를 반환한다
+        mocker.patch(
+            "app.services.chatbot_service.client.chat.completions.create",
+            new_callable=AsyncMock,
+            side_effect=Exception("LLM down"),
+        )
+        result = await chat("암로디핀 식전에 먹어도 되나요?", health_profile)
+        assert "일시적인 오류" in result["answer"]
