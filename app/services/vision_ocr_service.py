@@ -1,3 +1,4 @@
+import re
 from datetime import UTC, datetime
 
 from google.cloud import vision
@@ -19,7 +20,31 @@ def _classify_line_type(text: str) -> LineType:
     """텍스트 내용으로 line_type 분류"""
     text_lower = text.lower()
 
-    drug_keywords = ["mg", "정", "캡슐", "시럽", "주사", "크림", "연고"]
+    # 처방전 헤더/메타 라인 우선 제외 (약품 오분류 방지)
+    header_keywords = [
+        "환자",
+        "정보",
+        "교부",
+        "조제",
+        "처방전",
+        "일자",
+        "번호",
+        "성명",
+        "주민",
+        "보험",
+        "병원",
+        "의원",
+        "약국",
+        "의료기관",
+        "면허",
+        "발행",
+        "수령",
+        "대조",
+    ]
+    if any(k in text for k in header_keywords):
+        return LineType.OTHER
+
+    drug_keywords = ["mg", "캡슐", "시럽", "주사", "크림", "연고"]
     freq_keywords = ["1일", "하루", "매일", "아침", "저녁", "점심", "취침", "식후", "식전"]
     dosage_keywords = ["1정", "2정", "0.5정", "1캡슐", "ml", "cc"]
     caution_keywords = ["주의", "금기", "피하", "복용하지", "알레르기"]
@@ -31,6 +56,9 @@ def _classify_line_type(text: str) -> LineType:
     if any(k in text for k in caution_keywords):
         return LineType.CAUTION
     if any(k in text_lower for k in drug_keywords):
+        return LineType.DRUG_NAME
+    # "정"은 약품명 접미사(한글/영문 바로 뒤 "정")일 때만 인식
+    if re.search(r"[가-힣A-Za-z]정(\s|$|\d)", text):
         return LineType.DRUG_NAME
 
     return LineType.OTHER
@@ -91,7 +119,6 @@ async def _create_medications_from_ocr(record, lines: list) -> None:
                     ocr_confidence=line["confidence"],
                 )
             else:
-                # 검색 결과 없으면 raw 텍스트로 저장
                 await Medication.create(
                     user=record.user,
                     record=record,
@@ -101,7 +128,6 @@ async def _create_medications_from_ocr(record, lines: list) -> None:
                     ocr_confidence=line["confidence"],
                 )
         except Exception:
-            # 예외 발생 시에도 raw 텍스트로 저장
             await Medication.create(
                 user=record.user,
                 record=record,
